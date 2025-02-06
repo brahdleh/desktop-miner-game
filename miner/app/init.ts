@@ -1,7 +1,11 @@
 import { Block } from './types'
 import {
-  CANVAS_WIDTH, BLOCK_SIZE, SURFACE_Y,
-  MINE_LEFT, MINE_WIDTH, MINE_DEPTH_PX,
+  CANVAS_WIDTH, 
+  BLOCK_SIZE, 
+  SURFACE_Y,
+  MINE_LEFT, 
+  MINE_WIDTH, 
+  MINE_DEPTH_PX,
   BASE_BACKPACK_CAPACITY
 } from './constants'
 
