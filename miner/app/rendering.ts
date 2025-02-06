@@ -3,7 +3,8 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, SURFACE_Y, MINE_DEPTH_PX,
   MINE_LEFT, BLOCK_SIZE, MINE_WIDTH, PLAYER_WIDTH, PLAYER_HEIGHT,
   DEFAULT_MINE_TIME,
-  PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER
+  PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
+  DENSE_BLOCK_TIME_MULTIPLIER
 } from './constants'
 
 export function draw(
@@ -65,7 +66,13 @@ function drawBlocks(
 ) {
   for (const block of blocks) {
     if (!block.isMined) {
-      ctx.fillStyle = block.mineable ? "#808080" : "#228B22"
+      // Choose color based on block type
+      if (!block.mineable) {
+        ctx.fillStyle = "#228B22"  // Green for non-mineable blocks
+      } else {
+        ctx.fillStyle = block.blockType === 0 ? "#808080" : "#505050"  // Darker grey for type 1
+      }
+      
       ctx.fillRect(
         block.x, 
         block.y - cameraOffsetY, 
@@ -106,7 +113,11 @@ function drawMiningProgress(
 ) {
   if (!miningTargetBlock) return
 
-  const requiredTime = DEFAULT_MINE_TIME / player.pickaxeLevel
+  const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
+  const requiredTime = miningTargetBlock.blockType === 1 
+    ? baseTime * DENSE_BLOCK_TIME_MULTIPLIER 
+    : baseTime
+
   ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
   ctx.fillRect(
     miningTargetBlock.x,
@@ -207,23 +218,23 @@ function drawInventory(
   ctx: CanvasRenderingContext2D,
   player: Player
 ) {
-  const slotSize = 40  // Slightly smaller slots
-  const padding = 5    // Reduced padding
-  const startX = 10    // Match HUD positioning
-  const startY = CANVAS_HEIGHT - 120 - (slotSize + padding) * player.blockInventory.length  // Position above HUD
+  const slotSize = 40
+  const padding = 5
+  const startX = 10
+  const startY = CANVAS_HEIGHT - 120 - (slotSize + padding)
   
   // Draw inventory slots
-  for (let i = 0; i < player.blockInventory.length; i++) {
-    const y = startY + (slotSize + padding) * i
+  for (let i = 0; i < 2; i++) {
+    const y = startY - (slotSize + padding) * i
     
     // Draw slot background
-    ctx.fillStyle = i === player.selectedSlot ? "#555555" : "#333333"
+    ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#FFFFFF"
     ctx.fillRect(startX, y, slotSize, slotSize)
     
     // Draw block count
     if (player.blockInventory[i] > 0) {
-      // Draw block icon
-      ctx.fillStyle = "#808080"
+      // Draw block icon with appropriate color for block type
+      ctx.fillStyle = i === 0 ? "#808080" : "#505050"
       ctx.fillRect(startX + 5, y + 5, slotSize - 10, slotSize - 10)
       
       // Draw count

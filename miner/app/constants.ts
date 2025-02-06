@@ -13,10 +13,11 @@ export const SURFACE_Y = 5 * BLOCK_SIZE
 // Mining constants
 export const PICKAXE_BASE_COST = 1
 export const PICKAXE_COST_MULTIPLIER = 2
-export const DEFAULT_MINE_TIME = 2000
+export const DEFAULT_MINE_TIME = 200
+export const DENSE_BLOCK_TIME_MULTIPLIER = 2  // Dense blocks take twice as long to mine
 
 // Backpack constants
-export const BASE_BACKPACK_CAPACITY = 5
+export const BASE_BACKPACK_CAPACITY = 100
 export const BACKPACK_CAPACITY_INCREMENT = 2
 export const BACKPACK_BASE_COST = 1
 export const BACKPACK_COST_MULTIPLIER = 2

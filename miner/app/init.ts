@@ -26,12 +26,16 @@ export function initializeBlocks(): Block[] {
   // Generate mine shaft
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
+      // Determine block type based on depth
+      const depth = (y - SURFACE_Y) / BLOCK_SIZE
+      const blockType = depth > 25 ? 1 : 0  // Switch to darker blocks after 25 blocks deep
+      
       blocks.push({
         x,
         y,
         isMined: false,
         mineable: true,
-        blockType: 1
+        blockType
       })
     }
   }
@@ -51,7 +55,7 @@ export function initializePlayer() {
     pickaxeLevel: 1,
     backpackLevel: 1,
     backpackCapacity: BASE_BACKPACK_CAPACITY,
-    blockInventory: [0],
+    blockInventory: [0, 0],  // Initialize with two slots, one for each block type
     selectedSlot: 0,
   }
 } 

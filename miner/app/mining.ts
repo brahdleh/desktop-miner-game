@@ -7,7 +7,8 @@ import {
   BACKPACK_BASE_COST, 
   BACKPACK_COST_MULTIPLIER,
   BASE_BACKPACK_CAPACITY, 
-  BACKPACK_CAPACITY_INCREMENT
+  BACKPACK_CAPACITY_INCREMENT,
+  DENSE_BLOCK_TIME_MULTIPLIER
 } from './constants'
 
 export function handleMining(
@@ -20,14 +21,24 @@ export function handleMining(
     return { miningProgress, miningTargetBlock }
   }
 
+  // Stop mining if inventory becomes full
+  if (player.inventory >= player.backpackCapacity) {
+    return { miningProgress: 0, miningTargetBlock: null }
+  }
+
   miningProgress += 16.67 // approximate per frame at ~60fps
-  const requiredTime = Math.max(DEFAULT_MINE_TIME / player.pickaxeLevel)
+  
+  // Calculate required time based on block type
+  const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
+  const requiredTime = miningTargetBlock.blockType === 1 
+    ? baseTime * DENSE_BLOCK_TIME_MULTIPLIER 
+    : baseTime
   
   if (miningProgress >= requiredTime) {
     miningTargetBlock.isMined = true
     if (player.inventory < player.backpackCapacity) {
       player.inventory++
-      player.blockInventory[0]++ // Add to block inventory
+      player.blockInventory[miningTargetBlock.blockType]++
     }
     updateHUD()
     return { miningProgress: 0, miningTargetBlock: null }
@@ -71,6 +82,9 @@ export function canMineBlock(
   clickY: number,
   player: Player
 ): boolean {
+  // Check if inventory is full
+  if (player.inventory >= player.backpackCapacity) return false
+  
   if (block.isMined || !block.mineable) return false
 
   const isClickInBlock = 
@@ -117,10 +131,11 @@ export function attemptPlaceBlock(
   const distY = Math.abs((player.y + BLOCK_SIZE/2) - (gridY + BLOCK_SIZE/2))
   if (distX > BLOCK_SIZE * 2 || distY > BLOCK_SIZE * 2) return false
 
-  // Place the block
+  // Place the block with the correct block type
   existingBlock.isMined = false
+  existingBlock.blockType = player.selectedSlot  // Set block type to match inventory slot
   player.blockInventory[player.selectedSlot]--
-  player.inventory--  // Decrease total inventory count
-  updateHUD()  // Update the HUD
+  player.inventory--
+  updateHUD()
   return true
 } 
