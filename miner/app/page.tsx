@@ -27,7 +27,7 @@ export default function MiningGame() {
     const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
     const SURFACE_Y = 5 * BLOCK_SIZE // 3 blocks from the top, adjust as desired
     const UPGRADE_COST = 4
-    const DEFAULT_MINE_TIME = 100
+    const DEFAULT_MINE_TIME = 2000
     const UPGRADED_MINE_TIME = 1000
 
     // The total mine depth in blocks, for drawing large background
