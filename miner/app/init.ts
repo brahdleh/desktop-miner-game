@@ -14,7 +14,8 @@ export function initializeBlocks(): Block[] {
       x,
       y: SURFACE_Y,
       isMined: false,
-      mineable: x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE
+      mineable: x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE,
+      blockType: 0
     })
   }
 
@@ -26,6 +27,7 @@ export function initializeBlocks(): Block[] {
         y,
         isMined: false,
         mineable: true,
+        blockType: 1
       })
     }
   }
@@ -45,5 +47,7 @@ export function initializePlayer() {
     pickaxeLevel: 1,
     backpackLevel: 1,
     backpackCapacity: BASE_BACKPACK_CAPACITY,
+    blockInventory: [0],
+    selectedSlot: 0,
   }
 } 

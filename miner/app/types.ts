@@ -9,6 +9,8 @@ export interface Player {
   pickaxeLevel: number
   backpackLevel: number
   backpackCapacity: number
+  blockInventory: number[]
+  selectedSlot: number
 }
 
 export interface Block {
@@ -16,6 +18,7 @@ export interface Block {
   y: number
   isMined: boolean
   mineable: boolean
+  blockType: number
 }
 
 export interface Zone {

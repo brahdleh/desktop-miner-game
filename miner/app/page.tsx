@@ -15,7 +15,8 @@ import {
   attemptSell, 
   attemptPickaxeUpgrade, 
   attemptBackpackUpgrade, 
-  canMineBlock 
+  canMineBlock,
+  attemptPlaceBlock
 } from "./mining"
 import { draw, updateHUD } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
@@ -95,6 +96,13 @@ export default function MiningGame() {
       const clickX = e.clientX - rect.left
       const clickY = e.clientY - rect.top + cameraOffsetY
 
+      // Right click for placement
+      if (e.button === 2) {
+        attemptPlaceBlock(player, blocks, clickX, clickY, () => updateHUD(player))
+        return
+      }
+
+      // Left click for mining (existing code)
       for (const block of blocks) {
         if (canMineBlock(block, clickX, clickY, player)) {
           miningTargetBlock = block
@@ -109,11 +117,20 @@ export default function MiningGame() {
       miningProgress = 0
     }
 
+    const handleWheel = (e: WheelEvent) => {
+      const delta = Math.sign(e.deltaY)
+      player.selectedSlot = (player.selectedSlot + delta + player.blockInventory.length) % player.blockInventory.length
+    }
+
+    // Prevent context menu
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault())
+
     // Add listeners
     document.addEventListener("keydown", handleKeyDown)
     document.addEventListener("keyup", handleKeyUp)
     canvas.addEventListener("mousedown", handleMouseDown)
     canvas.addEventListener("mouseup", handleMouseUp)
+    canvas.addEventListener("wheel", handleWheel)
 
     // Initialize and start game
     updateHUD(player)

@@ -24,6 +24,7 @@ export function draw(
   drawPlayer(ctx, player, cameraOffsetY)
   drawMiningProgress(ctx, miningTargetBlock, miningProgress, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
+  drawInventory(ctx, player)
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
@@ -188,6 +189,41 @@ function drawZoneText(
     zone.x + 5,
     zone.y + 140 - cameraOffsetY
   )
+}
+
+function drawInventory(
+  ctx: CanvasRenderingContext2D,
+  player: Player
+) {
+  const slotSize = 40  // Slightly smaller slots
+  const padding = 5    // Reduced padding
+  const startX = 10    // Match HUD positioning
+  const startY = CANVAS_HEIGHT - 140 - (slotSize + padding) * player.blockInventory.length  // Position above HUD
+  
+  // Draw inventory slots
+  for (let i = 0; i < player.blockInventory.length; i++) {
+    const y = startY + (slotSize + padding) * i
+    
+    // Draw slot background
+    ctx.fillStyle = i === player.selectedSlot ? "#555555" : "#333333"
+    ctx.fillRect(startX, y, slotSize, slotSize)
+    
+    // Draw block count
+    if (player.blockInventory[i] > 0) {
+      // Draw block icon
+      ctx.fillStyle = "#808080"
+      ctx.fillRect(startX + 5, y + 5, slotSize - 10, slotSize - 10)
+      
+      // Draw count
+      ctx.fillStyle = "white"
+      ctx.font = "12px Arial"
+      ctx.fillText(
+        player.blockInventory[i].toString(),
+        startX + slotSize - 20,
+        y + slotSize - 10
+      )
+    }
+  }
 }
 
 export function updateHUD(player: Player) {
