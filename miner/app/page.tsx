@@ -25,10 +25,18 @@ export default function MiningGame() {
     const MOVE_SPEED = 3
     const MINE_WIDTH = 8 // Number of blocks wide
     const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
-    const SURFACE_Y = 5 * BLOCK_SIZE // 3 blocks from the top, adjust as desired
-    const UPGRADE_COST = 4
+    const SURFACE_Y = 5 * BLOCK_SIZE // 5 blocks from the top, adjust as desired
+    
+    // Pickaxe upgrade cost constants
+    const PICKAXE_BASE_COST = 1
+    const PICKAXE_COST_MULTIPLIER = 2
     const DEFAULT_MINE_TIME = 2000
-    const UPGRADED_MINE_TIME = 1000
+
+    // Backpack constants
+    const BASE_BACKPACK_CAPACITY = 5
+    const BACKPACK_CAPACITY_INCREMENT = 2
+    const BACKPACK_BASE_COST = 1
+    const BACKPACK_COST_MULTIPLIER = 2
 
     // The total mine depth in blocks, for drawing large background
     const MINE_DEPTH_BLOCKS = 50
@@ -38,15 +46,15 @@ export default function MiningGame() {
     // Top-left for upgrade, top-right for selling:
     const UPGRADE_ZONE = {
       x: 0,
-      y: SURFACE_Y - PLAYER_HEIGHT,
+      y: SURFACE_Y - 150,
       width: 100,
-      height: PLAYER_HEIGHT,
+      height: 150,
     }
     const SELL_ZONE = {
       x: CANVAS_WIDTH - 100,
-      y: SURFACE_Y - PLAYER_HEIGHT,
+      y: SURFACE_Y - 150,
       width: 100,
-      height: PLAYER_HEIGHT,
+      height: 150,
     }
 
     // -------------------------------------------------------------------------
@@ -60,7 +68,9 @@ export default function MiningGame() {
       onGround: false,
       inventory: 0,
       gold: 0,
-      currentPick: "default" as "default" | "upgraded",
+      pickaxeLevel: 1,
+      backpackLevel: 1,
+      backpackCapacity: BASE_BACKPACK_CAPACITY,
     }
 
     interface Block {
@@ -120,14 +130,20 @@ export default function MiningGame() {
       const goldDisplay = document.getElementById("goldDisplay")
       const inventoryDisplay = document.getElementById("inventoryDisplay")
       const pickaxeDisplay = document.getElementById("pickaxeDisplay")
+      const backpackDisplay = document.getElementById("backpackDisplay")
 
       if (goldDisplay) goldDisplay.textContent = player.gold.toString()
-      if (inventoryDisplay) inventoryDisplay.textContent = player.inventory.toString()
+      if (inventoryDisplay) inventoryDisplay.textContent = player.inventory.toString()+" / "+player.backpackCapacity
       if (pickaxeDisplay) {
         pickaxeDisplay.textContent =
-          player.currentPick === "default" ? "Default" : "Upgraded"
+          String(player.pickaxeLevel)
+      }
+      if (backpackDisplay) {
+        backpackDisplay.textContent =
+          String(player.backpackLevel)
       }
     }
+  
 
     // -------------------------------------------------------------------------
     // Input & Player Movement
@@ -212,11 +228,14 @@ export default function MiningGame() {
       // If currently mining a block
       if (miningTargetBlock) {
         miningProgress += 16.67 // approximate per frame at ~60fps
-        const requiredTime =
-          player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME
+        const requiredTime = Math.max(
+          DEFAULT_MINE_TIME / player.pickaxeLevel
+        )
         if (miningProgress >= requiredTime) {
           miningTargetBlock.isMined = true
-          player.inventory++
+          if (player.inventory < player.backpackCapacity) {
+            player.inventory++
+          }
           miningTargetBlock = null
           miningProgress = 0
           updateHUD()
@@ -235,9 +254,13 @@ export default function MiningGame() {
       ctx.fillStyle = "#add8e6"
       ctx.fillRect(0, -cameraOffsetY, CANVAS_WIDTH, SURFACE_Y)
 
-      // Underground background - big rectangle covering the mineshaft
+      // Underground not mineable
       ctx.fillStyle = "#333333"
       ctx.fillRect(0, SURFACE_Y - cameraOffsetY, CANVAS_WIDTH, MINE_DEPTH_PX)
+
+      // Underground shaft
+      ctx.fillStyle = "#add8e6"
+      ctx.fillRect(MINE_LEFT, SURFACE_Y - cameraOffsetY, MINE_LEFT +80, MINE_DEPTH_PX)
 
       // Draw blocks
       for (const block of blocks) {
@@ -262,7 +285,7 @@ export default function MiningGame() {
       // Draw mining progress (overlay)
       if (miningTargetBlock) {
         const requiredTime =
-          player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME
+          DEFAULT_MINE_TIME / player.pickaxeLevel
         ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
         ctx.fillRect(
           miningTargetBlock.x,
@@ -279,16 +302,44 @@ export default function MiningGame() {
       ctx.fillRect(SELL_ZONE.x, SELL_ZONE.y - cameraOffsetY, SELL_ZONE.width, SELL_ZONE.height)
 
       ctx.fillStyle = "#fff"
+      ctx.font = "14px Arial"
+      ctx.fillText(
+        "Shop",
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 20 - cameraOffsetY,
+      )
       ctx.font = "12px Arial"
       ctx.fillText(
-        "UPGRADE (E)",
-        UPGRADE_ZONE.x + 2,
-        UPGRADE_ZONE.y + 30 - cameraOffsetY,
+        "Sell blocks: P",
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 50 - cameraOffsetY,
       )
       ctx.fillText(
-        "SELL (E)",
-        SELL_ZONE.x + 20,
-        SELL_ZONE.y + 30 - cameraOffsetY,
+        "+ Pickaxe: E",
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 80 - cameraOffsetY,
+      )
+      ctx.fillText(
+        "Cost: "+Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1),
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 100 - cameraOffsetY,
+      )
+      ctx.fillText(
+        "+ Backpack: R",
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 120 - cameraOffsetY,
+      )
+      ctx.fillText(
+        "Cost:"+Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1),
+        UPGRADE_ZONE.x + 5,
+        UPGRADE_ZONE.y + 140 - cameraOffsetY,
+      )
+      // RHS
+      ctx.font = "14px Arial"
+      ctx.fillText(
+        "Upgrades",
+        SELL_ZONE.x + 10,
+        SELL_ZONE.y + 20 - cameraOffsetY,
       )
     }
 
@@ -304,11 +355,24 @@ export default function MiningGame() {
       }
     }
 
-    function attemptUpgrade() {
-      // If you still have default pick, and can afford it
-      if (player.currentPick === "default" && player.gold >= UPGRADE_COST) {
-        player.gold -= UPGRADE_COST
-        player.currentPick = "upgraded"
+    function attemptPickaxeUpgrade() {
+      const cost =
+        PICKAXE_BASE_COST * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
+      if (player.gold >= cost) {
+        player.gold -= cost
+        player.pickaxeLevel += 1
+        updateHUD()
+      }
+    }
+
+    function attemptBackpackUpgrade() {
+      const cost =
+        BACKPACK_BASE_COST * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+      if (player.gold >= cost) {
+        player.gold -= cost
+        player.backpackLevel += 1
+        player.backpackCapacity =
+          BASE_BACKPACK_CAPACITY + (player.backpackLevel - 1) * BACKPACK_CAPACITY_INCREMENT
         updateHUD()
       }
     }
@@ -342,14 +406,24 @@ export default function MiningGame() {
     const handleKeyDown = (e: KeyboardEvent) => {
       keys[e.key] = true
 
-      // Press 'E' to interact: either upgrade or sell, depending on zone
+      // Press 'E' to upgrade pick or sell ores
       if (e.key === "e") {
         // Check if in upgrade zone
         if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
-          attemptUpgrade()
+          attemptPickaxeUpgrade()
         }
-        // Check if in sell zone
-        else if (isPlayerInZone(SELL_ZONE) && player.y <= SURFACE_Y) {
+      }
+      // Press 'R' to upgrade backpack
+      if (e.key === "r") {
+        // Check if in upgrade zone
+        if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
+          attemptBackpackUpgrade()
+        }
+      }
+      // Press 'p' to sell
+      if (e.key === "p") {
+        // Check if in upgrade zone
+        if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           attemptSell()
         }
       }
@@ -429,13 +503,15 @@ export default function MiningGame() {
         {/* HUD */}
         <div
           id="hud"
-          className="absolute top-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded"
+          className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded"
         >
           Gold: <span id="goldDisplay">0</span>
           <br />
           Inventory: <span id="inventoryDisplay">0</span>
           <br />
           Pickaxe: <span id="pickaxeDisplay">Default</span>
+          <br />
+          Backpack: <span id="backpackDisplay">Default</span>
         </div>
       </div>
     </div>
