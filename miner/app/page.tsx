@@ -23,7 +23,7 @@ export default function MiningGame() {
     const MOVE_SPEED = 3
     const MINE_WIDTH = 8 // Number of blocks wide
     const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
-    const SURFACE_Y = 3 * BLOCK_SIZE // 3 blocks from the top
+    const SURFACE_Y = 5 * BLOCK_SIZE // 3 blocks from the top
     const UPGRADE_COST = 4
     const DEFAULT_MINE_TIME = 2000
     const UPGRADED_MINE_TIME = 1000
@@ -40,29 +40,49 @@ export default function MiningGame() {
       currentPick: "default",
     }
 
-    const blocks: { x: number; y: number; isMined: boolean }[] = []
+    // Updated block type to include 'mineable'
+    interface Block {
+      x: number
+      y: number
+      isMined: boolean
+      mineable: boolean
+    }
+
+    const blocks: Block[] = []
     let cameraOffsetY = 0
     let miningProgress = 0
-    let miningTargetBlock: { x: number; y: number; isMined: boolean } | null = null
+    let miningTargetBlock: Block | null = null
     const keys: { [key: string]: boolean } = {}
 
+    // Generate initial blocks
     function initGame() {
-      // Generate top platform
+      // 1) Generate top "grass" platform (non-mineable if outside of shaft column)
       for (let x = 0; x < CANVAS_WIDTH; x += BLOCK_SIZE) {
-        blocks.push({
-          x: x,
-          y: SURFACE_Y,
-          isMined: false,
-        })
+        if(x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE) {
+          blocks.push({
+            x: x,
+            y: SURFACE_Y,
+            isMined: false,
+            mineable: true, // top platform is NOT mineable
+          })
+        } else {
+          blocks.push({
+            x: x,
+            y: SURFACE_Y,
+            isMined: false,
+            mineable: false, // top platform is NOT mineable
+          })
+        }
       }
 
-      // Generate mine shaft
+      // 2) Generate mine shaft (mineable)
       for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + 50 * BLOCK_SIZE; y += BLOCK_SIZE) {
         for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
           blocks.push({
             x: x,
             y: y,
             isMined: false,
+            mineable: true,
           })
         }
       }
@@ -74,7 +94,10 @@ export default function MiningGame() {
       const pickaxeDisplay = document.getElementById("pickaxeDisplay")
       if (goldDisplay) goldDisplay.textContent = player.gold.toString()
       if (inventoryDisplay) inventoryDisplay.textContent = player.inventory.toString()
-      if (pickaxeDisplay) pickaxeDisplay.textContent = player.currentPick === "default" ? "Default" : "Upgraded"
+      if (pickaxeDisplay) {
+        pickaxeDisplay.textContent =
+          player.currentPick === "default" ? "Default" : "Upgraded"
+      }
     }
 
     function handleInput() {
@@ -96,17 +119,25 @@ export default function MiningGame() {
       player.onGround = false
       for (const block of blocks) {
         if (!block.isMined && collision(player, block)) {
+          // Vertical collisions
           if (player.velocityY > 0 && player.y + PLAYER_HEIGHT <= block.y + player.velocityY) {
             player.y = block.y - PLAYER_HEIGHT
             player.velocityY = 0
             player.onGround = true
-          } else if (player.velocityY < 0 && player.y >= block.y + BLOCK_SIZE + player.velocityY) {
+          } else if (
+            player.velocityY < 0 &&
+            player.y >= block.y + BLOCK_SIZE + player.velocityY
+          ) {
             player.y = block.y + BLOCK_SIZE
             player.velocityY = 0
           }
+          // Horizontal collisions
           if (player.velocityX > 0 && player.x + PLAYER_WIDTH <= block.x + player.velocityX) {
             player.x = block.x - PLAYER_WIDTH
-          } else if (player.velocityX < 0 && player.x >= block.x + BLOCK_SIZE + player.velocityX) {
+          } else if (
+            player.velocityX < 0 &&
+            player.x >= block.x + BLOCK_SIZE + player.velocityX
+          ) {
             player.x = block.x + BLOCK_SIZE
           }
         }
@@ -122,7 +153,7 @@ export default function MiningGame() {
         cameraOffsetY = Math.max(0, player.y - PLAYER_HEIGHT / 2)
       }
 
-      // Surface check
+      // Surface check (auto-sell upon reaching surface)
       if (player.y <= SURFACE_Y) {
         player.gold += player.inventory
         player.inventory = 0
@@ -131,13 +162,20 @@ export default function MiningGame() {
     }
 
     function collision(a: { x: number; y: number }, b: { x: number; y: number }) {
-      return a.x < b.x + BLOCK_SIZE && a.x + PLAYER_WIDTH > b.x && a.y < b.y + BLOCK_SIZE && a.y + PLAYER_HEIGHT > b.y
+      return (
+        a.x < b.x + BLOCK_SIZE &&
+        a.x + PLAYER_WIDTH > b.x &&
+        a.y < b.y + BLOCK_SIZE &&
+        a.y + PLAYER_HEIGHT > b.y
+      )
     }
 
     function handleMining() {
       if (miningTargetBlock) {
-        miningProgress += 16.67 // Approximately 60 FPS
-        if (miningProgress >= (player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME)) {
+        miningProgress += 16.67 // Approx for 60 FPS
+        const requiredTime =
+          player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME
+        if (miningProgress >= requiredTime) {
           miningTargetBlock.isMined = true
           player.inventory++
           miningTargetBlock = null
@@ -148,14 +186,25 @@ export default function MiningGame() {
     }
 
     function draw() {
-      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+      // Fill background with dark grey
+      ctx.fillStyle = "#333333"
+      ctx.fillRect(0, SURFACE_Y, CANVAS_WIDTH, CANVAS_HEIGHT)
+      
+      // Fill the sky with blue
+      ctx.fillStyle = "#add8e6"
+      ctx.fillRect(0, 0, CANVAS_WIDTH, SURFACE_Y)
 
       // Draw blocks
       for (const block of blocks) {
         if (!block.isMined) {
-          ctx.fillStyle = "#808080" // Grey color
+          // If it's the top non-mineable platform, draw green (grass)
+          if (!block.mineable) {
+            ctx.fillStyle = "#228B22" // grass-green
+          } else {
+            ctx.fillStyle = "#808080" // grey for mineable rock
+          }
           ctx.fillRect(block.x, block.y - cameraOffsetY, BLOCK_SIZE, BLOCK_SIZE)
-          ctx.strokeStyle = "#000000" // Black border
+          ctx.strokeStyle = "#000000"
           ctx.strokeRect(block.x, block.y - cameraOffsetY, BLOCK_SIZE, BLOCK_SIZE)
         }
       }
@@ -166,21 +215,43 @@ export default function MiningGame() {
 
       // Draw mining progress
       if (miningTargetBlock) {
+        const requiredTime =
+          player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME
         ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
         ctx.fillRect(
           miningTargetBlock.x,
           miningTargetBlock.y - cameraOffsetY,
-          BLOCK_SIZE * (miningProgress / (player.currentPick === "default" ? DEFAULT_MINE_TIME : UPGRADED_MINE_TIME)),
+          BLOCK_SIZE * (miningProgress / requiredTime),
           BLOCK_SIZE,
         )
       }
 
-      // Draw surface line
+      // Draw surface line for clarity (optional)
       ctx.strokeStyle = "#00FF00"
       ctx.beginPath()
       ctx.moveTo(0, SURFACE_Y - cameraOffsetY)
       ctx.lineTo(CANVAS_WIDTH, SURFACE_Y - cameraOffsetY)
       ctx.stroke()
+    }
+
+    // Helper: Sell blocks via button
+    function sellBlocks() {
+      // Only allow selling if at/above surface, similar to auto-sell logic
+      if (player.y <= SURFACE_Y && player.inventory > 0) {
+        player.gold += player.inventory
+        player.inventory = 0
+        updateHUD()
+      }
+    }
+
+    // Helper: Upgrade pickaxe via button
+    function upgradePickaxe() {
+      // Only allow upgrading if at/above surface, have enough gold, and still default pick
+      if (player.y <= SURFACE_Y && player.gold >= UPGRADE_COST && player.currentPick === "default") {
+        player.gold -= UPGRADE_COST
+        player.currentPick = "upgraded"
+        updateHUD()
+      }
     }
 
     function gameLoop() {
@@ -197,13 +268,16 @@ export default function MiningGame() {
       const clickY = e.clientY - rect.top + cameraOffsetY
 
       for (const block of blocks) {
+        // Only mine if block is not mined, *is mineable*, and the click is inside it
         if (
           !block.isMined &&
+          block.mineable &&
           clickX >= block.x &&
           clickX < block.x + BLOCK_SIZE &&
           clickY >= block.y &&
           clickY < block.y + BLOCK_SIZE
         ) {
+          // Check distance from player (simple range check)
           if (
             Math.abs(player.x - block.x) <= BLOCK_SIZE * 2 &&
             Math.abs(player.y + PLAYER_HEIGHT / 2 - (block.y + BLOCK_SIZE / 2)) <= BLOCK_SIZE * 2
@@ -223,10 +297,9 @@ export default function MiningGame() {
 
     document.addEventListener("keydown", (e) => {
       keys[e.key] = true
-      if (e.key === "u" && player.y <= SURFACE_Y && player.gold >= UPGRADE_COST && player.currentPick === "default") {
-        player.gold -= UPGRADE_COST
-        player.currentPick = "upgraded"
-        updateHUD()
+      // Keyboard shortcut for upgrading
+      if (e.key === "u") {
+        upgradePickaxe()
       }
     })
 
@@ -238,7 +311,7 @@ export default function MiningGame() {
     updateHUD()
     gameLoop()
 
-    // Cleanup function
+    // Cleanup on unmount
     return () => {
       document.removeEventListener("keydown", (e) => {
         keys[e.key] = true
@@ -249,12 +322,20 @@ export default function MiningGame() {
       canvas.removeEventListener("mousedown", () => {})
       canvas.removeEventListener("mouseup", () => {})
     }
-  }, []) // Empty dependency array ensures this effect runs only once on mount
+  }, [])
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div id="gameContainer" className="relative">
-        <canvas id="gameCanvas" width="800" height="600" className="border-2 border-gray-800" ref={canvasRef}></canvas>
+        <canvas
+          id="gameCanvas"
+          width="800"
+          height="600"
+          className="border-2 border-gray-800"
+          ref={canvasRef}
+        ></canvas>
+
+        {/* HUD - typically top-left */}
         <div id="hud" className="absolute top-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded">
           Gold: <span id="goldDisplay">0</span>
           <br />
@@ -262,7 +343,36 @@ export default function MiningGame() {
           <br />
           Pickaxe: <span id="pickaxeDisplay">Default</span>
         </div>
+
+        {/* 3) Sell blocks section (top-left as well) */}
+        <div className="absolute top-2 left-32 bg-white bg-opacity-75 text-black p-2 rounded">
+          <button onClick={() => { /* Must wrap in arrow function to access the scope properly */ 
+            const event = new Event("SellClicked")
+            document.dispatchEvent(event) // not strictly required, but can help separate concerns
+          }}>
+            Sell Blocks
+          </button>
+        </div>
+
+        {/* 4) Upgrade pickaxe section (top-right) */}
+        <div className="absolute top-2 right-2 bg-white bg-opacity-75 text-black p-2 rounded">
+          <button onClick={() => {
+            const event = new Event("UpgradeClicked")
+            document.dispatchEvent(event)
+          }}>
+            Upgrade Pickaxe
+          </button>
+        </div>
       </div>
+
+      {/*
+        We can directly call sellBlocks/upgradePickaxe from the onClick as well:
+        <button onClick={sellBlocks}>Sell Blocks</button>
+        <button onClick={upgradePickaxe}>Upgrade Pickaxe</button>
+
+        However, if you prefer to keep all game logic inside useEffect, you might
+        dispatch events or use a ref-based approach. Shown above is one example.
+      */}
     </div>
   )
 }
