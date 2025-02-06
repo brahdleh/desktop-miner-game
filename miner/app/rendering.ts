@@ -151,43 +151,55 @@ function drawZoneText(
   ctx.fillStyle = "#fff"
   
   // Shop header
-  ctx.font = "14px Arial"
+  ctx.font = "bold 18px Arial"  // Larger, bold font for header
   ctx.fillText(
-    "Shop",
-    zone.x + 5,
-    zone.y + 20 - cameraOffsetY
+    "SHOP",
+    zone.x + 10,
+    zone.y + 25 - cameraOffsetY
   )
 
-  // Shop options
-  ctx.font = "12px Arial"
+  // Divider line
+  ctx.strokeStyle = "#ffffff"
+  ctx.beginPath()
+  ctx.moveTo(zone.x + 10, zone.y + 35 - cameraOffsetY)
+  ctx.lineTo(zone.x + zone.width - 10, zone.y + 35 - cameraOffsetY)
+  ctx.stroke()
+
+  // Shop options with improved spacing and formatting
+  ctx.font = "14px Arial"
+  
+  // Sell blocks option
   ctx.fillText(
-    "Sell blocks: P",
-    zone.x + 5,
-    zone.y + 50 - cameraOffsetY
+    "Sell Blocks [P]",
+    zone.x + 10,
+    zone.y + 60 - cameraOffsetY
   )
   
   // Pickaxe upgrade
   ctx.fillText(
-    "+ Pickaxe: E",
-    zone.x + 5,
-    zone.y + 80 - cameraOffsetY
+    "↑ Pickaxe [E]",
+    zone.x + 10,
+    zone.y + 90 - cameraOffsetY
   )
+  ctx.font = "12px Arial"
   ctx.fillText(
-    "Cost: " + Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1),
-    zone.x + 5,
-    zone.y + 100 - cameraOffsetY
+    `Cost: ${Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)} gold`,
+    zone.x + 20,
+    zone.y + 110 - cameraOffsetY
   )
   
   // Backpack upgrade
+  ctx.font = "14px Arial"
   ctx.fillText(
-    "+ Backpack: R",
-    zone.x + 5,
-    zone.y + 120 - cameraOffsetY
-  )
-  ctx.fillText(
-    "Cost:" + Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1),
-    zone.x + 5,
+    "↑ Backpack [R]",
+    zone.x + 10,
     zone.y + 140 - cameraOffsetY
+  )
+  ctx.font = "12px Arial"
+  ctx.fillText(
+    `Cost: ${Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)} gold`,
+    zone.x + 20,
+    zone.y + 160 - cameraOffsetY
   )
 }
 
@@ -198,7 +210,7 @@ function drawInventory(
   const slotSize = 40  // Slightly smaller slots
   const padding = 5    // Reduced padding
   const startX = 10    // Match HUD positioning
-  const startY = CANVAS_HEIGHT - 140 - (slotSize + padding) * player.blockInventory.length  // Position above HUD
+  const startY = CANVAS_HEIGHT - 120 - (slotSize + padding) * player.blockInventory.length  // Position above HUD
   
   // Draw inventory slots
   for (let i = 0; i < player.blockInventory.length; i++) {

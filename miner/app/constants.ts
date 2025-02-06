@@ -28,14 +28,14 @@ export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 // Action zones
 export const UPGRADE_ZONE = {
   x: 0,
-  y: SURFACE_Y - 150,
-  width: 100,
-  height: 150,
+  y: SURFACE_Y - 170,
+  width: 120,
+  height: 170,
 }
 
 export const SELL_ZONE = {
   x: CANVAS_WIDTH - 100,
-  y: SURFACE_Y - 150,
-  width: 100,
-  height: 150,
+y: SURFACE_Y - 170,
+  width: 120,
+  height: 170,
 } 
