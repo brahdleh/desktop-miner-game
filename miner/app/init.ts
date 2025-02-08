@@ -19,7 +19,8 @@ export function initializeBlocks(): Block[] {
       y: SURFACE_Y,
       isMined: false,
       mineable: x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE,
-      blockType: 0
+      blockType: 0,
+      value: 1
     })
   }
 
@@ -29,16 +30,19 @@ export function initializeBlocks(): Block[] {
       // Determine block type based on depth
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
       const blockType = depth > 25 ? 1 : 0  // Switch to darker blocks after 25 blocks deep
+      const value = blockType === 1 ? 3 : 1  // Dense blocks worth more
       
       blocks.push({
         x,
         y,
         isMined: false,
         mineable: true,
-        blockType
+        blockType,
+        value
       })
     }
   }
+
 
   return blocks
 }

@@ -226,24 +226,35 @@ function drawInventory(
   // Draw inventory slots
   for (let i = 0; i < 2; i++) {
     const y = startY - (slotSize + padding) * i
+    const blockValue = i === 0 ? 1 : 3  // Regular blocks worth 1, dense blocks worth 3
     
     // Draw slot background
     ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#FFFFFF"
     ctx.fillRect(startX, y, slotSize, slotSize)
     
-    // Draw block count
+    // Draw block count and value
     if (player.blockInventory[i] > 0) {
-      // Draw block icon with appropriate color for block type
+      // Draw block icon
       ctx.fillStyle = i === 0 ? "#808080" : "#505050"
-      ctx.fillRect(startX + 5, y + 5, slotSize - 10, slotSize - 10)
+      ctx.fillRect(startX + 3, y + 3, slotSize - 6, slotSize - 6)
       
       // Draw count
       ctx.fillStyle = "white"
       ctx.font = "12px Arial"
       ctx.fillText(
         player.blockInventory[i].toString(),
-        startX + slotSize - 20,
-        y + slotSize - 10
+        startX + 6,
+        y + slotSize - 8
+      )
+      
+
+      // Draw value
+      ctx.fillStyle = "#FFD700"  // Gold color
+      ctx.font = "10px Arial"
+      ctx.fillText(
+        `${blockValue}g`,
+        startX + 5,
+        y + 14
       )
     }
   }

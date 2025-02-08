@@ -19,6 +19,7 @@ export interface Block {
   isMined: boolean
   mineable: boolean
   blockType: number
+  value: number
 }
 
 export interface Zone {

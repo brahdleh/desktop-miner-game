@@ -48,11 +48,17 @@ export function handleMining(
 }
 
 export function attemptSell(player: Player, updateHUD: () => void) {
-  if (player.inventory > 0) {
-    player.gold += player.inventory
-    player.inventory = 0
-    // Clear block inventory array
-    player.blockInventory = player.blockInventory.map(() => 0)
+  // Only sell blocks from selected slot
+  const selectedBlockCount = player.blockInventory[player.selectedSlot]
+  if (selectedBlockCount > 0) {
+    // Calculate value based on block type
+    const blockValue = player.selectedSlot === 0 ? 1 : 2  // Regular blocks worth 1, dense blocks worth 2
+    player.gold += selectedBlockCount * blockValue
+    
+    // Only reduce the inventory for the selected block type
+    player.inventory -= selectedBlockCount
+    player.blockInventory[player.selectedSlot] = 0
+    
     updateHUD()
   }
 }

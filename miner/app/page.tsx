@@ -7,7 +7,8 @@ import {
   CANVAS_HEIGHT, 
   SURFACE_Y,
   UPGRADE_ZONE, 
-  SELL_ZONE 
+  SELL_ZONE,
+  MINE_DEPTH_PX,
 } from "./constants"
 import { handleInput, updatePlayer, isPlayerInZone } from "./player"
 import { 
@@ -49,7 +50,7 @@ export default function MiningGame() {
       updatePlayer(player, blocks)
       
       // Update camera
-      cameraOffsetY = Math.max(player.y + 60/2 - CANVAS_HEIGHT/4)
+      cameraOffsetY = Math.min(player.y - CANVAS_HEIGHT/5, SURFACE_Y + MINE_DEPTH_PX - CANVAS_HEIGHT)
       
       const miningResult = handleMining(
         player, 
