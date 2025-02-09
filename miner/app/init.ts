@@ -6,7 +6,8 @@ import {
   MINE_LEFT, 
   MINE_WIDTH, 
   MINE_DEPTH_PX,
-  BASE_BACKPACK_CAPACITY
+  BASE_BACKPACK_CAPACITY,
+  BLOCK_TYPES
 } from './constants'
 
 export function initializeBlocks(): Block[] {
@@ -27,10 +28,9 @@ export function initializeBlocks(): Block[] {
   // Generate mine shaft
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
-      // Determine block type based on depth
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
       const blockType = depth > 25 ? 1 : 0  // Switch to darker blocks after 25 blocks deep
-      const value = blockType === 1 ? 3 : 1  // Dense blocks worth more
+      const blockData = Object.values(BLOCK_TYPES)[blockType]
       
       blocks.push({
         x,
@@ -38,7 +38,7 @@ export function initializeBlocks(): Block[] {
         isMined: false,
         mineable: true,
         blockType,
-        value
+        value: blockData.value
       })
     }
   }

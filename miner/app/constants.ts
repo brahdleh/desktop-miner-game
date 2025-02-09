@@ -39,4 +39,22 @@ export const SELL_ZONE = {
 y: SURFACE_Y - 170,
   width: 120,
   height: 170,
-} 
+}
+
+// Block type definitions
+export const BLOCK_TYPES = {
+  REGULAR: {
+    id: 0,
+    value: 1,
+    color: "#808080",
+    miningTimeMultiplier: 1,
+    name: "Regular"
+  },
+  DENSE: {
+    id: 1,
+    value: 3,
+    color: "#505050",
+    miningTimeMultiplier: 2,
+    name: "Dense"
+  }
+} as const 

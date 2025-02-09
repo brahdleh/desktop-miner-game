@@ -4,7 +4,8 @@ import {
   MINE_LEFT, BLOCK_SIZE, MINE_WIDTH, PLAYER_WIDTH, PLAYER_HEIGHT,
   DEFAULT_MINE_TIME,
   PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
-  DENSE_BLOCK_TIME_MULTIPLIER
+  DENSE_BLOCK_TIME_MULTIPLIER,
+  BLOCK_TYPES
 } from './constants'
 
 export function draw(
@@ -66,11 +67,11 @@ function drawBlocks(
 ) {
   for (const block of blocks) {
     if (!block.isMined) {
-      // Choose color based on block type
       if (!block.mineable) {
         ctx.fillStyle = "#228B22"  // Green for non-mineable blocks
       } else {
-        ctx.fillStyle = block.blockType === 0 ? "#808080" : "#505050"  // Darker grey for type 1
+        const blockData = Object.values(BLOCK_TYPES)[block.blockType]
+        ctx.fillStyle = blockData.color
       }
       
       ctx.fillRect(
@@ -114,7 +115,7 @@ function drawMiningProgress(
   if (!miningTargetBlock) return
 
   const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
-  const requiredTime = miningTargetBlock.blockType === 1 
+  const requiredTime = miningTargetBlock.blockType === BLOCK_TYPES.DENSE.id 
     ? baseTime * DENSE_BLOCK_TIME_MULTIPLIER 
     : baseTime
 
@@ -226,7 +227,8 @@ function drawInventory(
   // Draw inventory slots
   for (let i = 0; i < 2; i++) {
     const y = startY - (slotSize + padding) * i
-    const blockValue = i === 0 ? 1 : 3  // Regular blocks worth 1, dense blocks worth 3
+    const blockData = Object.values(BLOCK_TYPES)[i]
+    const blockValue = blockData.value
     
     // Draw slot background
     ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#FFFFFF"
@@ -235,7 +237,7 @@ function drawInventory(
     // Draw block count and value
     if (player.blockInventory[i] > 0) {
       // Draw block icon
-      ctx.fillStyle = i === 0 ? "#808080" : "#505050"
+      ctx.fillStyle = blockData.color
       ctx.fillRect(startX + 3, y + 3, slotSize - 6, slotSize - 6)
       
       // Draw count

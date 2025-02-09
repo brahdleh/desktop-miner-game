@@ -8,7 +8,8 @@ import {
   BACKPACK_COST_MULTIPLIER,
   BASE_BACKPACK_CAPACITY, 
   BACKPACK_CAPACITY_INCREMENT,
-  DENSE_BLOCK_TIME_MULTIPLIER
+  DENSE_BLOCK_TIME_MULTIPLIER,
+  BLOCK_TYPES
 } from './constants'
 
 export function handleMining(
@@ -30,9 +31,8 @@ export function handleMining(
   
   // Calculate required time based on block type
   const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
-  const requiredTime = miningTargetBlock.blockType === 1 
-    ? baseTime * DENSE_BLOCK_TIME_MULTIPLIER 
-    : baseTime
+  const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
+  const requiredTime = baseTime * blockData.miningTimeMultiplier
   
   if (miningProgress >= requiredTime) {
     miningTargetBlock.isMined = true
@@ -48,14 +48,11 @@ export function handleMining(
 }
 
 export function attemptSell(player: Player, updateHUD: () => void) {
-  // Only sell blocks from selected slot
   const selectedBlockCount = player.blockInventory[player.selectedSlot]
   if (selectedBlockCount > 0) {
-    // Calculate value based on block type
-    const blockValue = player.selectedSlot === 0 ? 1 : 2  // Regular blocks worth 1, dense blocks worth 2
-    player.gold += selectedBlockCount * blockValue
+    const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
+    player.gold += selectedBlockCount * blockData.value
     
-    // Only reduce the inventory for the selected block type
     player.inventory -= selectedBlockCount
     player.blockInventory[player.selectedSlot] = 0
     
