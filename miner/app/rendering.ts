@@ -323,10 +323,10 @@ function drawInventory(
   ctx: CanvasRenderingContext2D,
   player: Player
 ) {
-  const slotSize = 40
+  const slotSize = 35
   const padding = 5
   const startX = 10
-  const startY = CANVAS_HEIGHT - 170
+  const startY = CANVAS_HEIGHT - 160
   
   // Draw inventory slots
   for (let i = 0; i < 10; i++) {
@@ -352,7 +352,7 @@ function drawInventory(
       
       // Draw count
       ctx.fillStyle = "white"
-      ctx.font = "12px Arial"
+      ctx.font = "11px Arial"
       ctx.fillText(
         player.blockInventory[i].toString(),
         x + 6,
