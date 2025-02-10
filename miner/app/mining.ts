@@ -61,7 +61,7 @@ export function attemptSell(player: Player, updateHUD: () => void) {
     const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
     player.gold += selectedBlockCount * blockData.value
     
-    player.inventory -= selectedBlockCount
+    player.inventory -= selectedBlockCount * blockData.density
     player.blockInventory[player.selectedSlot] = 0
     
     updateHUD()

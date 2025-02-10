@@ -99,7 +99,7 @@ export const BLOCK_TYPES = {
     id: 6,
     value: 50,
     color: "#A2A4A4",
-    miningTimeMultiplier: 50,
+    miningTimeMultiplier: 30,
     density: 1,
     name: "Iron"
 

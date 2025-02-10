@@ -296,7 +296,7 @@ function drawCraftZoneText(
     ctx.fillText(
       `${nextBackpack.name} Backpack [R]`,
       zone.x + 10,
-      zone.y + 120 - cameraOffsetY
+      zone.y + 110 - cameraOffsetY
     )
   
     if (nextBackpack.requirements) {
@@ -305,7 +305,7 @@ function drawCraftZoneText(
       ctx.fillText(
         `Requires: ${nextBackpack.requirements.amount}x ${blockType.name}`,
         zone.x + 20,
-        zone.y + 140 - cameraOffsetY
+        zone.y + 130 - cameraOffsetY
       )
     }
   } else {
@@ -313,7 +313,7 @@ function drawCraftZoneText(
     ctx.fillText(
       "Final Backpack",
       zone.x + 10,
-      zone.y + 160 - cameraOffsetY
+      zone.y + 150 - cameraOffsetY
     )
   }
 }
