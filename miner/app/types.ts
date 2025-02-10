@@ -11,6 +11,8 @@ export interface Player {
   backpackCapacity: number
   blockInventory: number[]
   selectedSlot: number
+  pickaxeType: number
+  backpackType: number
 }
 
 export interface Block {

@@ -9,7 +9,7 @@ export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
   if (keys["ArrowLeft"] || keys["a"]) player.velocityX = -MOVE_SPEED
   if (keys["ArrowRight"] || keys["d"]) player.velocityX = MOVE_SPEED
-  if ((keys["ArrowUp"] || keys["w"]) && player.onGround) {
+  if ((keys[" "] || keys["w"]) && player.onGround) {
     player.velocityY = -JUMP_STRENGTH
     player.onGround = false
   }

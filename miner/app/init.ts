@@ -6,8 +6,8 @@ import {
   MINE_LEFT, 
   MINE_WIDTH, 
   MINE_DEPTH_PX,
-  BASE_BACKPACK_CAPACITY,
-  BLOCK_TYPES
+  BLOCK_TYPES,
+  BACKPACK_TYPES,
 } from './constants'
 
 export function initializeBlocks(): Block[] {
@@ -26,12 +26,31 @@ export function initializeBlocks(): Block[] {
   }
 
   // Generate mine shaft
+  let n = 0
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
+      n++
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
-      const blockType = depth > 25 ? 1 : 0  // Switch to darker blocks after 25 blocks deep
+      var blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
       const blockData = Object.values(BLOCK_TYPES)[blockType]
       
+      // For testing, throw in ores at shallow depths
+      if (n === 15) {
+        blockType = 5
+      }
+      if (n === 18) {
+        blockType = 6
+      }
+      if (n === 21) {
+        blockType = 7
+      }
+      if (n === 24) {
+        blockType = 8
+      }
+      if (n === 27) {
+        blockType = 9
+      }
+
       blocks.push({
         x,
         y,
@@ -42,7 +61,6 @@ export function initializeBlocks(): Block[] {
       })
     }
   }
-
 
   return blocks
 }
@@ -58,8 +76,10 @@ export function initializePlayer() {
     gold: 0,
     pickaxeLevel: 1,
     backpackLevel: 1,
-    backpackCapacity: BASE_BACKPACK_CAPACITY,
-    blockInventory: [0, 0],  // Initialize with two slots, one for each block type
+    backpackCapacity: BACKPACK_TYPES.STONE.capacity,
+    blockInventory: Object.keys(BLOCK_TYPES).map(() => 0),  // Initialize one slot for each block type
     selectedSlot: 0,
+    backpackType: 0,
+    pickaxeType: 0
   }
 } 

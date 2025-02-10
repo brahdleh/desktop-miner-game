@@ -4,13 +4,17 @@ import {
   BLOCK_SIZE,
   PICKAXE_BASE_COST, 
   PICKAXE_COST_MULTIPLIER,
+  PICKAXE_MINE_INCREMENT,
   BACKPACK_BASE_COST, 
   BACKPACK_COST_MULTIPLIER,
-  BASE_BACKPACK_CAPACITY, 
   BACKPACK_CAPACITY_INCREMENT,
-  DENSE_BLOCK_TIME_MULTIPLIER,
-  BLOCK_TYPES
+  BLOCK_TYPES,
+  PICKAXE_TYPES,
+  BACKPACK_TYPES,
+  MAX_BACKPACK_LEVEL,
+  MAX_PICKAXE_LEVEL
 } from './constants'
+
 
 export function handleMining(
   player: Player, 
@@ -30,7 +34,9 @@ export function handleMining(
   miningProgress += 16.67 // approximate per frame at ~60fps
   
   // Calculate required time based on block type
-  const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
+  const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
+  const pickaxeBoost = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.pickaxeLevel - 1)
+  const baseTime = DEFAULT_MINE_TIME / pickaxeBoost
   const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
   const requiredTime = baseTime * blockData.miningTimeMultiplier
   
@@ -61,6 +67,9 @@ export function attemptSell(player: Player, updateHUD: () => void) {
 }
 
 export function attemptPickaxeUpgrade(player: Player, updateHUD: () => void) {
+  // Check if already at max level
+  if (player.pickaxeLevel >= MAX_PICKAXE_LEVEL) return
+
   const cost = PICKAXE_BASE_COST * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
   if (player.gold >= cost) {
     player.gold -= cost
@@ -70,12 +79,17 @@ export function attemptPickaxeUpgrade(player: Player, updateHUD: () => void) {
 }
 
 export function attemptBackpackUpgrade(player: Player, updateHUD: () => void) {
+  // Check if already at max level
+  if (player.backpackLevel >= MAX_BACKPACK_LEVEL) return
+
   const cost = BACKPACK_BASE_COST * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
   if (player.gold >= cost) {
     player.gold -= cost
     player.backpackLevel += 1
-    player.backpackCapacity = BASE_BACKPACK_CAPACITY + (player.backpackLevel - 1) * BACKPACK_CAPACITY_INCREMENT
+    const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
+    player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
     updateHUD()
+
   }
 }
 
@@ -141,4 +155,65 @@ export function attemptPlaceBlock(
   player.inventory--
   updateHUD()
   return true
-} 
+}
+
+export function attemptCraftPickaxe(player: Player, updateHUD: () => void): boolean {
+  // Get next pickaxe type
+  const nextPickaxeType = player.pickaxeType + 1
+  const nextPickaxe = Object.values(PICKAXE_TYPES)[nextPickaxeType]
+  
+  // Check if next pickaxe exists
+  if (!nextPickaxe) return false
+  
+  // Check requirements
+  if (nextPickaxe.requirements) {
+    const { blockType, amount } = nextPickaxe.requirements
+    if (player.blockInventory[blockType] < amount) return false
+    
+    // Consume materials
+    player.blockInventory[blockType] -= amount
+    player.inventory -= amount
+    
+    // Upgrade pickaxe
+    player.pickaxeType = nextPickaxeType
+    player.pickaxeLevel = 1  // Reset level when upgrading type
+    
+    updateHUD()
+    return true
+  }
+  
+  return false
+}
+
+export function attemptCraftBackpack(player: Player, updateHUD: () => void): boolean {
+  // Get next backpack type
+  const nextBackpackType = player.backpackType + 1
+  const nextBackpack = Object.values(BACKPACK_TYPES)[nextBackpackType]
+  
+  // Check if next backpack exists
+  if (!nextBackpack) return false
+  
+  // Check requirements
+  if (nextBackpack.requirements) {
+    const { blockType, amount } = nextBackpack.requirements
+    if (player.blockInventory[blockType] < amount) return false
+    
+    // Consume materials
+    player.blockInventory[blockType] -= amount
+    player.inventory -= amount 
+    
+    // Upgrade backpack
+    player.backpackType = nextBackpackType
+    player.backpackLevel = 1  // Reset level when upgrading type
+
+    // Update backpack capacity
+    const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
+    player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
+    
+    updateHUD()
+    return true
+
+  }
+
+  return false
+}

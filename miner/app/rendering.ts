@@ -4,8 +4,12 @@ import {
   MINE_LEFT, BLOCK_SIZE, MINE_WIDTH, PLAYER_WIDTH, PLAYER_HEIGHT,
   DEFAULT_MINE_TIME,
   PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
-  DENSE_BLOCK_TIME_MULTIPLIER,
-  BLOCK_TYPES
+  BLOCK_TYPES,
+  PICKAXE_TYPES,
+  PICKAXE_MINE_INCREMENT,
+  BACKPACK_TYPES,
+  MAX_PICKAXE_LEVEL,
+  MAX_BACKPACK_LEVEL
 } from './constants'
 
 export function draw(
@@ -67,12 +71,9 @@ function drawBlocks(
 ) {
   for (const block of blocks) {
     if (!block.isMined) {
-      if (!block.mineable) {
-        ctx.fillStyle = "#228B22"  // Green for non-mineable blocks
-      } else {
-        const blockData = Object.values(BLOCK_TYPES)[block.blockType]
-        ctx.fillStyle = blockData.color
-      }
+
+      const blockData = Object.values(BLOCK_TYPES)[block.blockType]
+      ctx.fillStyle = blockData.color
       
       ctx.fillRect(
         block.x, 
@@ -114,10 +115,12 @@ function drawMiningProgress(
 ) {
   if (!miningTargetBlock) return
 
-  const baseTime = DEFAULT_MINE_TIME / player.pickaxeLevel
-  const requiredTime = miningTargetBlock.blockType === BLOCK_TYPES.DENSE.id 
-    ? baseTime * DENSE_BLOCK_TIME_MULTIPLIER 
-    : baseTime
+  // Calculate required time based on block type
+  const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
+  const pickaxeBoost = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.pickaxeLevel - 1)
+  const baseTime = DEFAULT_MINE_TIME / pickaxeBoost
+  const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
+  const requiredTime = baseTime * blockData.miningTimeMultiplier
 
   ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
   ctx.fillRect(
@@ -131,7 +134,7 @@ function drawMiningProgress(
 function drawZones(
   ctx: CanvasRenderingContext2D,
   upgradeZone: Zone,
-  sellZone: Zone,
+  craftZone: Zone,
   player: Player,
   cameraOffsetY: number
 ) {
@@ -144,14 +147,15 @@ function drawZones(
     upgradeZone.height
   )
   ctx.fillRect(
-    sellZone.x, 
-    sellZone.y - cameraOffsetY, 
-    sellZone.width, 
-    sellZone.height
+    craftZone.x, 
+    craftZone.y - cameraOffsetY, 
+    craftZone.width, 
+    craftZone.height
   )
 
   // Draw zone text
   drawZoneText(ctx, upgradeZone, player, cameraOffsetY)
+  drawCraftZoneText(ctx, craftZone, player, cameraOffsetY)
 }
 
 function drawZoneText(
@@ -188,32 +192,124 @@ function drawZoneText(
   )
   
   // Pickaxe upgrade
+  const pickaxeMaxed = player.pickaxeLevel >= MAX_PICKAXE_LEVEL
   ctx.fillText(
-    "↑ Pickaxe [E]",
+    pickaxeMaxed ? "Pickaxe MAX" : "↑ Pickaxe [E]",
     zone.x + 10,
     zone.y + 90 - cameraOffsetY
   )
-  ctx.font = "12px Arial"
-  ctx.fillText(
-    `Cost: ${Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)} gold`,
-    zone.x + 20,
-    zone.y + 110 - cameraOffsetY
-  )
+  if (!pickaxeMaxed) {
+    ctx.font = "12px Arial"
+    ctx.fillText(
+      `Cost: ${Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)} gold`,
+      zone.x + 20,
+      zone.y + 110 - cameraOffsetY
+    )
+  }
   
   // Backpack upgrade
+  const backpackMaxed = player.backpackLevel >= MAX_BACKPACK_LEVEL
   ctx.font = "14px Arial"
   ctx.fillText(
-    "↑ Backpack [R]",
+    backpackMaxed ? "Backpack MAX" : "↑ Backpack [R]",
     zone.x + 10,
     zone.y + 140 - cameraOffsetY
   )
-  ctx.font = "12px Arial"
-  ctx.fillText(
-    `Cost: ${Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)} gold`,
-    zone.x + 20,
-    zone.y + 160 - cameraOffsetY
-  )
+  if (!backpackMaxed) {
+    ctx.font = "12px Arial"
+    ctx.fillText(
+      `Cost: ${Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)} gold`,
+      zone.x + 20,
+      zone.y + 160 - cameraOffsetY
+    )
+  }
 }
+
+function drawCraftZoneText(
+  ctx: CanvasRenderingContext2D,
+  zone: Zone,
+  player: Player,
+  cameraOffsetY: number
+) {
+  ctx.fillStyle = "#fff"
+  
+  // Crafting header
+  ctx.font = "bold 18px Arial"
+  ctx.fillText(
+    "CRAFTING",
+    zone.x + 10,
+    zone.y + 25 - cameraOffsetY
+  )
+
+  // Divider line
+  ctx.strokeStyle = "#ffffff"
+  ctx.beginPath()
+  ctx.moveTo(zone.x + 10, zone.y + 35 - cameraOffsetY)
+  ctx.lineTo(zone.x + zone.width - 10, zone.y + 35 - cameraOffsetY)
+  ctx.stroke()
+
+  // Show next pickaxe if available
+  const nextPickaxeType = player.pickaxeType + 1
+  const nextPickaxe = Object.values(PICKAXE_TYPES)[nextPickaxeType]
+  
+  if (nextPickaxe) {
+    ctx.font = "14px Arial"
+    ctx.fillText(
+      `${nextPickaxe.name} Pickaxe [E]`,
+      zone.x + 10,
+      zone.y + 60 - cameraOffsetY
+    )
+    
+    if (nextPickaxe.requirements) {
+      const blockType = Object.values(BLOCK_TYPES)[nextPickaxe.requirements.blockType]
+      ctx.font = "12px Arial"
+      ctx.fillText(
+        `Requires: ${nextPickaxe.requirements.amount}x ${blockType.name}`,
+        zone.x + 20,
+        zone.y + 80 - cameraOffsetY
+      )
+    }
+  } else {
+    ctx.font = "14px Arial"
+    ctx.fillText(
+      "Final Pickaxe",
+      zone.x + 10,
+      zone.y + 80 - cameraOffsetY
+    )
+  }
+
+
+  // Show next backpack if available
+  const nextBackpackType = player.backpackType + 1
+  const nextBackpack = Object.values(BACKPACK_TYPES)[nextBackpackType]
+
+  if (nextBackpack) {
+    ctx.font = "14px Arial"
+    ctx.fillText(
+      `${nextBackpack.name} Backpack [R]`,
+      zone.x + 10,
+      zone.y + 120 - cameraOffsetY
+    )
+  
+    if (nextBackpack.requirements) {
+      const blockType = Object.values(BLOCK_TYPES)[nextBackpack.requirements.blockType]
+      ctx.font = "12px Arial"
+      ctx.fillText(
+        `Requires: ${nextBackpack.requirements.amount}x ${blockType.name}`,
+        zone.x + 20,
+        zone.y + 140 - cameraOffsetY
+      )
+    }
+  } else {
+    ctx.font = "14px Arial"
+    ctx.fillText(
+      "Final Backpack",
+      zone.x + 10,
+      zone.y + 160 - cameraOffsetY
+    )
+  }
+}
+
 
 function drawInventory(
   ctx: CanvasRenderingContext2D,
@@ -222,40 +318,45 @@ function drawInventory(
   const slotSize = 40
   const padding = 5
   const startX = 10
-  const startY = CANVAS_HEIGHT - 120 - (slotSize + padding)
+  const startY = CANVAS_HEIGHT - 170
   
   // Draw inventory slots
-  for (let i = 0; i < 2; i++) {
-    const y = startY - (slotSize + padding) * i
+  for (let i = 0; i < 10; i++) {
+    // Calculate position
+    const column = Math.floor(i / 5)  // 0 for first column, 1 for second
+    const row = i % 5                 // 0-4 for each column
+    
+    const x = startX + column * (slotSize + padding)
+    const y = startY - row * (slotSize + padding)
+
     const blockData = Object.values(BLOCK_TYPES)[i]
     const blockValue = blockData.value
-    
+
     // Draw slot background
-    ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#FFFFFF"
-    ctx.fillRect(startX, y, slotSize, slotSize)
+    ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#E4E6EB"
+    ctx.fillRect(x, y, slotSize, slotSize)
     
     // Draw block count and value
     if (player.blockInventory[i] > 0) {
       // Draw block icon
       ctx.fillStyle = blockData.color
-      ctx.fillRect(startX + 3, y + 3, slotSize - 6, slotSize - 6)
+      ctx.fillRect(x + 3, y + 3, slotSize - 6, slotSize - 6)
       
       // Draw count
       ctx.fillStyle = "white"
       ctx.font = "12px Arial"
       ctx.fillText(
         player.blockInventory[i].toString(),
-        startX + 6,
+        x + 6,
         y + slotSize - 8
       )
       
-
       // Draw value
       ctx.fillStyle = "#FFD700"  // Gold color
       ctx.font = "10px Arial"
       ctx.fillText(
         `${blockValue}g`,
-        startX + 5,
+        x + 5,
         y + 14
       )
     }
@@ -274,9 +375,9 @@ export function updateHUD(player: Player) {
       `${player.inventory} / ${player.backpackCapacity}`
   }
   if (pickaxeDisplay) {
-    pickaxeDisplay.textContent = String(player.pickaxeLevel)
+    pickaxeDisplay.textContent = Object.values(PICKAXE_TYPES)[player.pickaxeType].name + " lvl " + String(player.pickaxeLevel)
   }
   if (backpackDisplay) {
-    backpackDisplay.textContent = String(player.backpackLevel)
+    backpackDisplay.textContent = Object.values(BACKPACK_TYPES)[player.backpackType].name + " lvl " + String(player.backpackLevel)
   }
 } 

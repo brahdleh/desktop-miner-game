@@ -6,9 +6,9 @@ import {
   CANVAS_WIDTH, 
   CANVAS_HEIGHT, 
   SURFACE_Y,
-  UPGRADE_ZONE, 
-  SELL_ZONE,
+  UPGRADE_ZONE,
   MINE_DEPTH_PX,
+  CRAFT_ZONE,
 } from "./constants"
 import { handleInput, updatePlayer, isPlayerInZone } from "./player"
 import { 
@@ -17,10 +17,13 @@ import {
   attemptPickaxeUpgrade, 
   attemptBackpackUpgrade, 
   canMineBlock,
-  attemptPlaceBlock
+  attemptPlaceBlock,
+  attemptCraftPickaxe,
+  attemptCraftBackpack
 } from "./mining"
 import { draw, updateHUD } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
+
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -62,7 +65,7 @@ export default function MiningGame() {
       miningTargetBlock = miningResult.miningTargetBlock
 
       draw(ctx, player, blocks, miningTargetBlock, miningProgress, cameraOffsetY, 
-           UPGRADE_ZONE, SELL_ZONE)
+           UPGRADE_ZONE, CRAFT_ZONE)
       
       requestAnimationFrame(gameLoop)
     }
@@ -72,6 +75,12 @@ export default function MiningGame() {
     // -------------------------------------------------------------------------
     const handleKeyDown = (e: KeyboardEvent) => {
       keys[e.key] = true
+
+      // Add inventory navigation with arrow keys
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        const delta = e.key === "ArrowDown" ? -1 : 1
+        player.selectedSlot = (player.selectedSlot + delta + player.blockInventory.length) % player.blockInventory.length
+      }
 
       if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
         switch (e.key) {
@@ -86,6 +95,16 @@ export default function MiningGame() {
             break
         }
       }
+
+      if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
+        if (e.key === "e") {
+          attemptCraftPickaxe(player, () => updateHUD(player))
+        }
+        if (e.key === "r") {
+          attemptCraftBackpack(player, () => updateHUD(player))
+        }
+      }
+
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -118,11 +137,6 @@ export default function MiningGame() {
       miningProgress = 0
     }
 
-    const handleWheel = (e: WheelEvent) => {
-      const delta = Math.sign(e.deltaY)
-      player.selectedSlot = (player.selectedSlot + delta + player.blockInventory.length) % player.blockInventory.length
-    }
-
     // Prevent context menu
     canvas.addEventListener("contextmenu", (e) => e.preventDefault())
 
@@ -131,7 +145,6 @@ export default function MiningGame() {
     document.addEventListener("keyup", handleKeyUp)
     canvas.addEventListener("mousedown", handleMouseDown)
     canvas.addEventListener("mouseup", handleMouseUp)
-    canvas.addEventListener("wheel", handleWheel)
 
     // Initialize and start game
     updateHUD(player)
