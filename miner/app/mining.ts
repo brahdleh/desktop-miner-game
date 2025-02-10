@@ -42,10 +42,12 @@ export function handleMining(
   
   if (miningProgress >= requiredTime) {
     miningTargetBlock.isMined = true
-    if (player.inventory < player.backpackCapacity) {
-      player.inventory++
-      player.blockInventory[miningTargetBlock.blockType]++
+    // Check if inventory is full based on block density
+    if (player.inventory + blockData.density < player.backpackCapacity) {
+      player.inventory += blockData.density
+      player.blockInventory[miningTargetBlock.blockType] += blockData.density
     }
+
     updateHUD()
     return { miningProgress: 0, miningTargetBlock: null }
   }

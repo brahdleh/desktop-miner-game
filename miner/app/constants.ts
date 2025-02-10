@@ -48,6 +48,7 @@ export const BLOCK_TYPES = {
     value: 1,
     color: "#228B22",
     miningTimeMultiplier: 1,
+    density: 1,
     name: "Grass"
   },
   STONE: {
@@ -55,63 +56,80 @@ export const BLOCK_TYPES = {
     value: 1,
     color: "#808080",
     miningTimeMultiplier: 1,
+    density: 1,
     name: "Stone"
   },
-  DENSE: {
+  SLATE: {
     id: 2,
     value: 3,
     color: "#3A3B3C",
-    miningTimeMultiplier: 2,
-    name: "Dense"
+    miningTimeMultiplier: 5,
+    density: 10,
+    name: "Slate"
+
   },
   MAGMA: {
     id: 3,
     value: 8,
     color: "#380000",
-    miningTimeMultiplier: 5,
+    miningTimeMultiplier: 20,
+    density: 50,
     name: "Magma"
+
   },
   BEDROCK: {
     id: 4,
     value: 20,
     color: "#101111",
-    miningTimeMultiplier: 15,
+    miningTimeMultiplier: 100,
+    density: 200,
     name: "Bedrock"
+
   },
   COPPER: {
     id: 5,
     value: 10,
     color: "#D16002",
     miningTimeMultiplier: 10,
+    density: 1,
     name: "Copper"
+
   },
   IRON: {
     id: 6,
     value: 20,
     color: "#A2A4A4",
-    miningTimeMultiplier: 15,
+    miningTimeMultiplier: 50,
+    density: 1,
     name: "Iron"
+
   },
   GOLD: {
     id: 7,
     value: 30,
     color: "#FCAE1E",
-    miningTimeMultiplier: 20,
+    miningTimeMultiplier: 100,
+    density: 1,
     name: "Gold"
+
   },
   EMERALD: {
     id: 8,
     value: 40,
     color: "#50C878",
-    miningTimeMultiplier: 30,
+    miningTimeMultiplier: 250,
+    density: 1,
     name: "Emerald"
+
   },
   DIAMOND: {
     id: 9,
     value: 50,
     color: "#4EE2EC",
-    miningTimeMultiplier: 40,
+    miningTimeMultiplier: 500,
+    density: 1,
     name: "Diamond"
+
   }
 } as const 
 

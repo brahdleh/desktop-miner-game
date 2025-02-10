@@ -23,6 +23,7 @@ import {
 } from "./mining"
 import { draw, updateHUD } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
+import { saveGame, loadGame } from "./storage"
 
 
 export default function MiningGame() {
@@ -75,6 +76,28 @@ export default function MiningGame() {
     // -------------------------------------------------------------------------
     const handleKeyDown = (e: KeyboardEvent) => {
       keys[e.key] = true
+
+      // Save/Load shortcuts
+      if (e.shiftKey) {
+        if (e.key === 'S') {
+          e.preventDefault() // Prevent browser save dialog
+          saveGame(player, blocks)
+        } else if (e.key === 'L') {
+          const savedData = loadGame()
+          if (savedData.player && savedData.blocks) {
+            // Update player
+            Object.assign(player, savedData.player)
+            
+            // Update blocks
+            blocks.length = 0 // Clear existing blocks
+            blocks.push(...savedData.blocks)
+            
+            // Update HUD
+            updateHUD(player)
+          }
+        }
+        return
+      }
 
       // Add inventory navigation with arrow keys
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -156,6 +179,9 @@ export default function MiningGame() {
       document.removeEventListener("keyup", handleKeyUp)
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("mouseup", handleMouseUp)
+      
+      // Optional: Auto-save on exit
+      saveGame(player, blocks)
     }
   }, [])
 
@@ -182,6 +208,20 @@ export default function MiningGame() {
           Pickaxe: <span id="pickaxeDisplay">Default</span>
           <br />
           Backpack: <span id="backpackDisplay">Default</span>
+        </div>
+
+        {/* Controls */}
+        <div
+          id="controls"
+          className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded"
+        >
+          <span className="text-xs opacity-50">L CLICK to mine</span>
+          <br />
+          <span className="text-xs opacity-50">R CLICK to place</span>
+          <br />
+          <span className="text-xs opacity-50">SHIFT S to Save</span>
+          <br />
+          <span className="text-xs opacity-50">SHIFT L to Load</span>
         </div>
       </div>
     </div>
