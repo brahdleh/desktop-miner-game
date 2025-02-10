@@ -9,7 +9,9 @@ import {
   PICKAXE_MINE_INCREMENT,
   BACKPACK_TYPES,
   MAX_PICKAXE_LEVEL,
-  MAX_BACKPACK_LEVEL
+  MAX_BACKPACK_LEVEL,
+  PICKAXE_BASE_COST,
+  BACKPACK_BASE_COST
 } from './constants'
 
 export function draw(
@@ -199,9 +201,12 @@ function drawZoneText(
     zone.y + 90 - cameraOffsetY
   )
   if (!pickaxeMaxed) {
+    const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
+    const baseCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier
+    const cost = baseCost * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
     ctx.font = "12px Arial"
     ctx.fillText(
-      `Cost: ${Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)} gold`,
+      `Cost: ${cost} gold`,
       zone.x + 20,
       zone.y + 110 - cameraOffsetY
     )
@@ -216,9 +221,12 @@ function drawZoneText(
     zone.y + 140 - cameraOffsetY
   )
   if (!backpackMaxed) {
+    const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
+    const baseCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier
+    const cost = baseCost * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
     ctx.font = "12px Arial"
     ctx.fillText(
-      `Cost: ${Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)} gold`,
+      `Cost: ${cost} gold`,
       zone.x + 20,
       zone.y + 160 - cameraOffsetY
     )

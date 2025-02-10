@@ -70,7 +70,10 @@ export function attemptPickaxeUpgrade(player: Player, updateHUD: () => void) {
   // Check if already at max level
   if (player.pickaxeLevel >= MAX_PICKAXE_LEVEL) return
 
-  const cost = PICKAXE_BASE_COST * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
+  const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
+  const baseCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier
+  const cost = baseCost * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
+  
   if (player.gold >= cost) {
     player.gold -= cost
     player.pickaxeLevel += 1
@@ -82,14 +85,15 @@ export function attemptBackpackUpgrade(player: Player, updateHUD: () => void) {
   // Check if already at max level
   if (player.backpackLevel >= MAX_BACKPACK_LEVEL) return
 
-  const cost = BACKPACK_BASE_COST * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+  const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
+  const baseCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier
+  const cost = baseCost * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+  
   if (player.gold >= cost) {
     player.gold -= cost
     player.backpackLevel += 1
-    const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
     player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
     updateHUD()
-
   }
 }
 

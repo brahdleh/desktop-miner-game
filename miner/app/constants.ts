@@ -121,54 +121,60 @@ export const PICKAXE_TYPES = {
     id: 0,
     miningTimeMultiplier: 1,
     name: "Stone",
-    requirements: null  // Starting pickaxe
+    requirements: null,  // Starting pickaxe
+    upgradeCostMultiplier: 1
   },
   COPPER: {
     id: 1,
     miningTimeMultiplier: 2,
     name: "Copper",
     requirements: {
-      blockType: 5,  // Copper blocks
+      blockType: 5,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 2
   },
   IRON: {
     id: 2,
     miningTimeMultiplier: 4,
     name: "Iron",
     requirements: {
-      blockType: 6,  // Iron blocks
+      blockType: 6,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 5
   },
   GOLD: {
     id: 3,
     miningTimeMultiplier: 8,
     name: "Gold",
     requirements: {
-      blockType: 7,  // Gold blocks
+      blockType: 7,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 10
   },
   EMERALD: {
     id: 4,
     miningTimeMultiplier: 16,
     name: "Emerald",
     requirements: {
-      blockType: 8,  // Emerald blocks
+      blockType: 8,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 20
   },
   DIAMOND: {
     id: 5,
     miningTimeMultiplier: 32,
     name: "Diamond",
     requirements: {
-      blockType: 9,  // Diamond blocks
+      blockType: 9,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 50
   }
-} as const 
+} as const
 
 // Backpack types
 export const BACKPACK_TYPES = {
@@ -176,52 +182,58 @@ export const BACKPACK_TYPES = {
     id: 0,
     capacity: 20,
     name: "Stone",
-    requirements: null
+    requirements: null,
+    upgradeCostMultiplier: 1
   },
   COPPER: {
     id: 1,
     capacity: 100,
     name: "Copper",
     requirements: {
-      blockType: 5,  // Copper blocks
+      blockType: 5,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 2
   },
   IRON: {
     id: 2,
     capacity: 500,
     name: "Iron",
     requirements: {
-      blockType: 6,  // Iron blocks
+      blockType: 6,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 5
   },
   GOLD: {
     id: 3,
     capacity: 2500,
     name: "Gold",
     requirements: {
-      blockType: 7,  // Gold blocks
+      blockType: 7,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 10
   },
   EMERALD: {
     id: 4,
     capacity: 15000,
     name: "Emerald",
     requirements: {
-      blockType: 8,  // Emerald blocks
+      blockType: 8,
       amount: 1
-      }
     },
+    upgradeCostMultiplier: 20
+  },
   DIAMOND: {
     id: 5,
     capacity: 100000,
     name: "Diamond",
     requirements: {
-      blockType: 9,  // Diamond blocks
+      blockType: 9,
       amount: 1
-    }
+    },
+    upgradeCostMultiplier: 50
   }
-} as const 
+} as const
 
