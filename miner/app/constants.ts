@@ -11,19 +11,19 @@ export const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
 export const SURFACE_Y = 5 * BLOCK_SIZE
 
 // Mining constants
-export const PICKAXE_BASE_COST = 1
+export const PICKAXE_BASE_COST = 10
 export const PICKAXE_MINE_INCREMENT = 1.5
 export const PICKAXE_COST_MULTIPLIER = 2
-export const DEFAULT_MINE_TIME = 100
+export const DEFAULT_MINE_TIME = 2000
 export const MAX_PICKAXE_LEVEL = 3
 
 // Backpack constants
 export const BACKPACK_CAPACITY_INCREMENT = 2
-export const BACKPACK_BASE_COST = 1
+export const BACKPACK_BASE_COST = 10
 export const BACKPACK_COST_MULTIPLIER = 2
 export const MAX_BACKPACK_LEVEL = 3
 // Mine dimensions
-export const MINE_DEPTH_BLOCKS = 100
+export const MINE_DEPTH_BLOCKS = 300
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
 // Action zones
@@ -47,7 +47,7 @@ export const BLOCK_TYPES = {
     id: 0,
     value: 1,
     color: "#228B22",
-    miningTimeMultiplier: 1,
+    miningTimeMultiplier: 0.5,
     density: 1,
     name: "Grass"
   },
@@ -61,43 +61,43 @@ export const BLOCK_TYPES = {
   },
   SLATE: {
     id: 2,
-    value: 3,
+    value: 5,
     color: "#3A3B3C",
-    miningTimeMultiplier: 5,
-    density: 10,
+    miningTimeMultiplier: 8,
+    density: 5,
     name: "Slate"
 
   },
   MAGMA: {
     id: 3,
-    value: 8,
+    value: 20,
     color: "#380000",
-    miningTimeMultiplier: 20,
-    density: 50,
+    miningTimeMultiplier: 30,
+    density: 20,
     name: "Magma"
 
   },
   BEDROCK: {
     id: 4,
-    value: 20,
+    value: 100,
     color: "#101111",
-    miningTimeMultiplier: 100,
-    density: 200,
+    miningTimeMultiplier: 200,
+    density: 100,
     name: "Bedrock"
 
   },
   COPPER: {
     id: 5,
-    value: 10,
+    value: 20,
     color: "#D16002",
-    miningTimeMultiplier: 10,
+    miningTimeMultiplier: 20,
     density: 1,
     name: "Copper"
 
   },
   IRON: {
     id: 6,
-    value: 20,
+    value: 50,
     color: "#A2A4A4",
     miningTimeMultiplier: 50,
     density: 1,
@@ -106,7 +106,7 @@ export const BLOCK_TYPES = {
   },
   GOLD: {
     id: 7,
-    value: 30,
+    value: 100,
     color: "#FCAE1E",
     miningTimeMultiplier: 100,
     density: 1,
@@ -115,7 +115,7 @@ export const BLOCK_TYPES = {
   },
   EMERALD: {
     id: 8,
-    value: 40,
+    value: 250,
     color: "#50C878",
     miningTimeMultiplier: 250,
     density: 1,
@@ -124,9 +124,9 @@ export const BLOCK_TYPES = {
   },
   DIAMOND: {
     id: 9,
-    value: 50,
+    value: 1000,
     color: "#4EE2EC",
-    miningTimeMultiplier: 500,
+    miningTimeMultiplier: 1000,
     density: 1,
     name: "Diamond"
 
@@ -144,53 +144,43 @@ export const PICKAXE_TYPES = {
   },
   COPPER: {
     id: 1,
-    miningTimeMultiplier: 2,
+    miningTimeMultiplier: 3,
     name: "Copper",
     requirements: {
       blockType: 5,
-      amount: 1
+      amount: 5
     },
-    upgradeCostMultiplier: 2
+    upgradeCostMultiplier: 5
   },
   IRON: {
     id: 2,
-    miningTimeMultiplier: 4,
+    miningTimeMultiplier: 10,
     name: "Iron",
     requirements: {
       blockType: 6,
       amount: 1
     },
-    upgradeCostMultiplier: 5
+    upgradeCostMultiplier: 20
   },
   GOLD: {
     id: 3,
-    miningTimeMultiplier: 8,
+    miningTimeMultiplier: 25,
     name: "Gold",
     requirements: {
       blockType: 7,
       amount: 1
     },
-    upgradeCostMultiplier: 10
+    upgradeCostMultiplier: 75
   },
-  EMERALD: {
-    id: 4,
-    miningTimeMultiplier: 16,
-    name: "Emerald",
+  DIAMOND: {
+    id: 5,
+    miningTimeMultiplier: 100,
+    name: "Diamond",
     requirements: {
       blockType: 8,
       amount: 1
     },
-    upgradeCostMultiplier: 20
-  },
-  DIAMOND: {
-    id: 5,
-    miningTimeMultiplier: 32,
-    name: "Diamond",
-    requirements: {
-      blockType: 9,
-      amount: 1
-    },
-    upgradeCostMultiplier: 50
+    upgradeCostMultiplier: 200
   }
 } as const
 
@@ -209,9 +199,9 @@ export const BACKPACK_TYPES = {
     name: "Copper",
     requirements: {
       blockType: 5,
-      amount: 1
+      amount: 5
     },
-    upgradeCostMultiplier: 2
+    upgradeCostMultiplier: 5
   },
   IRON: {
     id: 2,
@@ -219,9 +209,9 @@ export const BACKPACK_TYPES = {
     name: "Iron",
     requirements: {
       blockType: 6,
-      amount: 1
+      amount: 5
     },
-    upgradeCostMultiplier: 5
+    upgradeCostMultiplier: 20
   },
   GOLD: {
     id: 3,
@@ -229,29 +219,19 @@ export const BACKPACK_TYPES = {
     name: "Gold",
     requirements: {
       blockType: 7,
-      amount: 1
+      amount: 5
     },
-    upgradeCostMultiplier: 10
-  },
-  EMERALD: {
-    id: 4,
-    capacity: 15000,
-    name: "Emerald",
-    requirements: {
-      blockType: 8,
-      amount: 1
-    },
-    upgradeCostMultiplier: 20
+    upgradeCostMultiplier: 75
   },
   DIAMOND: {
     id: 5,
-    capacity: 100000,
+    capacity: 10000,
     name: "Diamond",
     requirements: {
-      blockType: 9,
-      amount: 1
+      blockType: 8,
+      amount: 5
     },
-    upgradeCostMultiplier: 50
+    upgradeCostMultiplier: 200
   }
 } as const
 

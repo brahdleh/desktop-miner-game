@@ -9,6 +9,8 @@ import {
   UPGRADE_ZONE,
   MINE_DEPTH_PX,
   CRAFT_ZONE,
+  PLAYER_HEIGHT,
+  BLOCK_SIZE
 } from "./constants"
 import { handleInput, updatePlayer, isPlayerInZone } from "./player"
 import { 
@@ -128,6 +130,10 @@ export default function MiningGame() {
         }
       }
 
+      // Allow s to place block just below player to help escape the mine
+      if (e.key === "s") {
+        attemptPlaceBlock(player, blocks, player.x, player.y + PLAYER_HEIGHT + 0.8*BLOCK_SIZE, () => updateHUD(player))
+      }
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -159,6 +165,7 @@ export default function MiningGame() {
       miningTargetBlock = null
       miningProgress = 0
     }
+
 
     // Prevent context menu
     canvas.addEventListener("contextmenu", (e) => e.preventDefault())
@@ -218,6 +225,8 @@ export default function MiningGame() {
           <span className="text-xs opacity-50">L CLICK to mine</span>
           <br />
           <span className="text-xs opacity-50">R CLICK to place</span>
+          <br />
+          <span className="text-xs opacity-50">s to place down</span>
           <br />
           <span className="text-xs opacity-50">SHIFT S to Save</span>
           <br />

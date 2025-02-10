@@ -10,6 +10,12 @@ import {
   BACKPACK_TYPES,
 } from './constants'
 
+// Helper function for normal distribution probability
+function normalDistribution(depth: number, mean: number, std: number): number {
+  const exp = -0.5 * Math.pow((depth - mean) / std, 2);
+  return Math.exp(exp);
+}
+
 export function initializeBlocks(): Block[] {
   const blocks: Block[] = []
 
@@ -25,6 +31,14 @@ export function initializeBlocks(): Block[] {
     })
   }
 
+  // Define ore distribution parameters
+  const oreDistribution = {
+    copper: { mean: 15, std: 15, maxProb: 0.09 },
+    iron: { mean: 40, std: 15, maxProb: 0.08 },
+    gold: { mean: 65, std: 15, maxProb: 0.07 },
+    diamond: { mean: 90, std: 15, maxProb: 0.06 }
+  };
+
   // Generate mine shaft
   let n = 0
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
@@ -34,21 +48,24 @@ export function initializeBlocks(): Block[] {
       var blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
       const blockData = Object.values(BLOCK_TYPES)[blockType]
       
-      // For testing, throw in ores at shallow depths
-      if (n === 15) {
+      // Calculate ore probabilities using normal distribution
+      const random = Math.random()
+      
+      // Copper (type 5)
+      if (depth >= 6 && random < oreDistribution.copper.maxProb * normalDistribution(depth, oreDistribution.copper.mean, oreDistribution.copper.std)) {
         blockType = 5
       }
-      if (n === 18) {
+      // Iron (type 6)
+      else if (depth >= 28 && random < oreDistribution.iron.maxProb * normalDistribution(depth, oreDistribution.iron.mean, oreDistribution.iron.std)) {
         blockType = 6
       }
-      if (n === 21) {
+      // Gold (type 7)
+      else if (depth >= 53 && random < oreDistribution.gold.maxProb * normalDistribution(depth, oreDistribution.gold.mean, oreDistribution.gold.std)) {
         blockType = 7
       }
-      if (n === 24) {
-        blockType = 8
-      }
-      if (n === 27) {
-        blockType = 9
+      // Diamond (type 8)
+      else if (depth >= 78 && random < oreDistribution.diamond.maxProb * normalDistribution(depth, oreDistribution.diamond.mean, oreDistribution.diamond.std)) {
+        blockType = 8  // Note: Changed from 7 to 8 as it appeared to be a bug in original code
       }
 
       blocks.push({
