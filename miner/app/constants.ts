@@ -15,13 +15,13 @@ export const PICKAXE_BASE_COST = 10
 export const PICKAXE_MINE_INCREMENT = 1.5
 export const PICKAXE_COST_MULTIPLIER = 2
 export const DEFAULT_MINE_TIME = 2000
-export const MAX_PICKAXE_LEVEL = 3
+export const MAX_PICKAXE_LEVEL = 4
 
 // Backpack constants
 export const BACKPACK_CAPACITY_INCREMENT = 2
 export const BACKPACK_BASE_COST = 10
 export const BACKPACK_COST_MULTIPLIER = 2
-export const MAX_BACKPACK_LEVEL = 3
+export const MAX_BACKPACK_LEVEL = 4
 // Mine dimensions
 export const MINE_DEPTH_BLOCKS = 300
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
@@ -90,7 +90,7 @@ export const BLOCK_TYPES = {
     id: 5,
     value: 20,
     color: "#D16002",
-    miningTimeMultiplier: 20,
+    miningTimeMultiplier: 10,
     density: 1,
     name: "Copper"
 
@@ -158,7 +158,7 @@ export const PICKAXE_TYPES = {
     name: "Iron",
     requirements: {
       blockType: 6,
-      amount: 1
+      amount: 5
     },
     upgradeCostMultiplier: 20
   },
@@ -168,7 +168,7 @@ export const PICKAXE_TYPES = {
     name: "Gold",
     requirements: {
       blockType: 7,
-      amount: 1
+      amount: 5
     },
     upgradeCostMultiplier: 75
   },
@@ -178,7 +178,7 @@ export const PICKAXE_TYPES = {
     name: "Diamond",
     requirements: {
       blockType: 8,
-      amount: 1
+      amount: 5
     },
     upgradeCostMultiplier: 200
   }
@@ -188,14 +188,14 @@ export const PICKAXE_TYPES = {
 export const BACKPACK_TYPES = {
   STONE: {
     id: 0,
-    capacity: 20,
+    capacity: 5,
     name: "Stone",
     requirements: null,
     upgradeCostMultiplier: 1
   },
   COPPER: {
     id: 1,
-    capacity: 100,
+    capacity: 50,
     name: "Copper",
     requirements: {
       blockType: 5,
@@ -215,7 +215,7 @@ export const BACKPACK_TYPES = {
   },
   GOLD: {
     id: 3,
-    capacity: 2500,
+    capacity: 5000,
     name: "Gold",
     requirements: {
       blockType: 7,
@@ -225,7 +225,7 @@ export const BACKPACK_TYPES = {
   },
   DIAMOND: {
     id: 5,
-    capacity: 10000,
+    capacity: 50000,
     name: "Diamond",
     requirements: {
       blockType: 8,
