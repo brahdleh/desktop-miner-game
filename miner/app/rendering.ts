@@ -13,6 +13,7 @@ import {
   PICKAXE_BASE_COST,
   BACKPACK_BASE_COST
 } from './constants'
+import { getBlockTexture } from './assets'
 
 export function draw(
   ctx: CanvasRenderingContext2D,
@@ -73,21 +74,35 @@ function drawBlocks(
 ) {
   for (const block of blocks) {
     if (!block.isMined) {
-
       const blockData = Object.values(BLOCK_TYPES)[block.blockType]
-      ctx.fillStyle = blockData.color
+      const texture = getBlockTexture(blockData.name)
       
-      ctx.fillRect(
-        block.x, 
-        block.y - cameraOffsetY, 
-        BLOCK_SIZE, 
-        BLOCK_SIZE
-      )
-      ctx.strokeStyle = "#000000"
+      if (texture) {
+        // Draw texture
+        ctx.drawImage(
+          texture,
+          block.x,
+          block.y - cameraOffsetY,
+          BLOCK_SIZE,
+          BLOCK_SIZE
+        )
+      } else {
+        // Fallback to color if texture not loaded
+        ctx.fillStyle = blockData.color
+        ctx.fillRect(
+          block.x,
+          block.y - cameraOffsetY,
+          BLOCK_SIZE,
+          BLOCK_SIZE
+        )
+      }
+      
+      // Optional: Keep the border for better visibility
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
       ctx.strokeRect(
-        block.x, 
-        block.y - cameraOffsetY, 
-        BLOCK_SIZE, 
+        block.x,
+        block.y - cameraOffsetY,
+        BLOCK_SIZE,
         BLOCK_SIZE
       )
     }
@@ -329,7 +344,7 @@ function drawInventory(
   const startY = CANVAS_HEIGHT - 160
   
   // Draw inventory slots
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < Object.keys(BLOCK_TYPES).length; i++) {
     // Calculate position
     const column = Math.floor(i / 5)  // 0 for first column, 1 for second
     const row = i % 5                 // 0-4 for each column
@@ -346,9 +361,22 @@ function drawInventory(
     
     // Draw block count and value
     if (player.blockInventory[i] > 0) {
-      // Draw block icon
-      ctx.fillStyle = blockData.color
-      ctx.fillRect(x + 3, y + 3, slotSize - 6, slotSize - 6)
+      const texture = getBlockTexture(blockData.name)
+      
+      if (texture) {
+        // Draw block texture
+        ctx.drawImage(
+          texture,
+          x + 3,
+          y + 3,
+          slotSize - 6,
+          slotSize - 6
+        )
+      } else {
+        // Fallback to color
+        ctx.fillStyle = blockData.color
+        ctx.fillRect(x + 3, y + 3, slotSize - 6, slotSize - 6)
+      }
       
       // Draw count
       ctx.fillStyle = "white"

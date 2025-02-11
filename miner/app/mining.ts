@@ -25,9 +25,10 @@ export function handleMining(
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
   }
+  const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
 
   // Stop mining if inventory becomes full
-  if (player.inventory >= player.backpackCapacity) {
+  if (player.inventory + blockData.density >= player.backpackCapacity) {
     return { miningProgress: 0, miningTargetBlock: null }
   }
 
@@ -37,7 +38,6 @@ export function handleMining(
   const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
   const pickaxeBoost = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.pickaxeLevel - 1)
   const baseTime = DEFAULT_MINE_TIME / pickaxeBoost
-  const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
   const requiredTime = baseTime * blockData.miningTimeMultiplier
   
   if (miningProgress >= requiredTime) {

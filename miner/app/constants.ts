@@ -113,20 +113,11 @@ export const BLOCK_TYPES = {
     name: "Gold"
 
   },
-  EMERALD: {
-    id: 8,
-    value: 250,
-    color: "#50C878",
-    miningTimeMultiplier: 250,
-    density: 1,
-    name: "Emerald"
-
-  },
   DIAMOND: {
-    id: 9,
+    id: 8,
     value: 1000,
     color: "#4EE2EC",
-    miningTimeMultiplier: 1000,
+    miningTimeMultiplier: 300,
     density: 1,
     name: "Diamond"
 
