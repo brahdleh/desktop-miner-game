@@ -26,7 +26,7 @@ import {
 import { draw, updateHUD } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
 import { saveGame, loadGame } from "./storage"
-import { loadBlockTextures } from "./assets"
+import { loadAllTextures } from "./assets"
 
 
 export default function MiningGame() {
@@ -36,10 +36,10 @@ export default function MiningGame() {
     if (typeof window === "undefined" || !canvasRef.current) return
 
     // Load textures before starting the game
-    loadBlockTextures().then(() => {
-      const canvas = canvasRef.current!
-      const ctx = canvas.getContext("2d")!
-      if (!ctx) return
+    loadAllTextures().then(() => {
+        const canvas = canvasRef.current!
+        const ctx = canvas.getContext("2d")!
+        if (!ctx) return
 
       // -------------------------------------------------------------------------
       // Game state

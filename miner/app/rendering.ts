@@ -13,7 +13,7 @@ import {
   PICKAXE_BASE_COST,
   BACKPACK_BASE_COST
 } from './constants'
-import { getBlockTexture } from './assets'
+import { getBlockTexture, getSceneTexture } from './assets'
 
 export function draw(
   ctx: CanvasRenderingContext2D,
@@ -40,12 +40,16 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   // Round camera offset to prevent sub-pixel rendering artifacts
   const roundedOffset = Math.round(cameraOffsetY)
   
-  // Sky gradient
-  const skyGradient = ctx.createLinearGradient(0, -roundedOffset, 0, SURFACE_Y - roundedOffset)
-  skyGradient.addColorStop(0, "#87CEEB")    // Light blue sky
-  skyGradient.addColorStop(1, "#B0E0E6")    // Slightly darker near ground
-  ctx.fillStyle = skyGradient
-  ctx.fillRect(0, -roundedOffset, CANVAS_WIDTH, SURFACE_Y)
+  // Draw sky
+  const skyTexture = getSceneTexture('sky')
+  if (skyTexture) {
+    ctx.drawImage(skyTexture, 0, -roundedOffset, CANVAS_WIDTH, SURFACE_Y)
+  }
+  //const skyGradient = ctx.createLinearGradient(0, -roundedOffset, 0, SURFACE_Y - roundedOffset)
+  //skyGradient.addColorStop(0, "#87CEEB")    // Light blue sky
+  //skyGradient.addColorStop(1, "#B0E0E6")    // Slightly darker near ground
+  //ctx.fillStyle = skyGradient
+  //ctx.fillRect(0, -roundedOffset, CANVAS_WIDTH, SURFACE_Y)
 
   // Underground not mineable - with gradient
   const groundGradient = ctx.createLinearGradient(0, SURFACE_Y - roundedOffset, 0, SURFACE_Y - roundedOffset + 100)
