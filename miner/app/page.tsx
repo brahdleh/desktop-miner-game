@@ -1,6 +1,32 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { Player, Block } from "./types"
+import { 
+  CANVAS_WIDTH, 
+  CANVAS_HEIGHT, 
+  SURFACE_Y,
+  UPGRADE_ZONE,
+  MINE_DEPTH_PX,
+  CRAFT_ZONE,
+  PLAYER_HEIGHT,
+  BLOCK_SIZE
+} from "./constants"
+import { handleInput, updatePlayer, isPlayerInZone } from "./player"
+import { 
+  handleMining, 
+  attemptSell, 
+  attemptPickaxeUpgrade, 
+  attemptBackpackUpgrade, 
+  canMineBlock,
+  attemptPlaceBlock,
+  attemptCraftPickaxe,
+  attemptCraftBackpack
+} from "./mining"
+import { draw, updateHUD } from "./rendering"
+import { initializeBlocks, initializePlayer } from "./init"
+import { saveGame, loadGame } from "./storage"
+
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -13,390 +39,37 @@ export default function MiningGame() {
     if (!ctx) return
 
     // -------------------------------------------------------------------------
-    // Game constants
+    // Game state
     // -------------------------------------------------------------------------
-    const CANVAS_WIDTH = 800
-    const CANVAS_HEIGHT = 600
-    const BLOCK_SIZE = 40
-    const PLAYER_WIDTH = 25
-    const PLAYER_HEIGHT = 60
-    const GRAVITY = 0.5
-    const JUMP_STRENGTH = 10
-    const MOVE_SPEED = 3
-    const MINE_WIDTH = 8 // Number of blocks wide
-    const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
-    const SURFACE_Y = 5 * BLOCK_SIZE // 5 blocks from the top, adjust as desired
-    
-    // Pickaxe upgrade cost constants
-    const PICKAXE_BASE_COST = 1
-    const PICKAXE_COST_MULTIPLIER = 2
-    const DEFAULT_MINE_TIME = 2000
-
-    // Backpack constants
-    const BASE_BACKPACK_CAPACITY = 5
-    const BACKPACK_CAPACITY_INCREMENT = 2
-    const BACKPACK_BASE_COST = 1
-    const BACKPACK_COST_MULTIPLIER = 2
-
-    // The total mine depth in blocks, for drawing large background
-    const MINE_DEPTH_BLOCKS = 50
-    const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
-
-    // Define zones on the surface where user must stand to do an action
-    // Top-left for upgrade, top-right for selling:
-    const UPGRADE_ZONE = {
-      x: 0,
-      y: SURFACE_Y - 150,
-      width: 100,
-      height: 150,
-    }
-    const SELL_ZONE = {
-      x: CANVAS_WIDTH - 100,
-      y: SURFACE_Y - 150,
-      width: 100,
-      height: 150,
-    }
-
-    // -------------------------------------------------------------------------
-    // Game variables
-    // -------------------------------------------------------------------------
-    const player = {
-      x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2,
-      y: SURFACE_Y - PLAYER_HEIGHT,
-      velocityX: 0,
-      velocityY: 0,
-      onGround: false,
-      inventory: 0,
-      gold: 0,
-      pickaxeLevel: 1,
-      backpackLevel: 1,
-      backpackCapacity: BASE_BACKPACK_CAPACITY,
-    }
-
-    interface Block {
-      x: number
-      y: number
-      isMined: boolean
-      mineable: boolean
-    }
-
-    const blocks: Block[] = []
+    const player: Player = initializePlayer()
+    const blocks: Block[] = initializeBlocks()
+    const keys: { [key: string]: boolean } = {}
     let cameraOffsetY = 0
     let miningProgress = 0
     let miningTargetBlock: Block | null = null
-    const keys: { [key: string]: boolean } = {}
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-    function initGame() {
-      // 1) Generate top "grass" platform
-      //    - If it’s within the shaft's horizontal range, we'll mark it as mineable=false
-      for (let x = 0; x < CANVAS_WIDTH; x += BLOCK_SIZE) {
-        if(x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE) {
-          blocks.push({
-            x,
-            y: SURFACE_Y,
-            isMined: false,
-            mineable: true, // surface is mineable in shaft range
-          })
-        } else {
-          blocks.push({
-            x,
-            y: SURFACE_Y,
-            isMined: false,
-            mineable: false, // surface is NOT mineable in shaft range
-          })
-        }
-      }
-
-      // 2) Generate mine shaft (all mineable)
-      for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
-        for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
-          blocks.push({
-            x,
-            y,
-            isMined: false,
-            mineable: true,
-          })
-        }
-      }
-    }
-
-    // -------------------------------------------------------------------------
-    // HUD
-    // -------------------------------------------------------------------------
-    function updateHUD() {
-      const goldDisplay = document.getElementById("goldDisplay")
-      const inventoryDisplay = document.getElementById("inventoryDisplay")
-      const pickaxeDisplay = document.getElementById("pickaxeDisplay")
-      const backpackDisplay = document.getElementById("backpackDisplay")
-
-      if (goldDisplay) goldDisplay.textContent = player.gold.toString()
-      if (inventoryDisplay) inventoryDisplay.textContent = player.inventory.toString()+" / "+player.backpackCapacity
-      if (pickaxeDisplay) {
-        pickaxeDisplay.textContent =
-          String(player.pickaxeLevel)
-      }
-      if (backpackDisplay) {
-        backpackDisplay.textContent =
-          String(player.backpackLevel)
-      }
-    }
-  
-
-    // -------------------------------------------------------------------------
-    // Input & Player Movement
-    // -------------------------------------------------------------------------
-    function handleInput() {
-      player.velocityX = 0
-      if (keys["ArrowLeft"] || keys["a"]) player.velocityX = -MOVE_SPEED
-      if (keys["ArrowRight"] || keys["d"]) player.velocityX = MOVE_SPEED
-      if ((keys["ArrowUp"] || keys["w"]) && player.onGround) {
-        player.velocityY = -JUMP_STRENGTH
-        player.onGround = false
-      }
-    }
-
-    function collision(a: { x: number; y: number }, b: { x: number; y: number }) {
-      return (
-        a.x < b.x + BLOCK_SIZE &&
-        a.x + PLAYER_WIDTH > b.x &&
-        a.y < b.y + BLOCK_SIZE &&
-        a.y + PLAYER_HEIGHT > b.y
-      )
-    }
-
-    function updatePlayer() {
-      player.x += player.velocityX
-      player.y += player.velocityY
-      player.velocityY += GRAVITY
-
-      // Collision detection with blocks
-      player.onGround = false
-      for (const block of blocks) {
-        if (!block.isMined && collision(player, block)) {
-          // Vertical collision
-          if (player.velocityY > 0 && player.y + PLAYER_HEIGHT <= block.y + player.velocityY) {
-            // landing on top of a block
-            player.y = block.y - PLAYER_HEIGHT
-            player.velocityY = 0
-            player.onGround = true
-          } else if (
-            player.velocityY < 0 &&
-            player.y >= block.y + BLOCK_SIZE + player.velocityY
-          ) {
-            // hitting the bottom of a block from below
-            player.y = block.y + BLOCK_SIZE
-            player.velocityY = 0
-          }
-          // Horizontal collisions
-          if (player.velocityX > 0 && player.x + PLAYER_WIDTH <= block.x + player.velocityX) {
-            player.x = block.x - PLAYER_WIDTH
-          } else if (
-            player.velocityX < 0 &&
-            player.x >= block.x + BLOCK_SIZE + player.velocityX
-          ) {
-            player.x = block.x + BLOCK_SIZE
-          }
-        }
-      }
-
-      // Handle left/right boundary restrictions:
-      // - If player is ABOVE surface, let them move across the entire canvas
-      // - If player is BELOW surface, clamp to the shaft walls
-      if (player.y > SURFACE_Y) {
-        // Below surface -> clamp to the shaft only
-        const leftLimit = MINE_LEFT
-        const rightLimit = MINE_LEFT + MINE_WIDTH * BLOCK_SIZE - PLAYER_WIDTH
-        if (player.x < leftLimit) player.x = leftLimit
-        if (player.x > rightLimit) player.x = rightLimit
-      } else {
-        // At or above surface -> clamp to canvas edges
-        player.x = Math.max(0, Math.min(player.x, CANVAS_WIDTH - PLAYER_WIDTH))
-      }
-
-      // Camera follow (vertical)
-      // Keep the player near the bottom or top of the canvas as they move
-      cameraOffsetY = Math.max(player.y + PLAYER_HEIGHT/2 - CANVAS_HEIGHT/4)
-    }
-
-    // -------------------------------------------------------------------------
-    // Mining
-    // -------------------------------------------------------------------------
-    function handleMining() {
-      // If currently mining a block
-      if (miningTargetBlock) {
-        miningProgress += 16.67 // approximate per frame at ~60fps
-        const requiredTime = Math.max(
-          DEFAULT_MINE_TIME / player.pickaxeLevel
-        )
-        if (miningProgress >= requiredTime) {
-          miningTargetBlock.isMined = true
-          if (player.inventory < player.backpackCapacity) {
-            player.inventory++
-          }
-          miningTargetBlock = null
-          miningProgress = 0
-          updateHUD()
-        }
-      }
-    }
-
-    // -------------------------------------------------------------------------
-    // Drawing
-    // -------------------------------------------------------------------------
-    function draw() {
-      // Clear entire canvas
-      ctx.clearRect(0, -CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
-
-      // Sky (above surface)
-      ctx.fillStyle = "#add8e6"
-      ctx.fillRect(0, -cameraOffsetY, CANVAS_WIDTH, SURFACE_Y)
-
-      // Underground not mineable
-      ctx.fillStyle = "#333333"
-      ctx.fillRect(0, SURFACE_Y - cameraOffsetY, CANVAS_WIDTH, MINE_DEPTH_PX)
-
-      // Underground shaft
-      ctx.fillStyle = "#add8e6"
-      ctx.fillRect(MINE_LEFT, SURFACE_Y - cameraOffsetY, MINE_LEFT +80, MINE_DEPTH_PX)
-
-      // Draw blocks
-      for (const block of blocks) {
-        if (!block.isMined) {
-          if (!block.mineable) {
-            // Grass surface
-            ctx.fillStyle = "#228B22"
-          } else {
-            // Rock
-            ctx.fillStyle = "#808080"
-          }
-          ctx.fillRect(block.x, block.y - cameraOffsetY, BLOCK_SIZE, BLOCK_SIZE)
-          ctx.strokeStyle = "#000000"
-          ctx.strokeRect(block.x, block.y - cameraOffsetY, BLOCK_SIZE, BLOCK_SIZE)
-        }
-      }
-
-      // Draw player
-      ctx.fillStyle = "#FF0000"
-      ctx.fillRect(player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-
-      // Draw mining progress (overlay)
-      if (miningTargetBlock) {
-        const requiredTime =
-          DEFAULT_MINE_TIME / player.pickaxeLevel
-        ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
-        ctx.fillRect(
-          miningTargetBlock.x,
-          miningTargetBlock.y - cameraOffsetY,
-          BLOCK_SIZE * (miningProgress / requiredTime),
-          BLOCK_SIZE,
-        )
-      }
-
-      // Draw surface zones (Upgrade on left, Sell on right)
-      // Just a simple label so the user knows where to stand
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
-      ctx.fillRect(UPGRADE_ZONE.x, UPGRADE_ZONE.y - cameraOffsetY, UPGRADE_ZONE.width, UPGRADE_ZONE.height)
-      ctx.fillRect(SELL_ZONE.x, SELL_ZONE.y - cameraOffsetY, SELL_ZONE.width, SELL_ZONE.height)
-
-      ctx.fillStyle = "#fff"
-      ctx.font = "14px Arial"
-      ctx.fillText(
-        "Shop",
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 20 - cameraOffsetY,
-      )
-      ctx.font = "12px Arial"
-      ctx.fillText(
-        "Sell blocks: P",
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 50 - cameraOffsetY,
-      )
-      ctx.fillText(
-        "+ Pickaxe: E",
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 80 - cameraOffsetY,
-      )
-      ctx.fillText(
-        "Cost: "+Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1),
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 100 - cameraOffsetY,
-      )
-      ctx.fillText(
-        "+ Backpack: R",
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 120 - cameraOffsetY,
-      )
-      ctx.fillText(
-        "Cost:"+Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1),
-        UPGRADE_ZONE.x + 5,
-        UPGRADE_ZONE.y + 140 - cameraOffsetY,
-      )
-      // RHS
-      ctx.font = "14px Arial"
-      ctx.fillText(
-        "Upgrades",
-        SELL_ZONE.x + 10,
-        SELL_ZONE.y + 20 - cameraOffsetY,
-      )
-    }
-
-    // -------------------------------------------------------------------------
-    // Actions: Sell & Upgrade
-    // -------------------------------------------------------------------------
-    function attemptSell() {
-      // If inventory > 0, increase gold by inventory, empty inventory
-      if (player.inventory > 0) {
-        player.gold += player.inventory
-        player.inventory = 0
-        updateHUD()
-      }
-    }
-
-    function attemptPickaxeUpgrade() {
-      const cost =
-        PICKAXE_BASE_COST * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
-      if (player.gold >= cost) {
-        player.gold -= cost
-        player.pickaxeLevel += 1
-        updateHUD()
-      }
-    }
-
-    function attemptBackpackUpgrade() {
-      const cost =
-        BACKPACK_BASE_COST * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
-      if (player.gold >= cost) {
-        player.gold -= cost
-        player.backpackLevel += 1
-        player.backpackCapacity =
-          BASE_BACKPACK_CAPACITY + (player.backpackLevel - 1) * BACKPACK_CAPACITY_INCREMENT
-        updateHUD()
-      }
-    }
-
-    // Checks if the player is inside a "zone"
-    function isPlayerInZone(zone: { x: number; y: number; width: number; height: number }) {
-      const pxCenter = player.x + PLAYER_WIDTH / 2
-      const pyBottom = player.y + PLAYER_HEIGHT
-      return (
-        pxCenter >= zone.x &&
-        pxCenter <= zone.x + zone.width &&
-        pyBottom >= zone.y &&
-        player.y <= zone.y + zone.height
-      )
-    }
 
     // -------------------------------------------------------------------------
     // Game Loop
     // -------------------------------------------------------------------------
     function gameLoop() {
-      handleInput()
-      updatePlayer()
-      handleMining()
-      draw()
+      handleInput(player, keys)
+      updatePlayer(player, blocks)
+      
+      // Update camera
+      cameraOffsetY = Math.min(player.y - CANVAS_HEIGHT/5, SURFACE_Y + MINE_DEPTH_PX - CANVAS_HEIGHT)
+      
+      const miningResult = handleMining(
+        player, 
+        miningTargetBlock, 
+        miningProgress, 
+        () => updateHUD(player)
+      )
+      miningProgress = miningResult.miningProgress
+      miningTargetBlock = miningResult.miningTargetBlock
+
+      draw(ctx, player, blocks, miningTargetBlock, miningProgress, cameraOffsetY, 
+           UPGRADE_ZONE, CRAFT_ZONE)
+      
       requestAnimationFrame(gameLoop)
     }
 
@@ -406,28 +79,63 @@ export default function MiningGame() {
     const handleKeyDown = (e: KeyboardEvent) => {
       keys[e.key] = true
 
-      // Press 'E' to upgrade pick or sell ores
-      if (e.key === "e") {
-        // Check if in upgrade zone
-        if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
-          attemptPickaxeUpgrade()
+      // Save/Load shortcuts
+      if (e.shiftKey) {
+        if (e.key === 'S') {
+          e.preventDefault() // Prevent browser save dialog
+          saveGame(player, blocks)
+        } else if (e.key === 'L') {
+          const savedData = loadGame()
+          if (savedData.player && savedData.blocks) {
+            // Update player
+            Object.assign(player, savedData.player)
+            
+            // Update blocks
+            blocks.length = 0 // Clear existing blocks
+            blocks.push(...savedData.blocks)
+            
+            // Update HUD
+            updateHUD(player)
+          }
+        }
+        return
+      }
+
+      // Add inventory navigation with arrow keys
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        const delta = e.key === "ArrowDown" ? -1 : 1
+        player.selectedSlot = (player.selectedSlot + delta + player.blockInventory.length) % player.blockInventory.length
+      }
+
+      if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
+        switch (e.key) {
+          case "e":
+            attemptPickaxeUpgrade(player, () => updateHUD(player))
+            break
+          case "r":
+            attemptBackpackUpgrade(player, () => updateHUD(player))
+            break
+          case "p":
+            attemptSell(player, () => updateHUD(player))
+            break
         }
       }
-      // Press 'R' to upgrade backpack
-      if (e.key === "r") {
-        // Check if in upgrade zone
-        if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
-          attemptBackpackUpgrade()
+
+      if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
+        if (e.key === "e") {
+          attemptCraftPickaxe(player, () => updateHUD(player))
+        }
+        if (e.key === "r") {
+          attemptCraftBackpack(player, () => updateHUD(player))
         }
       }
-      // Press 'p' to sell
-      if (e.key === "p") {
-        // Check if in upgrade zone
-        if (isPlayerInZone(UPGRADE_ZONE) && player.y <= SURFACE_Y) {
-          attemptSell()
-        }
+
+      // Allow s to place block just below player to help escape the mine
+      if (e.key === "s") {
+        attemptPlaceBlock(player, blocks, player.x, player.y + PLAYER_HEIGHT + 0.8*BLOCK_SIZE, () => updateHUD(player))
       }
     }
+
     const handleKeyUp = (e: KeyboardEvent) => {
       keys[e.key] = false
     }
@@ -437,37 +145,30 @@ export default function MiningGame() {
       const clickX = e.clientX - rect.left
       const clickY = e.clientY - rect.top + cameraOffsetY
 
+      // Right click for placement
+      if (e.button === 2) {
+        attemptPlaceBlock(player, blocks, clickX, clickY, () => updateHUD(player))
+        return
+      }
+
+      // Left click for mining (existing code)
       for (const block of blocks) {
-        // Only mine if:
-        //  - Not mined yet
-        //  - Is mineable
-        //  - Click is inside the block
-        //  - Block is within "2 blocks" of the player's position
-        if (
-          !block.isMined &&
-          block.mineable &&
-          clickX >= block.x &&
-          clickX < block.x + BLOCK_SIZE &&
-          clickY >= block.y &&
-          clickY < block.y + BLOCK_SIZE
-        ) {
-          // Distance check from player
-          const distX = Math.abs((player.x + PLAYER_WIDTH / 2) - (block.x + BLOCK_SIZE / 2))
-          const distY = Math.abs(
-            (player.y + PLAYER_HEIGHT / 2) - (block.y + BLOCK_SIZE / 2),
-          )
-          if (distX <= BLOCK_SIZE * 2 && distY <= BLOCK_SIZE * 2) {
-            miningTargetBlock = block
-            miningProgress = 0
-          }
+        if (canMineBlock(block, clickX, clickY, player)) {
+          miningTargetBlock = block
+          miningProgress = 0
           break
         }
       }
     }
+
     const handleMouseUp = () => {
       miningTargetBlock = null
       miningProgress = 0
     }
+
+
+    // Prevent context menu
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault())
 
     // Add listeners
     document.addEventListener("keydown", handleKeyDown)
@@ -475,17 +176,19 @@ export default function MiningGame() {
     canvas.addEventListener("mousedown", handleMouseDown)
     canvas.addEventListener("mouseup", handleMouseUp)
 
-    // Initialize
-    initGame()
-    updateHUD()
+    // Initialize and start game
+    updateHUD(player)
     gameLoop()
 
-    // Cleanup on unmount
+    // Cleanup
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("mouseup", handleMouseUp)
+      
+      // Optional: Auto-save on exit
+      saveGame(player, blocks)
     }
   }, [])
 
@@ -494,8 +197,8 @@ export default function MiningGame() {
       <div id="gameContainer" className="relative">
         <canvas
           id="gameCanvas"
-          width="800"
-          height="600"
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
           className="border-2 border-white-600"
           ref={canvasRef}
         ></canvas>
@@ -512,6 +215,22 @@ export default function MiningGame() {
           Pickaxe: <span id="pickaxeDisplay">Default</span>
           <br />
           Backpack: <span id="backpackDisplay">Default</span>
+        </div>
+
+        {/* Controls */}
+        <div
+          id="controls"
+          className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded"
+        >
+          <span className="text-xs opacity-50">L CLICK to mine</span>
+          <br />
+          <span className="text-xs opacity-50">R CLICK to place</span>
+          <br />
+          <span className="text-xs opacity-50">s to place down</span>
+          <br />
+          <span className="text-xs opacity-50">SHIFT S to Save</span>
+          <br />
+          <span className="text-xs opacity-50">SHIFT L to Load</span>
         </div>
       </div>
     </div>
