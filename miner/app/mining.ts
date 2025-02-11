@@ -157,8 +157,9 @@ export function attemptPlaceBlock(
   // Place the block with the correct block type
   existingBlock.isMined = false
   existingBlock.blockType = player.selectedSlot  // Set block type to match inventory slot
+  const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
   player.blockInventory[player.selectedSlot]--
-  player.inventory--
+  player.inventory -= blockData.density
   updateHUD()
   return true
 }
