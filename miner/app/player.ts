@@ -2,16 +2,28 @@ import { Player, Block, Zone } from './types'
 import { 
   PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, JUMP_STRENGTH, 
   GRAVITY, CANVAS_WIDTH, BLOCK_SIZE, SURFACE_Y, MINE_LEFT, 
-  MINE_WIDTH 
+  MINE_WIDTH, BLOCK_TYPES, BLOCK_ID_TO_TYPE
 } from './constants'
 
 export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
   if (keys["a"]) player.velocityX = -MOVE_SPEED
-  if ( keys["d"]) player.velocityX = MOVE_SPEED
-  if ((keys[" "] || keys["w"]) && player.onGround) {
-    player.velocityY = -JUMP_STRENGTH
-    player.onGround = false
+  if (keys["d"]) player.velocityX = MOVE_SPEED
+
+  // Check if player is on a climbable block (ladder)
+  const isOnLadder = player.onClimbable
+  
+  if (isOnLadder) {
+    // Climbing mechanics
+    player.velocityY = 0
+    if (keys["w"]) player.velocityY = -MOVE_SPEED
+    if (keys["s"]) player.velocityY = MOVE_SPEED
+  } else {
+    // Normal jumping mechanics
+    if ((keys[" "] || keys["w"]) && player.onGround) {
+      player.velocityY = -JUMP_STRENGTH
+      player.onGround = false
+    }
   }
 }
 
@@ -27,12 +39,30 @@ function collision(a: { x: number; y: number }, b: { x: number; y: number }) {
 export function updatePlayer(player: Player, blocks: Block[]) {
   player.x += player.velocityX
   player.y += player.velocityY
-  player.velocityY += GRAVITY
+  
+  // Only apply gravity when not on ladder
+  if (!player.onClimbable) {
+    player.velocityY += GRAVITY
+  }
+
+  // Reset climbing state
+  player.onClimbable = false
+  player.onGround = false
 
   // Collision detection with blocks
-  player.onGround = false
   for (const block of blocks) {
     if (!block.isMined && collision(player, block)) {
+      // Check if block is climbable
+      if (BLOCK_TYPES[BLOCK_ID_TO_TYPE[block.blockType]].climbable) {
+        player.onClimbable = true
+        continue // Skip collision resolution for climbable blocks
+      }
+
+      // Skip collision for non-solid blocks
+      if (BLOCK_TYPES[BLOCK_ID_TO_TYPE[block.blockType]].solid === false) {
+        continue
+      }
+
       // Vertical collision
       if (player.velocityY > 0 && player.y + PLAYER_HEIGHT <= block.y + player.velocityY) {
         player.y = block.y - PLAYER_HEIGHT

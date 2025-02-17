@@ -49,7 +49,9 @@ export const BLOCK_TYPES = {
     color: "#228B22",
     miningTimeMultiplier: 0.5,
     density: 1,
-    name: "Grass"
+    name: "Grass",
+    solid: true,
+    climbable: false
   },
   STONE: {
     id: 1,
@@ -57,7 +59,9 @@ export const BLOCK_TYPES = {
     color: "#808080",
     miningTimeMultiplier: 1,
     density: 1,
-    name: "Stone"
+    name: "Stone",
+    solid: true,
+    climbable: false
   },
   SLATE: {
     id: 2,
@@ -65,7 +69,9 @@ export const BLOCK_TYPES = {
     color: "#3A3B3C",
     miningTimeMultiplier: 8,
     density: 5,
-    name: "Slate"
+    name: "Slate",
+    solid: true,
+    climbable: false
 
   },
   MAGMA: {
@@ -74,7 +80,9 @@ export const BLOCK_TYPES = {
     color: "#380000",
     miningTimeMultiplier: 30,
     density: 20,
-    name: "Magma"
+    name: "Magma",
+    solid: true,
+    climbable: false
 
   },
   BEDROCK: {
@@ -83,7 +91,9 @@ export const BLOCK_TYPES = {
     color: "#101111",
     miningTimeMultiplier: 200,
     density: 100,
-    name: "Bedrock"
+    name: "Bedrock",
+    solid: true,
+    climbable: false
 
   },
   COPPER: {
@@ -92,7 +102,9 @@ export const BLOCK_TYPES = {
     color: "#D16002",
     miningTimeMultiplier: 5,
     density: 1,
-    name: "Copper"
+    name: "Copper",
+    solid: true,
+    climbable: false
 
   },
   IRON: {
@@ -101,7 +113,9 @@ export const BLOCK_TYPES = {
     color: "#A2A4A4",
     miningTimeMultiplier: 30,
     density: 1,
-    name: "Iron"
+    name: "Iron",
+    solid: true,
+    climbable: false
 
   },
   GOLD: {
@@ -110,7 +124,9 @@ export const BLOCK_TYPES = {
     color: "#FCAE1E",
     miningTimeMultiplier: 100,
     density: 1,
-    name: "Gold"
+    name: "Gold",
+    solid: true,
+    climbable: false
 
   },
   DIAMOND: {
@@ -119,7 +135,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 300,
     density: 1,
-    name: "Diamond"
+    name: "Diamond",
+    solid: true,
+    climbable: false
 
   },
   UNAMED: {
@@ -128,7 +146,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 300,
     density: 1,
-    name: "Unamed"
+    name: "Unamed",
+    solid: true,
+    climbable: false
 
   },
   PLATFORM: {
@@ -137,8 +157,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
-    name: "Platform"
-
+    name: "Platform",
+    solid: true,
+    climbable: false
   },
   LADDER: {
     id: 11,
@@ -146,8 +167,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
-    name: "Ladder"
-
+    name: "Ladder",
+    solid: false,
+    climbable: true
   },
   TORCH: {
     id: 12,
@@ -155,8 +177,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
-    name: "Torch"
-
+    name: "Torch",
+    solid: false,
+    climbable: false
   },
   UNAMED2: {
     id: 13,
@@ -164,8 +187,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 300,
     density: 1,
-    name: "Unamed2"
-
+    name: "Unamed2",
+    solid: true,
+    climbable: false
   },
   UNAMED3: {
     id: 14,
@@ -173,8 +197,9 @@ export const BLOCK_TYPES = {
     color: "#4EE2EC",
     miningTimeMultiplier: 300,
     density: 1,
-    name: "Unamed3"
-
+    name: "Unamed3",
+    solid: true,
+    climbable: false
   }
 } as const 
 
@@ -279,4 +304,9 @@ export const BACKPACK_TYPES = {
     upgradeCostMultiplier: 200
   }
 } as const
+
+// Create reverse lookup from ID to block type name
+export const BLOCK_ID_TO_TYPE = Object.fromEntries(
+  Object.entries(BLOCK_TYPES).map(([name, data]) => [data.id, name])
+) as { [id: number]: keyof typeof BLOCK_TYPES }
 
