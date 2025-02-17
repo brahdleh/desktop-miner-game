@@ -19,8 +19,7 @@ import {
 export function handleMining(
   player: Player, 
   miningTargetBlock: Block | null,
-  miningProgress: number,
-  updateHUD: () => void
+  miningProgress: number
 ): { miningProgress: number; miningTargetBlock: Block | null } {
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
@@ -28,7 +27,7 @@ export function handleMining(
   const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
 
   // Stop mining if inventory becomes full
-  if (player.inventory + blockData.density >= player.backpackCapacity) {
+  if (player.inventory + blockData.density > player.backpackCapacity) {
     return { miningProgress: 0, miningTargetBlock: null }
   }
 
@@ -48,14 +47,13 @@ export function handleMining(
       player.blockInventory[miningTargetBlock.blockType] ++
     }
 
-    updateHUD()
     return { miningProgress: 0, miningTargetBlock: null }
   }
 
   return { miningProgress, miningTargetBlock }
 }
 
-export function attemptSell(player: Player, updateHUD: () => void) {
+export function attemptSell(player: Player) {
   const selectedBlockCount = player.blockInventory[player.selectedSlot]
   if (selectedBlockCount > 0) {
     const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
@@ -63,12 +61,37 @@ export function attemptSell(player: Player, updateHUD: () => void) {
     
     player.inventory -= selectedBlockCount * blockData.density
     player.blockInventory[player.selectedSlot] = 0
-    
-    updateHUD()
   }
 }
 
-export function attemptPickaxeUpgrade(player: Player, updateHUD: () => void) {
+export function attemptBuyPlatform(player: Player) {
+  const itemData = Object.values(BLOCK_TYPES)[10]
+  if (player.gold >= itemData.value) {
+    player.gold -= itemData.value
+    player.blockInventory[10]++
+    player.inventory ++
+  }
+}
+
+export function attemptBuyTorch(player: Player) {
+  const itemData = Object.values(BLOCK_TYPES)[12]
+  if (player.gold >= itemData.value) {
+    player.gold -= itemData.value
+    player.blockInventory[12]++
+    player.inventory ++
+  }
+}
+
+export function attemptBuyLadder(player: Player) {
+  const itemData = Object.values(BLOCK_TYPES)[11]
+  if (player.gold >= itemData.value) {
+    player.gold -= itemData.value
+    player.blockInventory[11]++
+    player.inventory ++
+  }
+}
+
+export function attemptPickaxeUpgrade(player: Player) {
   // Check if already at max level
   if (player.pickaxeLevel >= MAX_PICKAXE_LEVEL) return
 
@@ -79,11 +102,10 @@ export function attemptPickaxeUpgrade(player: Player, updateHUD: () => void) {
   if (player.gold >= cost) {
     player.gold -= cost
     player.pickaxeLevel += 1
-    updateHUD()
   }
 }
 
-export function attemptBackpackUpgrade(player: Player, updateHUD: () => void) {
+export function attemptBackpackUpgrade(player: Player) {
   // Check if already at max level
   if (player.backpackLevel >= MAX_BACKPACK_LEVEL) return
 
@@ -95,7 +117,6 @@ export function attemptBackpackUpgrade(player: Player, updateHUD: () => void) {
     player.gold -= cost
     player.backpackLevel += 1
     player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
-    updateHUD()
   }
 }
 
@@ -129,8 +150,7 @@ export function attemptPlaceBlock(
   player: Player,
   blocks: Block[],
   clickX: number,
-  clickY: number,
-  updateHUD: () => void
+  clickY: number
 ): boolean {
   // Check if player has blocks to place
   if (player.blockInventory[player.selectedSlot] <= 0) return false
@@ -160,11 +180,10 @@ export function attemptPlaceBlock(
   const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
   player.blockInventory[player.selectedSlot]--
   player.inventory -= blockData.density
-  updateHUD()
   return true
 }
 
-export function attemptCraftPickaxe(player: Player, updateHUD: () => void): boolean {
+export function attemptCraftPickaxe(player: Player) {
   // Get next pickaxe type
   const nextPickaxeType = player.pickaxeType + 1
   const nextPickaxe = Object.values(PICKAXE_TYPES)[nextPickaxeType]
@@ -185,14 +204,13 @@ export function attemptCraftPickaxe(player: Player, updateHUD: () => void): bool
     player.pickaxeType = nextPickaxeType
     player.pickaxeLevel = 1  // Reset level when upgrading type
     
-    updateHUD()
     return true
   }
   
   return false
 }
 
-export function attemptCraftBackpack(player: Player, updateHUD: () => void): boolean {
+export function attemptCraftBackpack(player: Player) {
   // Get next backpack type
   const nextBackpackType = player.backpackType + 1
   const nextBackpack = Object.values(BACKPACK_TYPES)[nextBackpackType]
@@ -217,7 +235,6 @@ export function attemptCraftBackpack(player: Player, updateHUD: () => void): boo
     const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
     player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
     
-    updateHUD()
     return true
 
   }

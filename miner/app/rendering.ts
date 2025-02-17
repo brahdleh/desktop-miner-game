@@ -13,7 +13,7 @@ import {
   PICKAXE_BASE_COST,
   BACKPACK_BASE_COST
 } from './constants'
-import { getBlockTexture, getSceneTexture } from './assets'
+import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture } from './assets'
 
 export function draw(
   ctx: CanvasRenderingContext2D,
@@ -34,41 +34,55 @@ export function draw(
   drawMiningProgress(ctx, miningTargetBlock, miningProgress, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
   drawInventory(ctx, player)
+  drawHUD(ctx, player)
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
-  // Round camera offset to prevent sub-pixel rendering artifacts
   const roundedOffset = Math.round(cameraOffsetY)
   
   // Draw sky
   const skyTexture = getSceneTexture('sky')
   if (skyTexture) {
-    ctx.drawImage(skyTexture, 0, -roundedOffset, CANVAS_WIDTH, SURFACE_Y)
+    ctx.drawImage(skyTexture, 0, -roundedOffset-100, CANVAS_WIDTH, 100+SURFACE_Y)
   }
-  //const skyGradient = ctx.createLinearGradient(0, -roundedOffset, 0, SURFACE_Y - roundedOffset)
-  //skyGradient.addColorStop(0, "#87CEEB")    // Light blue sky
-  //skyGradient.addColorStop(1, "#B0E0E6")    // Slightly darker near ground
-  //ctx.fillStyle = skyGradient
-  //ctx.fillRect(0, -roundedOffset, CANVAS_WIDTH, SURFACE_Y)
 
-  // Underground not mineable - with gradient
-  const groundGradient = ctx.createLinearGradient(0, SURFACE_Y - roundedOffset, 0, SURFACE_Y - roundedOffset + 100)
-  groundGradient.addColorStop(0, "#4A4A4A")    // Darker at top
-  groundGradient.addColorStop(1, "#333333")    // Lighter as it goes down
-  ctx.fillStyle = groundGradient
-  ctx.fillRect(0, SURFACE_Y - roundedOffset, CANVAS_WIDTH, MINE_DEPTH_PX)
+  // Draw buildings on surface
+  const shopTexture = getSceneTexture('shop')
+  const smithTexture = getSceneTexture('smith')
+  const sellTexture = getSceneTexture('sell')
+  
+  if (shopTexture) {
+    ctx.drawImage(shopTexture, 0, SURFACE_Y - 160 - roundedOffset + 20, 160, 160 + 20)
+  }
+  
+  if (smithTexture) {
+    ctx.drawImage(smithTexture, CANVAS_WIDTH - 160, SURFACE_Y - 160 - roundedOffset + 20, 160, 160 + 20)
+  }
+  
+  if (sellTexture) {
+    ctx.drawImage(sellTexture, 160, SURFACE_Y - 80 - roundedOffset + 10, 80, 80 + 10)
+  }
 
-  // Underground shaft from sky to darkness
-  const shaftGradient = ctx.createLinearGradient(0, SURFACE_Y - roundedOffset, 0, SURFACE_Y - roundedOffset + 100)
-  shaftGradient.addColorStop(0, "#B0E0E6")     // Match lower sky color
-  shaftGradient.addColorStop(1, "#6CA6CD")     // Darker closer to bedrock
-  ctx.fillStyle = shaftGradient
-  ctx.fillRect(
-    MINE_LEFT, 
-    SURFACE_Y - roundedOffset, 
-    MINE_LEFT + 80,
-    MINE_DEPTH_PX
-  )
+  // Draw underground areas
+  const undergroundTexture = getSceneTexture('underground')
+  const mineTexture = getSceneTexture('mine')
+  
+  // Tile the underground texture
+  if (undergroundTexture) {
+    for (let y = SURFACE_Y; y < SURFACE_Y + MINE_DEPTH_PX; y += 160) {
+      for (let x = 0; x < CANVAS_WIDTH; x += 160) {
+        ctx.drawImage(undergroundTexture, x, y - roundedOffset, 160, 160)
+      }
+    }
+  }
+
+  // Draw mine shaft
+  if (mineTexture) {
+    for (let y = SURFACE_Y; y < SURFACE_Y + MINE_DEPTH_PX; y += 160) {
+      ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 160, 160)
+      ctx.drawImage(mineTexture, MINE_LEFT + 160, y - roundedOffset, 160, 160)
+    }
+  }
 }
 
 function drawBlocks(
@@ -250,6 +264,25 @@ function drawZoneText(
       zone.y + 160 - cameraOffsetY
     )
   }
+
+  // Buy Options
+  ctx.font = "14px Arial"
+  ctx.fillText(
+    "Buy Platform [J]",
+    zone.x + 120,
+    zone.y + 60 - cameraOffsetY
+  )
+  ctx.fillText(
+    "Buy Torch [K]",
+    zone.x + 120,
+    zone.y + 90 - cameraOffsetY
+  )
+  ctx.fillText(
+    "Buy Ladder [L]",
+    zone.x + 120,
+    zone.y + 120 - cameraOffsetY
+  )
+  
 }
 
 function drawCraftZoneText(
@@ -338,86 +371,97 @@ function drawCraftZoneText(
 }
 
 
-function drawInventory(
-  ctx: CanvasRenderingContext2D,
-  player: Player
-) {
+function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   const slotSize = 35
   const padding = 5
   const startX = 10
   const startY = CANVAS_HEIGHT - 160
   
+  const selectedSlotTexture = getIconTexture('inventory_selected')
+  const unselectedSlotTexture = getIconTexture('inventory')
+  
   // Draw inventory slots
   for (let i = 0; i < Object.keys(BLOCK_TYPES).length; i++) {
-    // Calculate position
-    const column = Math.floor(i / 5)  // 0 for first column, 1 for second
-    const row = i % 5                 // 0-4 for each column
+    const column = Math.floor(i / 5)
+    const row = i % 5
     
     const x = startX + column * (slotSize + padding)
     const y = startY - row * (slotSize + padding)
 
-    const blockData = Object.values(BLOCK_TYPES)[i]
-    const blockValue = blockData.value
+    // Draw slot background using sprites
+    const slotTexture = i === player.selectedSlot ? selectedSlotTexture : unselectedSlotTexture
+    if (slotTexture) {
+      ctx.drawImage(slotTexture, x, y, slotSize, slotSize)
+    }
 
-    // Draw slot background
-    ctx.fillStyle = i === player.selectedSlot ? "#FFFF00" : "#E4E6EB"
-    ctx.fillRect(x, y, slotSize, slotSize)
-    
-    // Draw block count and value
+    // Draw block contents if any
     if (player.blockInventory[i] > 0) {
+      const blockData = Object.values(BLOCK_TYPES)[i]
       const texture = getBlockTexture(blockData.name)
       
       if (texture) {
-        // Draw block texture
-        ctx.drawImage(
-          texture,
-          x + 3,
-          y + 3,
-          slotSize - 6,
-          slotSize - 6
-        )
-      } else {
-        // Fallback to color
-        ctx.fillStyle = blockData.color
-        ctx.fillRect(x + 3, y + 3, slotSize - 6, slotSize - 6)
+        ctx.drawImage(texture, x + 3, y + 3, slotSize - 6, slotSize - 6)
       }
       
       // Draw count
       ctx.fillStyle = "white"
       ctx.font = "11px Arial"
-      ctx.fillText(
-        player.blockInventory[i].toString(),
-        x + 6,
-        y + slotSize - 8
-      )
+      ctx.fillText(player.blockInventory[i].toString(), x + 6, y + slotSize - 8)
       
-      // Draw value
-      ctx.fillStyle = "#FFD700"  // Gold color
-      ctx.font = "10px Arial"
-      ctx.fillText(
-        `${blockValue}g`,
-        x + 5,
-        y + 14
-      )
+      // Draw value with coin icon
+      const coinIcon = getIconTexture('coin')
+      if (coinIcon) {
+        ctx.drawImage(coinIcon, x + 3, y + 3, 12, 12)
+        ctx.fillStyle = "#FFD700"
+        ctx.font = "10px Arial"
+        ctx.fillText(blockData.value.toString(), x + 16, y + 12)
+      }
     }
   }
 }
 
-export function updateHUD(player: Player) {
-  const goldDisplay = document.getElementById("goldDisplay")
-  const inventoryDisplay = document.getElementById("inventoryDisplay")
-  const pickaxeDisplay = document.getElementById("pickaxeDisplay")
-  const backpackDisplay = document.getElementById("backpackDisplay")
-
-  if (goldDisplay) goldDisplay.textContent = player.gold.toString()
-  if (inventoryDisplay) {
-    inventoryDisplay.textContent = 
-      `${player.inventory} / ${player.backpackCapacity}`
+// Rename updateHUD to drawHUD since it's now drawing directly
+function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
+  const padding = 10
+  const iconSize = 25
+  
+  // Draw HUD background
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+  ctx.fillRect(padding, CANVAS_HEIGHT - 100 - padding, 200, 100)
+  
+  // Draw gold with coin icon
+  const coinIcon = getIconTexture('coin')
+  if (coinIcon) {
+    ctx.drawImage(coinIcon, padding + 5, CANVAS_HEIGHT - 100, iconSize, iconSize)
+    ctx.fillStyle = "white"
+    ctx.font = "16px Arial"
+    ctx.fillText(player.gold.toString(), padding + iconSize + 10, CANVAS_HEIGHT - 100 + 20)
   }
-  if (pickaxeDisplay) {
-    pickaxeDisplay.textContent = Object.values(PICKAXE_TYPES)[player.pickaxeType].name + " lvl " + String(player.pickaxeLevel)
+  
+  // Draw backpack with icon
+  const backpackIcon = getIconTexture('backpack')
+  if (backpackIcon) {
+    ctx.drawImage(backpackIcon, padding + 5, CANVAS_HEIGHT - 100 + 30, iconSize, iconSize)
+    ctx.fillStyle = "white"
+    ctx.font = "16px Arial"
+    ctx.fillText(
+      `${player.inventory} / ${player.backpackCapacity}`,
+      padding + iconSize + 10,
+      CANVAS_HEIGHT - 100 + 50
+    )
   }
-  if (backpackDisplay) {
-    backpackDisplay.textContent = Object.values(BACKPACK_TYPES)[player.backpackType].name + " lvl " + String(player.backpackLevel)
+  
+  // Draw current pickaxe
+  const pickaxeType = Object.values(PICKAXE_TYPES)[player.pickaxeType].name.toLowerCase()
+  const pickIcon = getPickTexture(pickaxeType)
+  if (pickIcon) {
+    ctx.drawImage(pickIcon, padding + 5, CANVAS_HEIGHT - 100 + 55, iconSize, iconSize)
+    ctx.fillStyle = "white"
+    ctx.font = "16px Arial"
+    ctx.fillText(
+      `Level ${player.pickaxeLevel}`,
+      padding + iconSize + 10,
+      CANVAS_HEIGHT - 100 + 75
+    )
   }
-} 
+}

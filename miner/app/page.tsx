@@ -21,9 +21,12 @@ import {
   canMineBlock,
   attemptPlaceBlock,
   attemptCraftPickaxe,
-  attemptCraftBackpack
+  attemptCraftBackpack,
+  attemptBuyPlatform,
+  attemptBuyTorch,
+  attemptBuyLadder
 } from "./mining"
-import { draw, updateHUD } from "./rendering"
+import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
 import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
@@ -64,8 +67,7 @@ export default function MiningGame() {
         const miningResult = handleMining(
           player, 
           miningTargetBlock, 
-          miningProgress, 
-          () => updateHUD(player)
+          miningProgress
         )
         miningProgress = miningResult.miningProgress
         miningTargetBlock = miningResult.miningTargetBlock
@@ -96,46 +98,85 @@ export default function MiningGame() {
               // Update blocks
               blocks.length = 0 // Clear existing blocks
               blocks.push(...savedData.blocks)
-              
-              // Update HUD
-              updateHUD(player)
             }
           }
           return
         }
 
         // Add inventory navigation with arrow keys
-        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-          const delta = e.key === "ArrowDown" ? -1 : 1
-          player.selectedSlot = (player.selectedSlot + delta + player.blockInventory.length) % player.blockInventory.length
+        if (e.key.startsWith("Arrow")) {
+          e.preventDefault() // Prevent page scrolling
+          
+          const inventorySize = player.blockInventory.length
+          const rowHeight = 5
+          
+          let currentSlot = player.selectedSlot
+          
+          switch (e.key) {
+            case "ArrowUp":
+              // Move up one slot, wrap to bottom of same column if at top
+              currentSlot = (currentSlot + 1 + rowHeight) % rowHeight + 
+                           Math.floor(currentSlot / rowHeight) * rowHeight
+              break
+            case "ArrowDown":
+              // Move down one slot, wrap to top of same column if at bottom
+              currentSlot = (currentSlot - 1) % rowHeight + 
+                           Math.floor(currentSlot / rowHeight) * rowHeight
+              break
+            case "ArrowLeft":
+              // Move left one column, wrap to rightmost column if at leftmost
+              currentSlot = ((Math.floor(currentSlot / rowHeight) - 1 + 
+                           Math.ceil(inventorySize / rowHeight)) * rowHeight + 
+                           (currentSlot % rowHeight)) % inventorySize
+              break
+            case "ArrowRight":
+              // Move right one column, wrap to leftmost column if at rightmost
+              currentSlot = ((Math.floor(currentSlot / rowHeight) + 1) * rowHeight + 
+                           (currentSlot % rowHeight)) % inventorySize
+              break
+          }
+          
+          // Only update if the new slot is within inventory bounds
+          if (currentSlot < inventorySize) {
+            player.selectedSlot = currentSlot
+          }
         }
 
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           switch (e.key) {
             case "e":
-              attemptPickaxeUpgrade(player, () => updateHUD(player))
+              attemptPickaxeUpgrade(player)
               break
             case "r":
-              attemptBackpackUpgrade(player, () => updateHUD(player))
+              attemptBackpackUpgrade(player)
               break
             case "p":
-              attemptSell(player, () => updateHUD(player))
+              attemptSell(player)
+              break
+            case "j":
+              attemptBuyPlatform(player)
+              break
+            case "k":
+              attemptBuyTorch(player)
+              break
+            case "l":
+              attemptBuyLadder(player)
               break
           }
         }
 
         if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
           if (e.key === "e") {
-            attemptCraftPickaxe(player, () => updateHUD(player))
+            attemptCraftPickaxe(player)
           }
           if (e.key === "r") {
-            attemptCraftBackpack(player, () => updateHUD(player))
+            attemptCraftBackpack(player)
           }
         }
 
         // Allow s to place block just below player to help escape the mine
         if (e.key === "s") {
-          attemptPlaceBlock(player, blocks, player.x, player.y + PLAYER_HEIGHT + 0.8*BLOCK_SIZE, () => updateHUD(player))
+          attemptPlaceBlock(player, blocks, player.x, player.y + PLAYER_HEIGHT + 0.8*BLOCK_SIZE)
         }
       }
 
@@ -150,7 +191,7 @@ export default function MiningGame() {
 
         // Right click for placement
         if (e.button === 2) {
-          attemptPlaceBlock(player, blocks, clickX, clickY, () => updateHUD(player))
+          attemptPlaceBlock(player, blocks, clickX, clickY)
           return
         }
 
@@ -180,7 +221,6 @@ export default function MiningGame() {
       canvas.addEventListener("mouseup", handleMouseUp)
 
       // Initialize and start game
-      updateHUD(player)
       gameLoop()
 
       // Cleanup
@@ -206,20 +246,6 @@ export default function MiningGame() {
           className="border-2 border-white-600"
           ref={canvasRef}
         ></canvas>
-
-        {/* HUD */}
-        <div
-          id="hud"
-          className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded"
-        >
-          Gold: <span id="goldDisplay">0</span>
-          <br />
-          Inventory: <span id="inventoryDisplay">0</span>
-          <br />
-          Pickaxe: <span id="pickaxeDisplay">Default</span>
-          <br />
-          Backpack: <span id="backpackDisplay">Default</span>
-        </div>
 
         {/* Controls */}
         <div

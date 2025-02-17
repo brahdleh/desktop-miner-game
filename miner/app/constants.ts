@@ -30,7 +30,7 @@ export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 export const UPGRADE_ZONE = {
   x: 0,
   y: SURFACE_Y - 170,
-  width: 120,
+  width: 240,
   height: 170,
 }
 
@@ -90,7 +90,7 @@ export const BLOCK_TYPES = {
     id: 5,
     value: 20,
     color: "#D16002",
-    miningTimeMultiplier: 10,
+    miningTimeMultiplier: 5,
     density: 1,
     name: "Copper"
 
@@ -120,6 +120,60 @@ export const BLOCK_TYPES = {
     miningTimeMultiplier: 300,
     density: 1,
     name: "Diamond"
+
+  },
+  UNAMED: {
+    id: 9,
+    value: 1000,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 300,
+    density: 1,
+    name: "Unamed"
+
+  },
+  PLATFORM: {
+    id: 10,
+    value: 1,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 0.5,
+    density: 1,
+    name: "Platform"
+
+  },
+  LADDER: {
+    id: 11,
+    value: 1,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 0.5,
+    density: 1,
+    name: "Ladder"
+
+  },
+  TORCH: {
+    id: 12,
+    value: 1,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 0.5,
+    density: 1,
+    name: "Torch"
+
+  },
+  UNAMED2: {
+    id: 13,
+    value: 1000,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 300,
+    density: 1,
+    name: "Unamed2"
+
+  },
+  UNAMED3: {
+    id: 14,
+    value: 1000,
+    color: "#4EE2EC",
+    miningTimeMultiplier: 300,
+    density: 1,
+    name: "Unamed3"
 
   }
 } as const 

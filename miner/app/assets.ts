@@ -1,6 +1,8 @@
 // Create objects to store textures
 const blockTextures: { [key: string]: HTMLImageElement } = {}
 const sceneTextures: { [key: string]: HTMLImageElement } = {}
+const iconTextures: { [key: string]: HTMLImageElement } = {}
+const pickTextures: { [key: string]: HTMLImageElement } = {}
 
 // Function to load a texture and store it in blockTextures
 function loadBlockTexture(name: string): Promise<void> {
@@ -27,6 +29,30 @@ function loadSceneTexture(name: string): Promise<void> {
   })
 }
 
+function loadIconTexture(name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      iconTextures[name] = img
+      resolve()
+    }
+    img.onerror = reject
+    img.src = `/icons/${name}.png`
+  })
+}
+
+function loadPickTexture(name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      pickTextures[name] = img
+      resolve()
+    }
+    img.onerror = reject
+    img.src = `/picks/${name}.png`
+  })
+}
+
 // Load all block textures
 export async function loadBlockTextures(): Promise<void> {
   try {
@@ -40,6 +66,9 @@ export async function loadBlockTextures(): Promise<void> {
       loadBlockTexture('iron'),
       loadBlockTexture('gold'),
       loadBlockTexture('diamond'),
+      loadBlockTexture('platform'),
+      loadBlockTexture('torch'),
+      loadBlockTexture('ladder')
     ])
     console.log('Block textures loaded successfully')
   } catch (error) {
@@ -52,6 +81,12 @@ export async function loadSceneTextures(): Promise<void> {
   try {
     await Promise.all([
       loadSceneTexture('sky'),
+      loadSceneTexture('dirt'),
+      loadSceneTexture('mine'),
+      loadSceneTexture('underground'),
+      loadSceneTexture('shop'),
+      loadSceneTexture('smith'),
+      loadSceneTexture('sell')
     ])
     console.log('Scene textures loaded successfully')
   } catch (error) {
@@ -59,10 +94,45 @@ export async function loadSceneTextures(): Promise<void> {
   }
 }
 
-// Load all textures
+// Add function to load UI icons
+export async function loadIconTextures(): Promise<void> {
+  try {
+    await Promise.all([
+      loadIconTexture('coin'),
+      loadIconTexture('backpack'),
+      loadIconTexture('inventory_selected'),
+      loadIconTexture('inventory')
+    ])
+    console.log('Icon textures loaded successfully')
+  } catch (error) {
+    console.error('Failed to load icon textures:', error)
+  }
+}
+
+// Add function to load pickaxe textures
+export async function loadPickTextures(): Promise<void> {
+  try {
+    await Promise.all([
+      loadPickTexture('stone'),
+      loadPickTexture('copper'),
+      loadPickTexture('iron'),
+      loadPickTexture('gold'),
+      loadPickTexture('diamond')
+    ])
+    console.log('Pick textures loaded successfully')
+  } catch (error) {
+    console.error('Failed to load pick textures:', error)
+  }
+}
+
+// Update loadAllTextures
 export async function loadAllTextures(): Promise<void> {
-  await loadBlockTextures()
-  await loadSceneTextures()
+  await Promise.all([
+    loadBlockTextures(),
+    loadSceneTextures(),
+    loadIconTextures(),
+    loadPickTextures()
+  ])
 }
 
 // Function to get a texture
@@ -72,4 +142,12 @@ export function getBlockTexture(name: string): HTMLImageElement | null {
 
 export function getSceneTexture(name: string): HTMLImageElement | null {
   return sceneTextures[name.toLowerCase()] || null
+} 
+
+export function getIconTexture(name: string): HTMLImageElement | null {
+  return iconTextures[name.toLowerCase()] || null
+}
+
+export function getPickTexture(name: string): HTMLImageElement | null {
+  return pickTextures[name.toLowerCase()] || null
 } 
