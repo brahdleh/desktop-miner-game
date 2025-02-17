@@ -15,6 +15,18 @@ import {
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture } from './assets'
 
+const MAX_DARKNESS = 0.85 // Maximum darkness level (0-1)
+const DARKNESS_START = 300 // Y position where darkness starts
+const DARKNESS_RANGE = 1000 // Distance over which darkness increases to max
+const TORCH_INNER_RADIUS = 160
+const TORCH_OUTER_RADIUS = 240
+
+function calculateDarknessLevel(y: number): number {
+  if (y < DARKNESS_START) return 0
+  const darknessFactor = Math.min(1, (y - DARKNESS_START) / DARKNESS_RANGE)
+  return darknessFactor * MAX_DARKNESS
+}
+
 export function draw(
   ctx: CanvasRenderingContext2D,
   player: Player,
@@ -35,6 +47,7 @@ export function draw(
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
   drawInventory(ctx, player)
   drawHUD(ctx, player)
+  drawDarknessOverlay(ctx, blocks, cameraOffsetY)
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
@@ -464,4 +477,61 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
       CANVAS_HEIGHT - 100 + 75
     )
   }
+}
+
+function drawDarknessOverlay(
+  ctx: CanvasRenderingContext2D,
+  blocks: Block[],
+  cameraOffsetY: number
+) {
+  // Create a new canvas for the lighting
+  const lightingCanvas = document.createElement('canvas')
+  lightingCanvas.width = CANVAS_WIDTH
+  lightingCanvas.height = CANVAS_HEIGHT
+  const lightingCtx = lightingCanvas.getContext('2d')
+  if (!lightingCtx) return
+
+  // Fill with darkness gradient
+  const gradient = lightingCtx.createLinearGradient(
+    0, DARKNESS_START - cameraOffsetY,
+    0, DARKNESS_START + DARKNESS_RANGE - cameraOffsetY
+  )
+  gradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
+  gradient.addColorStop(1, `rgba(0, 0, 0, ${MAX_DARKNESS})`)
+  
+  lightingCtx.fillStyle = gradient
+  lightingCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  // Create light around torches
+  lightingCtx.globalCompositeOperation = 'destination-out'
+  blocks.forEach(block => {
+    if (block.blockType === 12 && !block.isMined) {
+      const gradient = lightingCtx.createRadialGradient(
+        block.x + BLOCK_SIZE/2,
+        block.y - cameraOffsetY + BLOCK_SIZE/2,
+        0,
+        block.x + BLOCK_SIZE/2,
+        block.y - cameraOffsetY + BLOCK_SIZE/2,
+        TORCH_OUTER_RADIUS
+      )
+      
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
+      gradient.addColorStop(TORCH_INNER_RADIUS/TORCH_OUTER_RADIUS, 'rgba(0, 0, 0, 0.7)')
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+      
+      lightingCtx.fillStyle = gradient
+      lightingCtx.beginPath()
+      lightingCtx.arc(
+        block.x + BLOCK_SIZE/2,
+        block.y - cameraOffsetY + BLOCK_SIZE/2,
+        TORCH_OUTER_RADIUS,
+        0,
+        Math.PI * 2
+      )
+      lightingCtx.fill()
+    }
+  })
+
+  // Draw the lighting canvas onto the main canvas
+  ctx.drawImage(lightingCanvas, 0, 0)
 }
