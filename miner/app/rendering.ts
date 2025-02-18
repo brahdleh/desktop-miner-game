@@ -1,7 +1,7 @@
 import { Player, Block, Zone } from './types'
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, SURFACE_Y, MINE_DEPTH_PX,
-  MINE_LEFT, BLOCK_SIZE, MINE_WIDTH, PLAYER_WIDTH, PLAYER_HEIGHT,
+  MINE_LEFT, BLOCK_SIZE, PLAYER_WIDTH, PLAYER_HEIGHT,
   DEFAULT_MINE_TIME,
   PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
   BLOCK_TYPES,
@@ -21,11 +21,13 @@ const DARKNESS_RANGE = 1000 // Distance over which darkness increases to max
 const TORCH_INNER_RADIUS = 160
 const TORCH_OUTER_RADIUS = 240
 
+/*
 function calculateDarknessLevel(y: number): number {
   if (y < DARKNESS_START) return 0
   const darknessFactor = Math.min(1, (y - DARKNESS_START) / DARKNESS_RANGE)
   return darknessFactor * MAX_DARKNESS
 }
+*/
 
 export function draw(
   ctx: CanvasRenderingContext2D,
