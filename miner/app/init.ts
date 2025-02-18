@@ -45,8 +45,7 @@ export function initializeBlocks(): Block[] {
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
-      const blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
-      const blockData = Object.values(BLOCK_TYPES)[blockType]
+      var blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
       
       // Calculate ore probabilities using normal distribution
       const random = Math.random()
@@ -67,6 +66,8 @@ export function initializeBlocks(): Block[] {
       else if (depth >= 78 && random < oreDistribution.diamond.maxProb * normalDistribution(depth, oreDistribution.diamond.mean, oreDistribution.diamond.std)) {
         blockType = 8  // Note: Changed from 7 to 8 as it appeared to be a bug in original code
       }
+
+      const blockData = Object.values(BLOCK_TYPES)[blockType]
 
       blocks.push({
         x,
