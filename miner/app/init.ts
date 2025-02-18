@@ -64,7 +64,7 @@ export function initializeBlocks(): Block[] {
       }
       // Diamond (type 8)
       else if (depth >= 78 && random < oreDistribution.diamond.maxProb * normalDistribution(depth, oreDistribution.diamond.mean, oreDistribution.diamond.std)) {
-        blockType = 8  // Note: Changed from 7 to 8 as it appeared to be a bug in original code
+        blockType = 8 
       }
 
       const blockData = Object.values(BLOCK_TYPES)[blockType]

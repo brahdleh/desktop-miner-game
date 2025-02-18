@@ -311,7 +311,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   const slotSize = 35
   const padding = 5
   const startX = 10
-  const startY = CANVAS_HEIGHT - 160
+  const startY = CANVAS_HEIGHT - 50
   
   const selectedSlotTexture = getIconTexture('inventory_selected')
   const unselectedSlotTexture = getIconTexture('inventory')
@@ -353,39 +353,40 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
 }
 
 function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
-  const padding = 10
+  const startX = 5
+  const startY = CANVAS_HEIGHT - 320
   const iconSize = 25
   
   // HUD background.
-  ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-  ctx.fillRect(padding, CANVAS_HEIGHT - 100 - padding, 200, 100)
+  //ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+  //ctx.fillRect(startX, startY, 200, 100)
   
   // Gold display.
   const coinIcon = getIconTexture('coin')
   if (coinIcon) {
-    ctx.drawImage(coinIcon, padding + 5, CANVAS_HEIGHT - 100, iconSize, iconSize)
+    ctx.drawImage(coinIcon, startX + 10, startY + 10, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(player.gold.toString(), padding + iconSize + 10, CANVAS_HEIGHT - 100 + 20)
+    ctx.fillText(player.gold.toString(), startX + iconSize + 15, startY + 30)
   }
   
   // Backpack display.
   const backpackIcon = getIconTexture('backpack')
   if (backpackIcon) {
-    ctx.drawImage(backpackIcon, padding + 5, CANVAS_HEIGHT - 100 + 30, iconSize, iconSize)
+    ctx.drawImage(backpackIcon, startX + 9, startY + 10 + 30, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`${player.inventory} / ${player.backpackCapacity}`, padding + iconSize + 10, CANVAS_HEIGHT - 100 + 50)
+    ctx.fillText(`${player.inventory} / ${player.backpackCapacity}`, startX + iconSize + 15, startY + 60)
   }
   
   // Pickaxe display.
   const pickaxeType = PICKAXE_TYPES_ARRAY[player.pickaxeType].name.toLowerCase()
   const pickIcon = getPickTexture(pickaxeType)
   if (pickIcon) {
-    ctx.drawImage(pickIcon, padding + 5, CANVAS_HEIGHT - 100 + 55, iconSize, iconSize)
+    ctx.drawImage(pickIcon, startX + 10, startY + 10 + 60, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`Level ${player.pickaxeLevel}`, padding + iconSize + 10, CANVAS_HEIGHT - 100 + 75)
+    ctx.fillText(`Level ${player.pickaxeLevel}`, startX + iconSize + 15, startY + 90)
   }
 }
 
