@@ -191,8 +191,58 @@ export const BLOCK_TYPES = {
     solid: true,
     climbable: false
   },
-  UNAMED3: {
+  REFINER: {
     id: 14,
+    value: 1,
+    color: "#6B4423",
+    miningTimeMultiplier: 1,
+    density: 1,
+    name: "Refiner",
+    solid: false,
+    climbable: false
+  },
+  POLISHED_STONE: {
+    id: 15,
+    value: 3, // 3x value of stone
+    color: "#A0A0A0", // Lighter gray
+    miningTimeMultiplier: 1,
+    density: 1,
+    name: "Polished Stone",
+    solid: true,
+    climbable: false
+  },
+  POLISHED_SLATE: {
+    id: 16,
+    value: 15, // 3x value of slate
+    color: "#4A4B4C", // Lighter slate
+    miningTimeMultiplier: 5,
+    density: 5,
+    name: "Polished Slate",
+    solid: true,
+    climbable: false
+  },
+  POLISHED_MAGMA: {
+    id: 17,
+    value: 60, // 3x value of magma
+    color: "#581010", // Lighter magma
+    miningTimeMultiplier: 20,
+    density: 20,
+    name: "Polished Magma",
+    solid: true,
+    climbable: false
+  },
+  POLISHED_BEDROCK: {
+    id: 18,
+    value: 300, // 3x value of bedrock
+    color: "#202222", // Lighter bedrock
+    miningTimeMultiplier: 100,
+    density: 100,
+    name: "Polished Bedrock",
+    solid: true,
+    climbable: false
+  },
+  UNAMED3: {
+    id: 13,
     value: 1000,
     color: "#4EE2EC",
     miningTimeMultiplier: 300,
@@ -309,4 +359,13 @@ export const BACKPACK_TYPES = {
 export const BLOCK_ID_TO_TYPE = Object.fromEntries(
   Object.entries(BLOCK_TYPES).map(([name, data]) => [data.id, name])
 ) as { [id: number]: keyof typeof BLOCK_TYPES }
+
+// Refining constants
+export const REFINING_TIME = 10000 // 10 seconds to refine a block
+export const REFINABLE_BLOCKS = {
+  1: 15,  // Stone -> Polished Stone
+  2: 16,  // Slate -> Polished Slate
+  3: 17,  // Magma -> Polished Magma
+  4: 18   // Bedrock -> Polished Bedrock
+} as const
 

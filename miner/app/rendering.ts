@@ -11,11 +11,12 @@ import {
   MAX_PICKAXE_LEVEL,
   MAX_BACKPACK_LEVEL,
   PICKAXE_BASE_COST,
-  BACKPACK_BASE_COST
+  BACKPACK_BASE_COST,
+  REFINING_TIME
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture } from './assets'
 
-// Cache arrays so that Object.values() isn’t re‑computed each frame.
+// Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
 const PICKAXE_TYPES_ARRAY = Object.values(PICKAXE_TYPES)
 const BACKPACK_TYPES_ARRAY = Object.values(BACKPACK_TYPES)
@@ -137,6 +138,42 @@ function drawBlocks(
     // Optional: Draw a light border for visibility.
     ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
     ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
+
+    // Draw refiner state if this is a refiner
+    if (block.blockType === 14 && block.machineState) {
+      if (block.machineState.processingBlockType !== null) {
+        // Draw the block being processed in the center
+        const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
+        const processedTexture = getBlockTexture(processedBlockData.name)
+        
+        if (processedTexture) {
+          ctx.drawImage(processedTexture, x + BLOCK_SIZE/4, y + BLOCK_SIZE/4, BLOCK_SIZE/2, BLOCK_SIZE/2)
+        } else {
+          ctx.fillStyle = processedBlockData.color
+          ctx.fillRect(x + BLOCK_SIZE/4, y + BLOCK_SIZE/4, BLOCK_SIZE/2, BLOCK_SIZE/2)
+        }
+
+        // Draw progress bar
+        const elapsedTime = Date.now() - (block.machineState.processingStartTime || 0)
+        const progress = Math.min(elapsedTime / REFINING_TIME, 1)
+        
+        // Background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE, 3)
+        
+        // Progress
+        ctx.fillStyle = progress >= 1 ? "#00FF00" : "#FFFF00"
+        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 3)
+
+        // Outline when complete
+        if (progress >= 1) {
+          ctx.strokeStyle = "#00FF00"
+          ctx.lineWidth = 2
+          ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
+          ctx.lineWidth = 1
+        }
+      }
+    }
   }
 }
 
@@ -256,6 +293,7 @@ function drawZoneText(
   ctx.fillText("Buy Platform [J]", zone.x + 120, zone.y + 60 - cameraOffsetY)
   ctx.fillText("Buy Torch [K]", zone.x + 120, zone.y + 90 - cameraOffsetY)
   ctx.fillText("Buy Ladder [L]", zone.x + 120, zone.y + 120 - cameraOffsetY)
+  ctx.fillText("Buy Refiner [M]", zone.x + 120, zone.y + 150 - cameraOffsetY)
 }
 
 function drawCraftZoneText(
@@ -335,7 +373,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
       ctx.drawImage(slotTexture, x, y, slotSize, slotSize)
     }
 
-    // If there’s any block in this slot, draw its texture, count, and value.
+    // If there's any block in this slot, draw its texture, count, and value.
     if (player.blockInventory[i] > 0) {
       const blockData = BLOCK_TYPES_ARRAY[i]
       const texture = getBlockTexture(blockData.name)
@@ -414,7 +452,7 @@ function drawDarknessOverlay(
   lightingCtx.fillStyle = gradient
   lightingCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
-  // Use destination-out to “punch” light around torches.
+  // Use destination-out to "punch" light around torches.
   lightingCtx.globalCompositeOperation = 'destination-out'
   for (const block of blocks) {
     // Assuming blockType 12 represents a torch.

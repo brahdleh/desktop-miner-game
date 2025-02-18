@@ -24,7 +24,11 @@ import {
   attemptCraftBackpack,
   attemptBuyPlatform,
   attemptBuyTorch,
-  attemptBuyLadder
+  attemptBuyLadder,
+  attemptBuyRefiner,
+  attemptDepositInRefiner,
+  attemptCollectFromRefiner,
+  findNearbyRefiner
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
@@ -142,6 +146,19 @@ export default function MiningGame() {
           }
         }
 
+        // Check for refiner interactions
+        const nearbyRefiner = findNearbyRefiner(player, blocks)
+        if (nearbyRefiner) {
+          if (e.key === "t") {
+            attemptDepositInRefiner(player, blocks)
+            return
+          }
+          if (e.key === "y") {
+            attemptCollectFromRefiner(player, blocks)
+            return
+          }
+        }
+
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           switch (e.key) {
             case "e":
@@ -161,6 +178,9 @@ export default function MiningGame() {
               break
             case "l":
               attemptBuyLadder(player)
+              break
+            case "m":
+              attemptBuyRefiner(player)
               break
           }
         }

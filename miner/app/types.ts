@@ -25,6 +25,13 @@ export interface Block {
   value: number
   solid: boolean    // New property for collision detection
   climbable: boolean // New property for ladder mechanics
+  machineState?: MachineState // Optional machine state for blocks that are machines
+}
+
+export interface MachineState {
+  processingBlockType: number | null // The type of block being processed
+  processingStartTime: number | null // When processing started
+  isFinished: boolean // Whether processing is complete
 }
 
 export interface Zone {

@@ -12,7 +12,9 @@ import {
   PICKAXE_TYPES,
   BACKPACK_TYPES,
   MAX_BACKPACK_LEVEL,
-  MAX_PICKAXE_LEVEL
+  MAX_PICKAXE_LEVEL,
+  REFINABLE_BLOCKS,
+  REFINING_TIME
 } from './constants'
 
 
@@ -87,6 +89,15 @@ export function attemptBuyLadder(player: Player) {
   if (player.gold >= itemData.value) {
     player.gold -= itemData.value
     player.blockInventory[11]++
+    player.inventory ++
+  }
+}
+
+export function attemptBuyRefiner(player: Player) {
+  const itemData = Object.values(BLOCK_TYPES)[14] // Refiner block type
+  if (player.gold >= itemData.value) {
+    player.gold -= itemData.value
+    player.blockInventory[14]++
     player.inventory ++
   }
 }
@@ -240,4 +251,84 @@ export function attemptCraftBackpack(player: Player) {
   }
 
   return false
+}
+
+export function findNearbyRefiner(player: Player, blocks: Block[]): Block | null {
+  const playerCenterX = player.x + BLOCK_SIZE / 2
+  const playerBottom = player.y + BLOCK_SIZE
+
+  for (const block of blocks) {
+    if (block.blockType === 14 && !block.isMined) { // 14 is refiner
+      const distX = Math.abs((block.x + BLOCK_SIZE / 2) - playerCenterX)
+      const distY = Math.abs((block.y) - playerBottom)
+      
+      if (distX <= BLOCK_SIZE && distY <= BLOCK_SIZE) {
+        return block
+      }
+    }
+  }
+  return null
+}
+
+export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
+  const refiner = findNearbyRefiner(player, blocks)
+  if (!refiner) return false
+
+  const selectedBlock = player.blockInventory[player.selectedSlot]
+  if (selectedBlock <= 0) return false
+
+  // Check if the selected block is refinable
+  if (!REFINABLE_BLOCKS[player.selectedSlot as keyof typeof REFINABLE_BLOCKS]) return false
+
+  // Initialize machine state if needed
+  if (!refiner.machineState) {
+    refiner.machineState = {
+      processingBlockType: null,
+      processingStartTime: null,
+      isFinished: false
+    }
+  }
+
+  // Check if refiner is already processing
+  if (refiner.machineState.processingBlockType !== null) return false
+
+  // Start processing
+  refiner.machineState.processingBlockType = player.selectedSlot
+  refiner.machineState.processingStartTime = Date.now()
+  refiner.machineState.isFinished = false
+
+  // Remove block from inventory
+  player.blockInventory[player.selectedSlot]--
+  player.inventory--
+
+  return true
+}
+
+export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
+  const refiner = findNearbyRefiner(player, blocks)
+  if (!refiner || !refiner.machineState?.processingBlockType) return false
+
+  // Check if refining is complete
+  const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
+  if (elapsedTime < REFINING_TIME) return false
+
+  const inputBlockType = refiner.machineState.processingBlockType
+  const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS]
+
+  if (!outputBlockType) return false
+
+  // Check if inventory has space
+  const blockData = Object.values(BLOCK_TYPES)[outputBlockType]
+  if (player.inventory + blockData.density > player.backpackCapacity) return false
+
+  // Add refined block to inventory
+  player.blockInventory[outputBlockType]++
+  player.inventory += blockData.density
+
+  // Reset machine state
+  refiner.machineState.processingBlockType = null
+  refiner.machineState.processingStartTime = null
+  refiner.machineState.isFinished = false
+
+  return true
 }
