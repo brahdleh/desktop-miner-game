@@ -1,13 +1,13 @@
 export const CANVAS_WIDTH = 800
 export const CANVAS_HEIGHT = 600
-export const BLOCK_SIZE = 40
+export const BLOCK_SIZE = 36
 export const PLAYER_WIDTH = 25
 export const PLAYER_HEIGHT = 60
 export const GRAVITY = 0.5
 export const JUMP_STRENGTH = 10
 export const MOVE_SPEED = 3
-export const MINE_WIDTH = 8
-export const MINE_LEFT = (CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
+export const MINE_WIDTH = 9
+export const MINE_LEFT = 7 * BLOCK_SIZE //(CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
 export const SURFACE_Y = 5 * BLOCK_SIZE
 
 // Mining constants
@@ -30,7 +30,7 @@ export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 export const UPGRADE_ZONE = {
   x: 0,
   y: SURFACE_Y - 170,
-  width: 240,
+  width: 230,
   height: 170,
 }
 
