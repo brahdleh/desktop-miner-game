@@ -51,7 +51,7 @@ export function draw(
   ctx.clearRect(0, -CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
 
   drawBackground(ctx, cameraOffsetY)
-  drawBlocks(ctx, blocks, cameraOffsetY)
+  drawBlocks(player.y, ctx, blocks, cameraOffsetY)
   drawPlayer(ctx, player, cameraOffsetY)
   drawMiningProgress(ctx, miningTargetBlock, miningProgress, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
@@ -89,6 +89,7 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   // Draw underground areas
   const undergroundTexture = getSceneTexture('underground')
   const mineTexture = getSceneTexture('mine')
+  const dirtTexture = getSceneTexture('dirt')
   
   if (undergroundTexture) {
     for (let y = SURFACE_Y; y < SURFACE_Y + MINE_DEPTH_PX; y += 160) {
@@ -105,15 +106,21 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
       ctx.drawImage(mineTexture, MINE_LEFT + 160, y - roundedOffset, 160, 160)
     }
   }
+  if (dirtTexture) {
+    ctx.drawImage(dirtTexture, MINE_LEFT, SURFACE_Y - roundedOffset, 160, 40)
+    ctx.drawImage(dirtTexture, MINE_LEFT + 160, SURFACE_Y - roundedOffset, 160, 40)
+  }
 }
 
 function drawBlocks(
+  player_y: number,
   ctx: CanvasRenderingContext2D, 
   blocks: Block[], 
   cameraOffsetY: number
 ) {
   for (const block of blocks) {
     if (block.isMined) continue
+    if (Math.abs(block.y - player_y) > CANVAS_HEIGHT) continue // just draw what is in sight
 
     const blockData = BLOCK_TYPES_ARRAY[block.blockType]
     const texture = getBlockTexture(blockData.name)
@@ -356,10 +363,6 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
   const startX = 5
   const startY = CANVAS_HEIGHT - 320
   const iconSize = 25
-  
-  // HUD background.
-  //ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-  //ctx.fillRect(startX, startY, 200, 100)
   
   // Gold display.
   const coinIcon = getIconTexture('coin')

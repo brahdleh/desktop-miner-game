@@ -35,10 +35,10 @@ export function initializeBlocks(): Block[] {
 
   // Define ore distribution parameters
   const oreDistribution = {
-    copper: { mean: 15, std: 15, maxProb: 0.09 },
-    iron: { mean: 40, std: 15, maxProb: 0.08 },
-    gold: { mean: 65, std: 15, maxProb: 0.07 },
-    diamond: { mean: 90, std: 15, maxProb: 0.06 }
+    copper: { mean: 15, std: 30, maxProb: 0.09 },
+    iron: { mean: 40, std: 30, maxProb: 0.08 },
+    gold: { mean: 65, std: 30, maxProb: 0.07 },
+    diamond: { mean: 90, std: 30, maxProb: 0.06 }
   };
 
   // Generate mine shaft
