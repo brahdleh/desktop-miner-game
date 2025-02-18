@@ -27,10 +27,15 @@ const TORCH_INNER_RADIUS = 120
 const TORCH_OUTER_RADIUS = 200
 
 // Create and reuse an offscreen canvas for the lighting overlay.
-const lightingCanvas = document.createElement('canvas')
-lightingCanvas.width = CANVAS_WIDTH
-lightingCanvas.height = CANVAS_HEIGHT
-const lightingCtx = lightingCanvas.getContext('2d')
+let lightingCanvas: HTMLCanvasElement | null = null;
+let lightingCtx: CanvasRenderingContext2D | null = null;
+
+if (typeof document !== 'undefined') {
+  lightingCanvas = document.createElement('canvas');
+  lightingCanvas.width = CANVAS_WIDTH;
+  lightingCanvas.height = CANVAS_HEIGHT;
+  lightingCtx = lightingCanvas.getContext('2d');
+}
 
 export function draw(
   ctx: CanvasRenderingContext2D,
@@ -431,5 +436,7 @@ function drawDarknessOverlay(
   lightingCtx.globalCompositeOperation = 'source-over'
   
   // Draw the lighting overlay onto the main canvas.
-  ctx.drawImage(lightingCanvas, 0, 0)
+  if (lightingCanvas) {
+    ctx.drawImage(lightingCanvas, 0, 0);
+  }
 }
