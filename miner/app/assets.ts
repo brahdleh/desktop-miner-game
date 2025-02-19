@@ -3,6 +3,7 @@ const blockTextures: { [key: string]: HTMLImageElement } = {}
 const sceneTextures: { [key: string]: HTMLImageElement } = {}
 const iconTextures: { [key: string]: HTMLImageElement } = {}
 const pickTextures: { [key: string]: HTMLImageElement } = {}
+const playerTextures: { [key: string]: HTMLImageElement } = {}
 
 // Function to load a texture and store it in blockTextures
 function loadBlockTexture(name: string): Promise<void> {
@@ -50,6 +51,18 @@ function loadPickTexture(name: string): Promise<void> {
     }
     img.onerror = reject
     img.src = `/picks/${name}.png`
+  })
+}
+
+function loadPlayerTexture(name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      playerTextures[name] = img 
+      resolve()
+    }
+    img.onerror = reject
+    img.src = `/player/${name}.png`
   })
 }
 
@@ -125,13 +138,26 @@ export async function loadPickTextures(): Promise<void> {
   }
 }
 
+// Add function to load player textures
+export async function loadPlayerTextures(): Promise<void> {
+  try {
+    await Promise.all([
+      loadPlayerTexture('standing')
+    ])
+    console.log('Player textures loaded successfully')
+  } catch (error) {
+    console.error('Failed to load player textures:', error)
+  }
+}
+
 // Update loadAllTextures
 export async function loadAllTextures(): Promise<void> {
   await Promise.all([
     loadBlockTextures(),
     loadSceneTextures(),
     loadIconTextures(),
-    loadPickTextures()
+    loadPickTextures(),
+    loadPlayerTextures()
   ])
 }
 
@@ -150,4 +176,8 @@ export function getIconTexture(name: string): HTMLImageElement | null {
 
 export function getPickTexture(name: string): HTMLImageElement | null {
   return pickTextures[name.toLowerCase()] || null
+} 
+
+export function getPlayerTexture(name: string): HTMLImageElement | null {
+  return playerTextures[name.toLowerCase()] || null
 } 

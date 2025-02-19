@@ -153,7 +153,7 @@ export const BLOCK_TYPES = {
   },
   PLATFORM: {
     id: 10,
-    value: 1,
+    value: 3,
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
@@ -163,7 +163,7 @@ export const BLOCK_TYPES = {
   },
   LADDER: {
     id: 11,
-    value: 1,
+    value: 10,
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
@@ -173,7 +173,7 @@ export const BLOCK_TYPES = {
   },
   TORCH: {
     id: 12,
-    value: 1,
+    value: 5,
     color: "#4EE2EC",
     miningTimeMultiplier: 0.5,
     density: 1,
@@ -193,7 +193,7 @@ export const BLOCK_TYPES = {
   },
   REFINER: {
     id: 14,
-    value: 1,
+    value: 100,
     color: "#6B4423",
     miningTimeMultiplier: 1,
     density: 1,

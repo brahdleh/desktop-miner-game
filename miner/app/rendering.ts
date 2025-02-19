@@ -14,7 +14,7 @@ import {
   BACKPACK_BASE_COST,
   REFINING_TIME
 } from './constants'
-import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture } from './assets'
+import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
@@ -186,13 +186,18 @@ function drawPlayer(
   player: Player, 
   cameraOffsetY: number
 ) {
-  ctx.fillStyle = "#FF0000"
-  ctx.fillRect(
-    player.x, 
-    player.y - cameraOffsetY, 
-    PLAYER_WIDTH, 
-    PLAYER_HEIGHT
-  )
+  const playerTexture = getPlayerTexture('standing')
+  if (playerTexture) {
+    ctx.drawImage(playerTexture, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+  } else {
+    ctx.fillStyle = "#FF0000"
+    ctx.fillRect(
+      player.x, 
+      player.y - cameraOffsetY, 
+      PLAYER_WIDTH, 
+      PLAYER_HEIGHT
+    )
+  }
 }
 
 function drawMiningProgress(
@@ -252,52 +257,91 @@ function drawZoneText(
   player: Player,
   cameraOffsetY: number
 ) {
-  ctx.fillStyle = "#fff"
-  
+  const startX = zone.x + 10
+  const startY = zone.y - cameraOffsetY
+  const rightX = startX + 110
+  const coinIcon = getIconTexture('coin')
+
   // Header
+  ctx.fillStyle = "#fff"
   ctx.font = "bold 18px Arial"
-  ctx.fillText("SHOP", zone.x + 10, zone.y + 25 - cameraOffsetY)
+  ctx.fillText("SHOP", startX, startY + 25)
 
   // Divider
   ctx.strokeStyle = "#ffffff"
   ctx.beginPath()
-  ctx.moveTo(zone.x + 10, zone.y + 35 - cameraOffsetY)
-  ctx.lineTo(zone.x + zone.width - 10, zone.y + 35 - cameraOffsetY)
+  ctx.moveTo(startX, startY + 35)
+  ctx.lineTo(zone.x + zone.width - 10, startY + 35)
   ctx.stroke()
 
-  // Options
-  ctx.font = "14px Arial"
-  ctx.fillText("Sell Blocks [P]", zone.x + 10, zone.y + 60 - cameraOffsetY)
+  // Left column - Buy options
+  drawShopOption(ctx, "Buy Platform [J]", startX, startY + 60, 3, coinIcon)
+  drawShopOption(ctx, "Buy Torch [K]", startX, startY + 100, 5, coinIcon)
+  drawShopOption(ctx, "Buy Ladder [L]", startX, startY + 140, 10, coinIcon)
+  drawShopOption(ctx, "Buy Refiner [M]", startX, startY + 180, 100, coinIcon)
+
+  // Right column - Upgrades
+  const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
+  const backpackData = BACKPACK_TYPES_ARRAY[player.backpackType]
+  
+  // Sell option
+  drawShopOption(ctx, "Sell Blocks [P]", rightX, startY + 60)
 
   // Pickaxe upgrade
   const pickaxeMaxed = player.pickaxeLevel >= MAX_PICKAXE_LEVEL
-  ctx.fillText(pickaxeMaxed ? "Pickaxe MAX" : "↑ Pickaxe [E]", zone.x + 10, zone.y + 90 - cameraOffsetY)
-  if (!pickaxeMaxed) {
-    const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
-    const baseCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier
-    const cost = baseCost * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
-    ctx.font = "12px Arial"
-    ctx.fillText(`Cost: ${cost} gold`, zone.x + 20, zone.y + 110 - cameraOffsetY)
-  }
+  const pickaxeCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier * 
+    Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
   
+  drawShopOption(
+    ctx, 
+    "↑ Pickaxe [E]", 
+    rightX, 
+    startY + 100,
+    pickaxeMaxed ? "MAXED" : pickaxeCost,
+    coinIcon
+  )
+
   // Backpack upgrade
   const backpackMaxed = player.backpackLevel >= MAX_BACKPACK_LEVEL
-  ctx.font = "14px Arial"
-  ctx.fillText(backpackMaxed ? "Backpack MAX" : "↑ Backpack [R]", zone.x + 10, zone.y + 140 - cameraOffsetY)
-  if (!backpackMaxed) {
-    const backpackData = BACKPACK_TYPES_ARRAY[player.backpackType]
-    const baseCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier
-    const cost = baseCost * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
-    ctx.font = "12px Arial"
-    ctx.fillText(`Cost: ${cost} gold`, zone.x + 20, zone.y + 160 - cameraOffsetY)
-  }
+  const backpackCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier * 
+    Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+  
+  drawShopOption(
+    ctx, 
+    "↑ Backpack [R]", 
+    rightX, 
+    startY + 140,
+    backpackMaxed ? "MAXED" : backpackCost,
+    coinIcon
+  )
+}
 
-  // Buy Options
+// Helper function to draw shop options with consistent formatting
+function drawShopOption(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  price?: number | string,
+  coinIcon?: HTMLImageElement | null
+) {
   ctx.font = "14px Arial"
-  ctx.fillText("Buy Platform [J]", zone.x + 120, zone.y + 60 - cameraOffsetY)
-  ctx.fillText("Buy Torch [K]", zone.x + 120, zone.y + 90 - cameraOffsetY)
-  ctx.fillText("Buy Ladder [L]", zone.x + 120, zone.y + 120 - cameraOffsetY)
-  ctx.fillText("Buy Refiner [M]", zone.x + 120, zone.y + 150 - cameraOffsetY)
+  ctx.fillStyle = "#fff"
+  ctx.fillText(text, x, y)
+
+  if (price) {
+    ctx.font = "12px Arial"
+    if (coinIcon) {
+      if (price !== "MAXED") {
+        ctx.drawImage(coinIcon, x + 5, y + 5, 12, 12)
+        ctx.fillText(`${price}`, x + 20, y + 15)
+      } else {
+        ctx.fillText(`MAXED`, x + 10, y + 15)
+      }
+    } else {
+      ctx.fillText(`${price}`, x + 10, y + 15)
+    }
+  }
 }
 
 function drawCraftZoneText(
