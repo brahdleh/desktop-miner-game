@@ -76,11 +76,11 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   //const sellTexture = getSceneTexture('sell')
   
   if (shopTexture) {
-    ctx.drawImage(shopTexture, 0, SURFACE_Y - 160 - roundedOffset + 20, 160, 180)
+    ctx.drawImage(shopTexture, 0, SURFACE_Y - 200 - roundedOffset + 20, 200, 230)
   }
   
   if (smithTexture) {
-    ctx.drawImage(smithTexture, CANVAS_WIDTH - 160, SURFACE_Y - 160 - roundedOffset + 20, 160, 180)
+    ctx.drawImage(smithTexture, CANVAS_WIDTH - 200, SURFACE_Y - 200 - roundedOffset + 20, 200, 230)
   }
   
   //if (sellTexture) {
@@ -186,15 +186,24 @@ function drawPlayer(
   player: Player, 
   cameraOffsetY: number
 ) {
-  const playerTexture = getPlayerTexture('standing')
-  if (playerTexture) {
+  const playerStanding = getPlayerTexture('standing')
+  const playerStep = getPlayerTexture('step')
+  if (playerStanding && playerStep) {
     if (player.facingRight) {
-      ctx.drawImage(playerTexture, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      if (Math.abs(player.velocityX) > 0) {
+        ctx.drawImage(playerStep, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      } else {
+        ctx.drawImage(playerStanding, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      }
     } else {
       // Flip context, draw player, then restore context
       ctx.save()
       ctx.scale(-1, 1)
-      ctx.drawImage(playerTexture, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      if (Math.abs(player.velocityX) > 0) {
+        ctx.drawImage(playerStep, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      } else {
+        ctx.drawImage(playerStanding, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      }
       ctx.restore()
     }
   }

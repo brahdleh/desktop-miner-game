@@ -6,6 +6,7 @@ export interface Player {
   onGround: boolean
   onClimbable: boolean  // New property for ladder mechanics
   facingRight: boolean
+  isWalking: boolean
   inventory: number
   gold: number
   pickaxeLevel: number

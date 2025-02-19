@@ -142,7 +142,8 @@ export async function loadPickTextures(): Promise<void> {
 export async function loadPlayerTextures(): Promise<void> {
   try {
     await Promise.all([
-      loadPlayerTexture('standing')
+      loadPlayerTexture('standing'),
+      loadPlayerTexture('step')
     ])
     console.log('Player textures loaded successfully')
   } catch (error) {
