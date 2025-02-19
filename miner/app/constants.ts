@@ -15,13 +15,13 @@ export const PICKAXE_BASE_COST = 10
 export const PICKAXE_MINE_INCREMENT = 1.5
 export const PICKAXE_COST_MULTIPLIER = 2
 export const DEFAULT_MINE_TIME = 2000
-export const MAX_PICKAXE_LEVEL = 4
+export const MAX_PICKAXE_LEVEL = 3
 
 // Backpack constants
 export const BACKPACK_CAPACITY_INCREMENT = 2
 export const BACKPACK_BASE_COST = 10
 export const BACKPACK_COST_MULTIPLIER = 2
-export const MAX_BACKPACK_LEVEL = 4
+export const MAX_BACKPACK_LEVEL = 3
 // Mine dimensions
 export const MINE_DEPTH_BLOCKS = 300
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
@@ -264,7 +264,7 @@ export const PICKAXE_TYPES = {
   },
   COPPER: {
     id: 1,
-    miningTimeMultiplier: 3,
+    miningTimeMultiplier: 4,
     name: "Copper",
     requirements: {
       blockType: 5,
@@ -274,7 +274,7 @@ export const PICKAXE_TYPES = {
   },
   IRON: {
     id: 2,
-    miningTimeMultiplier: 10,
+    miningTimeMultiplier: 16,
     name: "Iron",
     requirements: {
       blockType: 6,
@@ -284,7 +284,7 @@ export const PICKAXE_TYPES = {
   },
   GOLD: {
     id: 3,
-    miningTimeMultiplier: 25,
+    miningTimeMultiplier: 64,
     name: "Gold",
     requirements: {
       blockType: 7,
@@ -294,7 +294,7 @@ export const PICKAXE_TYPES = {
   },
   DIAMOND: {
     id: 5,
-    miningTimeMultiplier: 100,
+    miningTimeMultiplier: 256,
     name: "Diamond",
     requirements: {
       blockType: 8,
@@ -361,7 +361,7 @@ export const BLOCK_ID_TO_TYPE = Object.fromEntries(
 ) as { [id: number]: keyof typeof BLOCK_TYPES }
 
 // Refining constants
-export const REFINING_TIME = 10000 // 10 seconds to refine a block
+export const REFINING_TIME = 100000 // 100 seconds to refine a block
 export const REFINABLE_BLOCKS = {
   1: 15,  // Stone -> Polished Stone
   2: 16,  // Slate -> Polished Slate

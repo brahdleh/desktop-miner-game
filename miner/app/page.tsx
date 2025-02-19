@@ -129,14 +129,16 @@ export default function MiningGame() {
               break
             case "ArrowLeft":
               // Move left one column, wrap to rightmost column if at leftmost
-              currentSlot = ((Math.floor(currentSlot / rowHeight) - 1 + 
+              currentSlot = (((Math.floor(currentSlot / rowHeight) - 1 + 
+                           Math.ceil(inventorySize / rowHeight)) % 
                            Math.ceil(inventorySize / rowHeight)) * rowHeight + 
-                           (currentSlot % rowHeight)) % inventorySize
+                           (currentSlot % rowHeight))
               break
             case "ArrowRight":
               // Move right one column, wrap to leftmost column if at rightmost
-              currentSlot = ((Math.floor(currentSlot / rowHeight) + 1) * rowHeight + 
-                           (currentSlot % rowHeight)) % inventorySize
+              currentSlot = (((Math.floor(currentSlot / rowHeight) + 1) % 
+                           Math.ceil(inventorySize / rowHeight)) * rowHeight + 
+                           (currentSlot % rowHeight))
               break
           }
           

@@ -136,8 +136,8 @@ function drawBlocks(
     }
     
     // Optional: Draw a light border for visibility.
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
-    ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
+    //ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
+    //ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
 
     // Draw refiner state if this is a refiner
     if (block.blockType === 14 && block.machineState) {
@@ -163,15 +163,17 @@ function drawBlocks(
         
         // Progress
         ctx.fillStyle = progress >= 1 ? "#00FF00" : "#FFFF00"
-        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 3)
+        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 2)
 
         // Outline when complete
+        /*
         if (progress >= 1) {
           ctx.strokeStyle = "#00FF00"
           ctx.lineWidth = 2
           ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
           ctx.lineWidth = 1
         }
+        */
       }
     }
   }
