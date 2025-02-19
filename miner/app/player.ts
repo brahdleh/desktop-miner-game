@@ -7,8 +7,14 @@ import {
 
 export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
-  if (keys["a"]) player.velocityX = -MOVE_SPEED
-  if (keys["d"]) player.velocityX = MOVE_SPEED
+  if (keys["a"]) { 
+    player.velocityX = -MOVE_SPEED
+    player.facingRight = false
+  }
+  if (keys["d"]) {
+    player.velocityX = MOVE_SPEED
+    player.facingRight = true
+  }
 
   // Check if player is on a climbable block (ladder)
   const isOnLadder = player.onClimbable

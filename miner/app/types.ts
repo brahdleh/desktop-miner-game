@@ -5,6 +5,7 @@ export interface Player {
   velocityY: number
   onGround: boolean
   onClimbable: boolean  // New property for ladder mechanics
+  facingRight: boolean
   inventory: number
   gold: number
   pickaxeLevel: number

@@ -1,7 +1,7 @@
 export const CANVAS_WIDTH = 800
 export const CANVAS_HEIGHT = 600
 export const BLOCK_SIZE = 36
-export const PLAYER_WIDTH = 25
+export const PLAYER_WIDTH = 30
 export const PLAYER_HEIGHT = 60
 export const GRAVITY = 0.5
 export const JUMP_STRENGTH = 10

@@ -188,15 +188,15 @@ function drawPlayer(
 ) {
   const playerTexture = getPlayerTexture('standing')
   if (playerTexture) {
-    ctx.drawImage(playerTexture, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-  } else {
-    ctx.fillStyle = "#FF0000"
-    ctx.fillRect(
-      player.x, 
-      player.y - cameraOffsetY, 
-      PLAYER_WIDTH, 
-      PLAYER_HEIGHT
-    )
+    if (player.facingRight) {
+      ctx.drawImage(playerTexture, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+    } else {
+      // Flip context, draw player, then restore context
+      ctx.save()
+      ctx.scale(-1, 1)
+      ctx.drawImage(playerTexture, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      ctx.restore()
+    }
   }
 }
 

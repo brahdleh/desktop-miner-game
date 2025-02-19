@@ -93,6 +93,7 @@ export function initializePlayer() {
     velocityY: 0,
     onGround: false,
     onClimbable: false,
+    facingRight: true,
     inventory: 0,
     gold: 0,
     pickaxeLevel: 1,
