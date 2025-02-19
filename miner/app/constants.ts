@@ -29,16 +29,16 @@ export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 // Action zones
 export const UPGRADE_ZONE = {
   x: 0,
-  y: SURFACE_Y - 170,
+  y: SURFACE_Y - 250,
   width: 230,
-  height: 170,
+  height: 250,
 }
 
 export const CRAFT_ZONE = {
   x: CANVAS_WIDTH - 160,
-y: SURFACE_Y - 170,
+y: SURFACE_Y - 250,
   width: 160,
-  height: 170,
+  height: 250,
 }
 
 // Block type definitions

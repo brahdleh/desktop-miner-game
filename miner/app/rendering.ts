@@ -67,7 +67,7 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   // Draw sky
   const skyTexture = getSceneTexture('sky')
   if (skyTexture) {
-    ctx.drawImage(skyTexture, 0, -roundedOffset - 100, CANVAS_WIDTH, 100 + SURFACE_Y)
+    ctx.drawImage(skyTexture, 0, -roundedOffset - 100, CANVAS_WIDTH, 100 + SURFACE_Y + 5)
   }
 
   // Draw buildings on surface
@@ -90,27 +90,29 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   // Draw underground areas
   const undergroundTexture = getSceneTexture('underground')
   const mineTexture = getSceneTexture('mine')
-  const dirtTexture = getSceneTexture('dirt')
+  //const dirtTexture = getSceneTexture('dirt')
   
   if (undergroundTexture) {
-    for (let y = SURFACE_Y; y < SURFACE_Y + MINE_DEPTH_PX; y += 160) {
-      for (let x = 0; x < CANVAS_WIDTH; x += 160) {
-        ctx.drawImage(undergroundTexture, x, y - roundedOffset, 160, 160)
+    for (let y = SURFACE_Y+5; y < SURFACE_Y + MINE_DEPTH_PX; y += 4*BLOCK_SIZE) {
+      for (let x = 0; x < CANVAS_WIDTH; x += 4*BLOCK_SIZE) {
+        ctx.drawImage(undergroundTexture, x, y - roundedOffset, 4*BLOCK_SIZE, 4*BLOCK_SIZE)
       }
     }
   }
 
   // Draw mine shaft
   if (mineTexture) {
-    for (let y = SURFACE_Y; y < SURFACE_Y + MINE_DEPTH_PX; y += 160) {
-      ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 160, 160)
-      ctx.drawImage(mineTexture, MINE_LEFT + 160, y - roundedOffset, 160, 160)
+    for (let y = SURFACE_Y+5; y < SURFACE_Y + MINE_DEPTH_PX; y += 4*BLOCK_SIZE) {
+      ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 4*BLOCK_SIZE, 4*BLOCK_SIZE)
+      ctx.drawImage(mineTexture, MINE_LEFT + 4*BLOCK_SIZE, y - roundedOffset, 4*BLOCK_SIZE, 4*BLOCK_SIZE)
     }
   }
+  /*
   if (dirtTexture) {
     ctx.drawImage(dirtTexture, MINE_LEFT, SURFACE_Y - roundedOffset, 160, 40)
     ctx.drawImage(dirtTexture, MINE_LEFT + 160, SURFACE_Y - roundedOffset, 160, 40)
   }
+  */
 }
 
 function drawBlocks(

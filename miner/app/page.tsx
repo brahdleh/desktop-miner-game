@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Player, Block } from "./types"
 import { 
   CANVAS_WIDTH, 
@@ -38,6 +38,8 @@ import { loadAllTextures } from "./assets"
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Add state for save notification
+  const [showSaveNotification, setShowSaveNotification] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined" || !canvasRef.current) return
@@ -66,7 +68,7 @@ export default function MiningGame() {
         updatePlayer(player, blocks)
         
         // Update camera
-        cameraOffsetY = Math.min(player.y - CANVAS_HEIGHT/5, SURFACE_Y + MINE_DEPTH_PX - CANVAS_HEIGHT)
+        cameraOffsetY = Math.min(player.y - CANVAS_HEIGHT/3, SURFACE_Y + MINE_DEPTH_PX - CANVAS_HEIGHT)
         
         const miningResult = handleMining(
           player, 
@@ -93,6 +95,10 @@ export default function MiningGame() {
           if (e.key === 'S') {
             e.preventDefault() // Prevent browser save dialog
             saveGame(player, blocks)
+            // Show save notification
+            setShowSaveNotification(true)
+            // Hide notification after 2 seconds
+            setTimeout(() => setShowSaveNotification(false), 2000)
           } else if (e.key === 'L') {
             const savedData = loadGame()
             if (savedData.player && savedData.blocks) {
@@ -149,13 +155,16 @@ export default function MiningGame() {
         }
 
         // Check for refiner interactions
-        const nearbyRefiner = findNearbyRefiner(player, blocks)
-        if (nearbyRefiner) {
-          if (e.key === "t") {
+        if (e.key === "t") {
+          const nearbyRefiner = findNearbyRefiner(player, blocks)
+          if (nearbyRefiner) {
             attemptDepositInRefiner(player, blocks)
             return
           }
-          if (e.key === "y") {
+        }
+        if (e.key === "y") {
+          const nearbyRefiner = findNearbyRefiner(player, blocks)
+          if (nearbyRefiner) {
             attemptCollectFromRefiner(player, blocks)
             return
           }
@@ -261,6 +270,13 @@ export default function MiningGame() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">
       <div id="gameContainer" className="relative">
+        {/* Add save notification */}
+        {showSaveNotification && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-md">
+            Game Saved!
+          </div>
+        )}
+        
         <canvas
           id="gameCanvas"
           width={CANVAS_WIDTH}
