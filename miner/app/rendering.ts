@@ -187,22 +187,22 @@ function drawPlayer(
   cameraOffsetY: number
 ) {
   const playerStanding = getPlayerTexture('standing')
-  const playerStep = getPlayerTexture('step')
-  if (playerStanding && playerStep) {
+  const playerJump = getPlayerTexture('jump')
+  if (playerStanding && playerJump) {
     if (player.facingRight) {
-      if (Math.abs(player.velocityX) > 0) {
-        ctx.drawImage(playerStep, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-      } else {
+      if (player.onGround) {
         ctx.drawImage(playerStanding, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      } else {
+        ctx.drawImage(playerJump, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
       }
     } else {
       // Flip context, draw player, then restore context
       ctx.save()
       ctx.scale(-1, 1)
-      if (Math.abs(player.velocityX) > 0) {
-        ctx.drawImage(playerStep, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-      } else {
+      if (player.onGround) {
         ctx.drawImage(playerStanding, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      } else {
+        ctx.drawImage(playerJump, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
       }
       ctx.restore()
     }
@@ -441,7 +441,11 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
       
       ctx.fillStyle = "white"
       ctx.font = "11px Arial"
-      ctx.fillText(player.blockInventory[i].toString(), x + 6, y + slotSize - 8)
+      ctx.strokeStyle = "black"
+      ctx.lineWidth = 2
+      ctx.strokeText(player.blockInventory[i].toString(), x + 6, y + slotSize - 6)
+      ctx.fillStyle = "white"
+      ctx.fillText(player.blockInventory[i].toString(), x + 6, y + slotSize - 6)
       
       const coinIcon = getIconTexture('coin')
       if (coinIcon) {

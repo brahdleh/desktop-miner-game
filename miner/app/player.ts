@@ -53,7 +53,7 @@ export function updatePlayer(player: Player, blocks: Block[]) {
 
   // Reset climbing state
   player.onClimbable = false
-  player.onGround = false
+  //player.onGround = false
 
   // Collision detection with blocks
   for (const block of blocks) {
