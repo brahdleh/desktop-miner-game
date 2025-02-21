@@ -13,7 +13,7 @@ export interface Player {
   backpackLevel: number
   backpackCapacity: number
   pickaxePower: number
-  blockInventory: number[]
+  inventorySlots: InventorySlot[]
   selectedSlot: number
   pickaxeType: number
   backpackType: number
@@ -42,4 +42,9 @@ export interface Zone {
   y: number
   width: number
   height: number
-} 
+}
+
+export interface InventorySlot {
+  blockType: number | null;  // null means empty slot
+  count: number;
+}

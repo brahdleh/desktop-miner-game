@@ -1,4 +1,4 @@
-import { Block } from './types'
+import { Block, InventorySlot } from './types'
 import {
   CANVAS_WIDTH, 
   BLOCK_SIZE, 
@@ -109,7 +109,10 @@ export function initializePlayer() {
     backpackLevel: 1,
     backpackCapacity: BACKPACK_TYPES.STONE.capacity,
     pickaxePower: 1,
-    blockInventory: Object.keys(BLOCK_TYPES).map(() => 0),  // Initialize one slot for each block type
+    inventorySlots: Array(15).fill(null).map(() => ({ 
+      blockType: null, 
+      count: 0 
+    })) as InventorySlot[],
     selectedSlot: 0,
     backpackType: 0,
     pickaxeType: 0

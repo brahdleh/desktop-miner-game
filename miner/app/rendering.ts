@@ -425,9 +425,11 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   const selectedSlotTexture = getIconTexture('inventory_selected')
   const unselectedSlotTexture = getIconTexture('inventory')
   
-  for (let i = 0; i < Object.keys(BLOCK_TYPES).length; i++) {
+  if (!player.inventorySlots) return
+
+  for (let i = 0; i < player.inventorySlots.length; i++) {
     const column = Math.floor(i / 5)
-    const row = i % 5
+    const row = (i % 5)  // Start from bottom (4) and go up
     const x = startX + column * (slotSize + padding)
     const y = startY - row * (slotSize + padding)
 
@@ -437,9 +439,15 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
       ctx.drawImage(slotTexture, x, y, slotSize, slotSize)
     }
 
+    // Add null check for the slot
+    const slot = player.inventorySlots[i]
+    if (!slot) continue
+
     // If there's any block in this slot, draw its texture, count, and value.
-    if (player.blockInventory[i] > 0) {
-      const blockData = BLOCK_TYPES_ARRAY[i]
+    if (slot.blockType !== null && slot.count > 0) {
+      const blockData = BLOCK_TYPES_ARRAY[slot.blockType]
+      if (!blockData) continue // Skip if block data is undefined
+
       const texture = getBlockTexture(blockData.name)
       
       if (texture) {
@@ -450,9 +458,9 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
       ctx.font = "11px Arial"
       ctx.strokeStyle = "black"
       ctx.lineWidth = 2
-      ctx.strokeText(player.blockInventory[i].toString(), x + 6, y + slotSize - 6)
+      ctx.strokeText(slot.count.toString(), x + 6, y + slotSize - 6)
       ctx.fillStyle = "white"
-      ctx.fillText(player.blockInventory[i].toString(), x + 6, y + slotSize - 6)
+      ctx.fillText(slot.count.toString(), x + 6, y + slotSize - 6)
       
       const coinIcon = getIconTexture('coin')
       if (coinIcon) {

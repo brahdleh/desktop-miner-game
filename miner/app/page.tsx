@@ -124,7 +124,7 @@ export default function MiningGame() {
         if (e.key.startsWith("Arrow")) {
           e.preventDefault() // Prevent page scrolling
           
-          const inventorySize = player.blockInventory.length
+          const inventorySize = player.inventorySlots.length
           const rowHeight = 5
           
           let currentSlot = player.selectedSlot

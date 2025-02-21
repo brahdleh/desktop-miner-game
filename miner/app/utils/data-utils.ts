@@ -19,27 +19,67 @@ export function canHoldBlock(player: Player, blockType: number): boolean {
 }
 
 export function getBlockInventory(player: Player): number {
-  return player.blockInventory[player.selectedSlot]
+  return player.inventorySlots[player.selectedSlot].count
+}
+export function getSelectedBlockType(player: Player): number {
+  return player.inventorySlots[player.selectedSlot].blockType ?? 0
 }
 
-export function gainBlock(player: Player, blockType: number): void {
-  const blockData = getBlockData(blockType)
-  player.blockInventory[blockType] ++
-  player.inventory += blockData.density
+function findAvailableSlot(player: Player, blockType: number): number {
+  // First try to find an existing stack of the same block type
+  const existingSlot = player.inventorySlots.findIndex(
+    slot => slot.blockType === blockType && slot.count > 0
+  )
+  if (existingSlot !== -1) return existingSlot
+
+  // Then try to find an empty slot
+  return player.inventorySlots.findIndex(slot => slot.blockType === null)
+}
+
+export function addToInventory(player: Player, blockType: number): boolean {
+  const slotIndex = findAvailableSlot(player, blockType)
+  if (slotIndex === -1) return false // No available slots
+
+  const slot = player.inventorySlots[slotIndex]
+  if (slot.blockType === null) {
+    // Initialize empty slot
+    player.inventorySlots[slotIndex] = {
+      blockType,
+      count: 1
+    }
+  } else {
+    // Add to existing stack
+    slot.count++
+  }
+  
+  player.inventory+= getBlockData(blockType).density
+  return true
+}
+export function removeFromInventory(player: Player, blockType: number, count: number): boolean {
+  const slotIndex = player.inventorySlots.findIndex(
+    slot => slot.blockType === blockType && slot.count > 0
+  )
+  
+  if (slotIndex === -1) return false
+
+  const slot = player.inventorySlots[slotIndex]
+  slot.count -= count
+  player.inventory -= getBlockData(blockType).density * count
+
+  // Clear the slot if it's empty
+  if (slot.count === 0) {
+    player.inventorySlots[slotIndex] = { blockType: null, count: 0 }
+  }
+
+  return true
 }
 
 export function buyBlock(player: Player, blockType: number): void {
   const blockData = getBlockData(blockType)
   if (player.gold >= blockData.value && canHoldBlock(player, blockType)) {
     player.gold -= blockData.value
-    gainBlock(player, blockType)
+    addToInventory(player, blockType)
   }
-}
-
-export function removeBlock(player: Player, blockType: number, count: number): void {
-  const blockData = getBlockData(blockType)
-  player.blockInventory[blockType] -= count
-  player.inventory -= blockData.density * count
 }
 
 export function findNearbyBlock(player: Player, blockType: number, blocks: Block[]): Block | null {
