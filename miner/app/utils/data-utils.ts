@@ -18,8 +18,13 @@ export function canHoldBlock(player: Player, blockType: number): boolean {
     return player.inventory + blockData.density <= player.backpackCapacity
 }
 
-export function getBlockInventory(player: Player): number {
-  return player.inventorySlots[player.selectedSlot].count
+export function getBlockInventory(player: Player, blockType: number): number {
+  const slotIndex = player.inventorySlots.findIndex(
+    slot => slot.blockType === blockType && slot.count > 0
+  )
+  
+  if (slotIndex === -1) return 0
+  return player.inventorySlots[slotIndex].count
 }
 export function getSelectedBlockType(player: Player): number {
   return player.inventorySlots[player.selectedSlot].blockType ?? 0

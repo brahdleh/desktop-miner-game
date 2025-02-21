@@ -2,7 +2,7 @@ import { Player, Block, Zone } from './types'
 import { 
   PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, JUMP_STRENGTH, 
   GRAVITY, CANVAS_WIDTH, BLOCK_SIZE, SURFACE_Y, MINE_LEFT, 
-  MINE_WIDTH, BLOCK_TYPES, BLOCK_ID_TO_TYPE
+  MINE_WIDTH,
 } from './constants'
 import { isClimbable, isSolid } from './utils/data-utils'
 

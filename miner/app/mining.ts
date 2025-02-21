@@ -55,11 +55,12 @@ export function handleMining(
 }
 
 export function attemptSell(player: Player) {
-  const selectedBlockCount = getBlockInventory(player)
+  const selectedBlockType = getSelectedBlockType(player)
+  const selectedBlockCount = getBlockInventory(player, selectedBlockType)
   if (selectedBlockCount > 0) {
-    const blockData = getBlockData(player.selectedSlot)
+    const blockData = getBlockData(selectedBlockType)
     player.gold += blockData.value * selectedBlockCount
-    removeFromInventory(player, player.selectedSlot, selectedBlockCount)
+    removeFromInventory(player, selectedBlockType, selectedBlockCount)
   }
 }
 
@@ -129,8 +130,8 @@ export function attemptPlaceBlock(
   clickY: number
 ): boolean {
   // Check if player has blocks to place
-  if (getBlockInventory(player) <= 0) return false
   const selectedBlockType = getSelectedBlockType(player)
+  if (getBlockInventory(player, selectedBlockType) <= 0) return false
 
   // Calculate grid position
   const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
@@ -162,7 +163,7 @@ export function attemptCraftRefiner(player: Player) {
   const itemData = getBlockData(14) // Refiner block type
   if (itemData.requirements) {
     const { blockType, amount } = itemData.requirements
-    if (getBlockInventory(player) < amount) return false
+    if (getBlockInventory(player, blockType) < amount) return false
     
     // Consume materials
     removeFromInventory(player, blockType, amount)
@@ -182,7 +183,7 @@ export function attemptCraftPickaxe(player: Player) {
   // Check requirements
   if (nextPickaxe.requirements) {
     const { blockType, amount } = nextPickaxe.requirements
-    if (getBlockInventory(player) < amount) return false
+    if (getBlockInventory(player, blockType) < amount) return false
     
     // Consume materials
     removeFromInventory(player, blockType, amount)
@@ -207,7 +208,7 @@ export function attemptCraftBackpack(player: Player) {
   // Check requirements
   if (nextBackpack.requirements) {
     const { blockType, amount } = nextBackpack.requirements
-    if (getBlockInventory(player) < amount) return false
+    if (getBlockInventory(player, blockType) < amount) return false
     
     // Consume materials
     removeFromInventory(player, blockType, amount)
@@ -233,11 +234,12 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
   const refiner = findNearbyRefiner(player, blocks)
   if (!refiner) return false
 
-  const selectedBlock = getBlockInventory(player)
-  if (selectedBlock <= 0) return false
+  const selectedBlockType = getSelectedBlockType(player)
+  const selectedBlockCount = getBlockInventory(player, selectedBlockType)
+  if (selectedBlockCount <= 0) return false
 
   // Check if the selected block is refinable
-  if (!isRefinable(player.selectedSlot)) return false
+  if (!isRefinable(selectedBlockType)) return false
 
   // Initialize machine state if needed
   if (!refiner.machineState) {
