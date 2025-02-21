@@ -29,6 +29,10 @@ export interface Block {
   solid: boolean    // New property for collision detection
   climbable: boolean // New property for ladder mechanics
   machineState?: MachineState // Optional machine state for blocks that are machines
+  // New properties for multi-block structures
+  isSecondaryBlock?: boolean
+  mainBlockX?: number
+  mainBlockY?: number
 }
 
 export interface MachineState {

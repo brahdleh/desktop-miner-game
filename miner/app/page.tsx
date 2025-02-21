@@ -71,7 +71,7 @@ export default function MiningGame() {
         const miningResult = handleMining(
           player, 
           miningTargetBlock, 
-          miningProgress
+          miningProgress,
         )
         miningProgress = miningResult.miningProgress
         miningTargetBlock = miningResult.miningTargetBlock

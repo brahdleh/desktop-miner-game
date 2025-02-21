@@ -2,11 +2,9 @@ import { Player, Block, Zone } from './types'
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, SURFACE_Y, MINE_DEPTH_PX,
   MINE_LEFT, BLOCK_SIZE, PLAYER_WIDTH, PLAYER_HEIGHT,
-  DEFAULT_MINE_TIME,
   PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
   BLOCK_TYPES,
   PICKAXE_TYPES,
-  PICKAXE_MINE_INCREMENT,
   BACKPACK_TYPES,
   MAX_PICKAXE_LEVEL,
   MAX_BACKPACK_LEVEL,
@@ -124,60 +122,63 @@ function drawBlocks(
 ) {
   for (const block of blocks) {
     if (block.isMined) continue
-    if (Math.abs(block.y - player_y) > CANVAS_HEIGHT) continue // just draw what is in sight
+    if (Math.abs(block.y - player_y) > CANVAS_HEIGHT) continue
 
     const blockData = BLOCK_TYPES_ARRAY[block.blockType]
     const texture = getBlockTexture(blockData.name)
     const x = block.x
     const y = block.y - cameraOffsetY
 
+    // Special handling for refiner (type 14)
+    if (block.blockType === 14) {
+      // Only draw if this is the root block (bottom-left of the refiner)
+      if (!block.isSecondaryBlock) {
+        // Draw 3x2 refiner from bottom-left anchor point
+        if (texture) {
+          ctx.drawImage(texture, x, y, BLOCK_SIZE * 3, BLOCK_SIZE * 2)
+        } else {
+          ctx.fillStyle = blockData.color
+          ctx.fillRect(x, y, BLOCK_SIZE * 3, BLOCK_SIZE * 2)
+        }
+
+        // Draw refiner state if processing
+        if (block.machineState?.processingBlockType !== null) {
+          // Center the processed block in the middle block
+          const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState!.processingBlockType]
+          const processedTexture = getBlockTexture(processedBlockData.name)
+          
+          if (processedTexture) {
+            ctx.drawImage(
+              processedTexture, 
+              x + BLOCK_SIZE, // Center block x
+              y, // Bottom row
+              BLOCK_SIZE, 
+              BLOCK_SIZE
+            )
+          }
+
+          // Draw progress bar at the bottom of the processed block
+          const elapsedTime = Date.now() - (block.machineState!.processingStartTime || 0)
+          const progress = Math.min(elapsedTime / REFINING_TIME, 1)
+          
+          // Background
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+          ctx.fillRect(x + BLOCK_SIZE, y + BLOCK_SIZE - 5, BLOCK_SIZE, 3)
+          
+          // Progress
+          ctx.fillStyle = progress >= 1 ? "#00FF00" : "#FFFF00"
+          ctx.fillRect(x + BLOCK_SIZE, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 2)
+        }
+      }
+      continue // Skip regular block drawing for refiner blocks
+    }
+
+    // Regular block drawing
     if (texture) {
       ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
     } else {
       ctx.fillStyle = blockData.color
       ctx.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
-    }
-    
-    // Optional: Draw a light border for visibility.
-    //ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
-    //ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
-
-    // Draw refiner state if this is a refiner
-    if (block.blockType === 14 && block.machineState) {
-      if (block.machineState.processingBlockType !== null) {
-        // Draw the block being processed in the center
-        const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
-        const processedTexture = getBlockTexture(processedBlockData.name)
-        
-        if (processedTexture) {
-          ctx.drawImage(processedTexture, x + BLOCK_SIZE/4, y + BLOCK_SIZE/4, BLOCK_SIZE/2, BLOCK_SIZE/2)
-        } else {
-          ctx.fillStyle = processedBlockData.color
-          ctx.fillRect(x + BLOCK_SIZE/4, y + BLOCK_SIZE/4, BLOCK_SIZE/2, BLOCK_SIZE/2)
-        }
-
-        // Draw progress bar
-        const elapsedTime = Date.now() - (block.machineState.processingStartTime || 0)
-        const progress = Math.min(elapsedTime / REFINING_TIME, 1)
-        
-        // Background
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
-        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE, 3)
-        
-        // Progress
-        ctx.fillStyle = progress >= 1 ? "#00FF00" : "#FFFF00"
-        ctx.fillRect(x, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 2)
-
-        // Outline when complete
-        /*
-        if (progress >= 1) {
-          ctx.strokeStyle = "#00FF00"
-          ctx.lineWidth = 2
-          ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
-          ctx.lineWidth = 1
-        }
-        */
-      }
     }
   }
 }

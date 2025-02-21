@@ -101,11 +101,13 @@ export function canMineBlock(
   block: Block,
   clickX: number,
   clickY: number,
-  player: Player
+  player: Player,
 ): boolean {
   // Check if inventory is full
   if (!canHoldBlock(player, block.blockType)) return false
-  
+
+  // Check if secondary block or already mined
+  if (block.isSecondaryBlock) return false
   if (block.isMined || !block.mineable) return false
 
   const isClickInBlock = 
@@ -129,15 +131,66 @@ export function attemptPlaceBlock(
   clickX: number,
   clickY: number
 ): boolean {
-  // Check if player has blocks to place
   const selectedBlockType = getSelectedBlockType(player)
   if (getBlockInventory(player, selectedBlockType) <= 0) return false
 
-  // Calculate grid position
   const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
   const gridY = Math.floor(clickY / BLOCK_SIZE) * BLOCK_SIZE
 
-  // Check if position is valid (was previously mined)
+  // Special handling for refiner placement
+  if (selectedBlockType === 14) { // Refiner
+    // Adjust placement to bottom-left corner
+    const refinerY = gridY - BLOCK_SIZE // Move up one block to place from bottom
+    
+    // Check if we have enough space (3x2 blocks)
+    for (let dx = 0; dx < 3; dx++) {
+      for (let dy = 0; dy < 2; dy++) {
+        const blockAtPosition = blocks.find(b => 
+          b.x === gridX + dx * BLOCK_SIZE && 
+          b.y === refinerY + dy * BLOCK_SIZE
+        )
+        
+        // Space must exist and be mined
+        if (!blockAtPosition?.isMined || blockAtPosition.isSecondaryBlock) return false
+      }
+    }
+
+    // Create the main refiner block (bottom-left)
+    const mainBlock = blocks.find(b => b.x === gridX && b.y === refinerY)
+    if (mainBlock) {
+      mainBlock.isMined = false
+      mainBlock.blockType = 14
+      mainBlock.isSecondaryBlock = false
+      mainBlock.machineState = {
+        processingBlockType: null,
+        processingStartTime: null,
+        isFinished: false
+      }
+
+      // Create secondary blocks
+      for (let dx = 0; dx < 3; dx++) {
+        for (let dy = 0; dy < 2; dy++) {
+          if (dx === 0 && dy === 0) continue // Skip main block
+          const secondaryBlock = blocks.find(b => 
+            b.x === gridX + dx * BLOCK_SIZE && 
+            b.y === refinerY + dy * BLOCK_SIZE
+          )
+          if (secondaryBlock) {
+            secondaryBlock.isMined = false
+            secondaryBlock.blockType = 14
+            secondaryBlock.isSecondaryBlock = true
+            secondaryBlock.mainBlockX = gridX
+            secondaryBlock.mainBlockY = refinerY
+          }
+        }
+      }
+
+      removeFromInventory(player, selectedBlockType, 1)
+      return true
+    }
+  }
+
+  // Regular block placement logic
   const existingBlock = blocks.find(b => 
     b.x === gridX && 
     b.y === gridY && 
@@ -147,14 +200,16 @@ export function attemptPlaceBlock(
 
   if (!existingBlock) return false
 
-  // Check if player is too far
+  // Check if trying to place over a refiner's secondary blocks
+  if (existingBlock.isSecondaryBlock) return false
+
+  // Distance check
   const distX = Math.abs((player.x + BLOCK_SIZE/2) - (gridX + BLOCK_SIZE/2))
   const distY = Math.abs((player.y + BLOCK_SIZE/2) - (gridY + BLOCK_SIZE/2))
   if (distX > BLOCK_SIZE * 2 || distY > BLOCK_SIZE * 2) return false
 
-  // Place the block with the correct block type
   existingBlock.isMined = false
-  existingBlock.blockType = selectedBlockType  // Set block type to match inventory slot
+  existingBlock.blockType = selectedBlockType
   removeFromInventory(player, selectedBlockType, 1)
   return true
 }
@@ -254,12 +309,12 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
   if (refiner.machineState.processingBlockType !== null) return false
 
   // Start processing
-  refiner.machineState.processingBlockType = player.selectedSlot
+  refiner.machineState.processingBlockType = selectedBlockType
   refiner.machineState.processingStartTime = Date.now()
   refiner.machineState.isFinished = false
 
   // Remove block from inventory
-  removeFromInventory(player, player.selectedSlot, 1)
+  removeFromInventory(player, selectedBlockType, 1)
 
   return true
 }
