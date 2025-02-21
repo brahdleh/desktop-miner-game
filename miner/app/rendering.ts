@@ -429,7 +429,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
 
   for (let i = 0; i < player.inventorySlots.length; i++) {
     const column = Math.floor(i / 5)
-    const row = (i % 5)  // Start from bottom (4) and go up
+    const row = (i % 5) 
     const x = startX + column * (slotSize + padding)
     const y = startY - row * (slotSize + padding)
 
