@@ -10,10 +10,18 @@ import {
   BACKPACK_TYPES,
 } from './constants'
 
-// Helper function for normal distribution probability
-function normalDistribution(depth: number, mean: number, std: number): number {
-  const exp = -0.5 * Math.pow((depth - mean) / std, 2);
-  return Math.exp(exp);
+export interface oreDist {
+  mean: number,
+  std: number,
+  maxProb: number,
+  plateau: number
+}
+
+// Helper function for distribution probability
+function oreDistributionFunction(depth: number, oreDist: oreDist): number {
+  // Normal distribution until mean+std then plateau kicks in
+  const exp = -0.5 * Math.pow((depth - oreDist.mean) / oreDist.std, 2);
+  return oreDist.maxProb * Math.exp(exp) + oreDist.plateau * Math.min(Math.max(((depth-oreDist.mean)/oreDist.std),0),1);
 }
 
 export function initializeBlocks(): Block[] {
@@ -34,11 +42,11 @@ export function initializeBlocks(): Block[] {
   }
 
   // Define ore distribution parameters
-  const oreDistribution = {
-    copper: { mean: 15, std: 30, maxProb: 0.09 },
-    iron: { mean: 40, std: 30, maxProb: 0.08 },
-    gold: { mean: 65, std: 30, maxProb: 0.07 },
-    diamond: { mean: 90, std: 30, maxProb: 0.06 }
+  const oreDistributions = {
+    copper: { mean: 15, std: 30, maxProb: 0.09, plateau: 0.09 },
+    iron: { mean: 40, std: 30, maxProb: 0.08, plateau: 0.08},
+    gold: { mean: 65, std: 30, maxProb: 0.07, plateau: 0.07},
+    diamond: { mean: 90, std: 30, maxProb: 0.06, plateau: 0.06 }
   };
 
   // Generate mine shaft
@@ -51,19 +59,19 @@ export function initializeBlocks(): Block[] {
       const random = Math.random()
       
       // Copper (type 5)
-      if (depth >= 6 && random < oreDistribution.copper.maxProb * normalDistribution(depth, oreDistribution.copper.mean, oreDistribution.copper.std)) {
+      if (depth >= 6 && random < oreDistributionFunction(depth, oreDistributions.copper)) {
         blockType = 5
       }
       // Iron (type 6)
-      else if (depth >= 28 && random < oreDistribution.iron.maxProb * normalDistribution(depth, oreDistribution.iron.mean, oreDistribution.iron.std)) {
+      else if (depth >= 28 && random < oreDistributionFunction(depth, oreDistributions.iron)) {
         blockType = 6
       }
       // Gold (type 7)
-      else if (depth >= 53 && random < oreDistribution.gold.maxProb * normalDistribution(depth, oreDistribution.gold.mean, oreDistribution.gold.std)) {
+      else if (depth >= 53 && random < oreDistributionFunction(depth, oreDistributions.gold)) {
         blockType = 7
       }
       // Diamond (type 8)
-      else if (depth >= 78 && random < oreDistribution.diamond.maxProb * normalDistribution(depth, oreDistribution.diamond.mean, oreDistribution.diamond.std)) {
+      else if (depth >= 78 && random < oreDistributionFunction(depth, oreDistributions.diamond)) {
         blockType = 8 
       }
 
@@ -100,6 +108,7 @@ export function initializePlayer() {
     pickaxeLevel: 1,
     backpackLevel: 1,
     backpackCapacity: BACKPACK_TYPES.STONE.capacity,
+    pickaxePower: 1,
     blockInventory: Object.keys(BLOCK_TYPES).map(() => 0),  // Initialize one slot for each block type
     selectedSlot: 0,
     backpackType: 0,

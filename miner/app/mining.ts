@@ -68,7 +68,7 @@ export function attemptSell(player: Player) {
 
 export function attemptBuyPlatform(player: Player) {
   const itemData = Object.values(BLOCK_TYPES)[10]
-  if (player.gold >= itemData.value) {
+  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
     player.gold -= itemData.value
     player.blockInventory[10]++
     player.inventory ++
@@ -77,7 +77,7 @@ export function attemptBuyPlatform(player: Player) {
 
 export function attemptBuyTorch(player: Player) {
   const itemData = Object.values(BLOCK_TYPES)[12]
-  if (player.gold >= itemData.value) {
+  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
     player.gold -= itemData.value
     player.blockInventory[12]++
     player.inventory ++
@@ -86,18 +86,9 @@ export function attemptBuyTorch(player: Player) {
 
 export function attemptBuyLadder(player: Player) {
   const itemData = Object.values(BLOCK_TYPES)[11]
-  if (player.gold >= itemData.value) {
+  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
     player.gold -= itemData.value
     player.blockInventory[11]++
-    player.inventory ++
-  }
-}
-
-export function attemptBuyRefiner(player: Player) {
-  const itemData = Object.values(BLOCK_TYPES)[14] // Refiner block type
-  if (player.gold >= itemData.value) {
-    player.gold -= itemData.value
-    player.blockInventory[14]++
     player.inventory ++
   }
 }
@@ -194,6 +185,22 @@ export function attemptPlaceBlock(
   return true
 }
 
+export function attemptCraftRefiner(player: Player) {
+  const itemData = Object.values(BLOCK_TYPES)[14] // Refiner block type
+  if (itemData.requirements) {
+    const { blockType, amount } = itemData.requirements
+    if (player.blockInventory[blockType] < amount) return false
+    
+    // Consume materials
+    player.blockInventory[blockType] -= amount
+    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density    
+    // add item
+    player.blockInventory[14] ++    
+    return true
+  }
+  return false
+}
+
 export function attemptCraftPickaxe(player: Player) {
   // Get next pickaxe type
   const nextPickaxeType = player.pickaxeType + 1
@@ -209,7 +216,7 @@ export function attemptCraftPickaxe(player: Player) {
     
     // Consume materials
     player.blockInventory[blockType] -= amount
-    player.inventory -= amount
+    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density  
     
     // Upgrade pickaxe
     player.pickaxeType = nextPickaxeType
@@ -236,7 +243,7 @@ export function attemptCraftBackpack(player: Player) {
     
     // Consume materials
     player.blockInventory[blockType] -= amount
-    player.inventory -= amount 
+    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density   
     
     // Upgrade backpack
     player.backpackType = nextBackpackType
@@ -308,22 +315,25 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
   const refiner = findNearbyRefiner(player, blocks)
   if (!refiner || !refiner.machineState?.processingBlockType) return false
 
-  // Check if refining is complete
-  const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
-  if (elapsedTime < REFINING_TIME) return false
-
+  // Check what block is output and that it exists
   const inputBlockType = refiner.machineState.processingBlockType
   const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS]
-
   if (!outputBlockType) return false
 
-  // Check if inventory has space
+  // Check if inventory has space assuming density does not change
   const blockData = Object.values(BLOCK_TYPES)[outputBlockType]
   if (player.inventory + blockData.density > player.backpackCapacity) return false
 
-  // Add refined block to inventory
-  player.blockInventory[outputBlockType]++
-  player.inventory += blockData.density
+  // If refining is incomplete return original block
+  const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
+  if (elapsedTime < REFINING_TIME) {
+    player.blockInventory[inputBlockType]++
+    player.inventory += blockData.density
+  } else {
+    // Add refined block to inventory
+    player.blockInventory[outputBlockType]++
+    player.inventory += blockData.density
+  }
 
   // Reset machine state
   refiner.machineState.processingBlockType = null

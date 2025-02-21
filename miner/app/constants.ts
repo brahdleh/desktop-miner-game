@@ -51,7 +51,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Grass",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   STONE: {
     id: 1,
@@ -61,7 +62,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Stone",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   SLATE: {
     id: 2,
@@ -71,7 +73,8 @@ export const BLOCK_TYPES = {
     density: 5,
     name: "Slate",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   MAGMA: {
@@ -82,7 +85,8 @@ export const BLOCK_TYPES = {
     density: 20,
     name: "Magma",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   BEDROCK: {
@@ -93,7 +97,8 @@ export const BLOCK_TYPES = {
     density: 100,
     name: "Bedrock",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   COPPER: {
@@ -104,7 +109,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Copper",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   IRON: {
@@ -115,7 +121,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Iron",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   GOLD: {
@@ -126,7 +133,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Gold",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   DIAMOND: {
@@ -137,7 +145,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Diamond",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   UNAMED: {
@@ -148,7 +157,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Unamed",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
 
   },
   PLATFORM: {
@@ -159,7 +169,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Platform",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   LADDER: {
     id: 11,
@@ -169,7 +180,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Ladder",
     solid: false,
-    climbable: true
+    climbable: true,
+    requirements: null,
   },
   TORCH: {
     id: 12,
@@ -179,7 +191,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Torch",
     solid: false,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   UNAMED2: {
     id: 13,
@@ -189,7 +202,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Unamed2",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   REFINER: {
     id: 14,
@@ -199,7 +213,11 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Refiner",
     solid: false,
-    climbable: false
+    climbable: false,
+    requirements: {
+      blockType: 1,
+      amount: 1
+    }
   },
   POLISHED_STONE: {
     id: 15,
@@ -209,7 +227,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Polished Stone",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   POLISHED_SLATE: {
     id: 16,
@@ -219,7 +238,8 @@ export const BLOCK_TYPES = {
     density: 5,
     name: "Polished Slate",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   POLISHED_MAGMA: {
     id: 17,
@@ -229,7 +249,8 @@ export const BLOCK_TYPES = {
     density: 20,
     name: "Polished Magma",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   POLISHED_BEDROCK: {
     id: 18,
@@ -239,7 +260,8 @@ export const BLOCK_TYPES = {
     density: 100,
     name: "Polished Bedrock",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   },
   UNAMED3: {
     id: 13,
@@ -249,7 +271,8 @@ export const BLOCK_TYPES = {
     density: 1,
     name: "Unamed3",
     solid: true,
-    climbable: false
+    climbable: false,
+    requirements: null,
   }
 } as const 
 

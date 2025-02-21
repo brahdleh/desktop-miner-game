@@ -2,7 +2,7 @@ Information on the sprites used in the game. All sprites will be displayed at 5x
 
 ## /blocks
 
-Blocks cover 40x40 pixels in game. They are able to be mined and placed by the player. Sprites given are:
+Blocks are able to be mined and placed by the player. Sprites given are:
 - grass
 - stone
 - slate

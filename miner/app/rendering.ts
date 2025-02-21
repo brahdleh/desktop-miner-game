@@ -21,7 +21,7 @@ const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
 const PICKAXE_TYPES_ARRAY = Object.values(PICKAXE_TYPES)
 const BACKPACK_TYPES_ARRAY = Object.values(BACKPACK_TYPES)
 
-const MAX_DARKNESS = 0.85 // Maximum darkness level (0-1)
+const MAX_DARKNESS = 0.9 // Maximum darkness level (0-1)
 const DARKNESS_START = 100 // Y position where darkness starts
 const DARKNESS_RANGE = 500 // Distance over which darkness increases to max
 const TORCH_INNER_RADIUS = 120
@@ -213,6 +213,7 @@ function drawMiningProgress(
   ctx: CanvasRenderingContext2D,
   miningTargetBlock: Block | null,
   miningProgress: number,
+  //requiredTime: number,
   player: Player,
   cameraOffsetY: number
 ) {
@@ -287,7 +288,6 @@ function drawZoneText(
   drawShopOption(ctx, "Buy Platform [J]", startX, startY + 60, 3, coinIcon)
   drawShopOption(ctx, "Buy Torch [K]", startX, startY + 100, 5, coinIcon)
   drawShopOption(ctx, "Buy Ladder [L]", startX, startY + 140, 10, coinIcon)
-  drawShopOption(ctx, "Buy Refiner [M]", startX, startY + 180, 100, coinIcon)
 
   // Right column - Upgrades
   const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
@@ -405,9 +405,22 @@ function drawCraftZoneText(
     }
   } else {
     ctx.font = "14px Arial"
-    ctx.fillText("Final Backpack", zone.x + 10, zone.y + 150 - cameraOffsetY)
+    ctx.fillText("Final Backpack", zone.x + 10, zone.y + 130 - cameraOffsetY)
   }
-}
+  // refiner
+  if (Object.values(BLOCK_TYPES)[14])
+  {
+    const refiner = Object.values(BLOCK_TYPES)[14]
+    ctx.font = "14px Arial"
+    ctx.fillText(`${refiner.name} [M]`, zone.x + 10, zone.y + 160 - cameraOffsetY)
+
+    if(refiner.requirements) {
+      const blockRequired = Object.values(BLOCK_TYPES)[refiner.requirements.blockType]
+      ctx.font = "12px Arial"
+      ctx.fillText(`Requires: ${refiner.requirements.amount}x ${blockRequired.name}`, zone.x + 20, zone.y + 180 - cameraOffsetY)
+    }
+  }
+}  
 
 function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   const slotSize = 35

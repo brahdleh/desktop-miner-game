@@ -12,6 +12,7 @@ export interface Player {
   pickaxeLevel: number
   backpackLevel: number
   backpackCapacity: number
+  pickaxePower: number
   blockInventory: number[]
   selectedSlot: number
   pickaxeType: number

@@ -25,10 +25,10 @@ import {
   attemptBuyPlatform,
   attemptBuyTorch,
   attemptBuyLadder,
-  attemptBuyRefiner,
+  attemptCraftRefiner,
   attemptDepositInRefiner,
   attemptCollectFromRefiner,
-  findNearbyRefiner
+  findNearbyRefiner,
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
@@ -190,9 +190,6 @@ export default function MiningGame() {
             case "l":
               attemptBuyLadder(player)
               break
-            case "m":
-              attemptBuyRefiner(player)
-              break
           }
         }
 
@@ -202,6 +199,9 @@ export default function MiningGame() {
           }
           if (e.key === "r") {
             attemptCraftBackpack(player)
+          }
+          if (e.key === "m") {
+            attemptCraftRefiner(player)
           }
         }
 
