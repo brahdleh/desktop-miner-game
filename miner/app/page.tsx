@@ -22,9 +22,7 @@ import {
   attemptPlaceBlock,
   attemptCraftPickaxe,
   attemptCraftBackpack,
-  attemptBuyPlatform,
-  attemptBuyTorch,
-  attemptBuyLadder,
+  attemptBuy,
   attemptCraftRefiner,
   attemptDepositInRefiner,
   attemptCollectFromRefiner,
@@ -78,8 +76,17 @@ export default function MiningGame() {
         miningProgress = miningResult.miningProgress
         miningTargetBlock = miningResult.miningTargetBlock
 
-        draw(ctx, player, blocks, miningTargetBlock, miningProgress, cameraOffsetY, 
-             UPGRADE_ZONE, CRAFT_ZONE)
+        draw(
+          ctx, 
+          player, 
+          blocks, 
+          miningTargetBlock, 
+          miningProgress, 
+          cameraOffsetY, 
+          UPGRADE_ZONE, 
+          CRAFT_ZONE,
+          miningResult.requiredTime
+        )
         
         requestAnimationFrame(gameLoop)
       }
@@ -182,13 +189,13 @@ export default function MiningGame() {
               attemptSell(player)
               break
             case "j":
-              attemptBuyPlatform(player)
+              attemptBuy(player, 10)
               break
             case "k":
-              attemptBuyTorch(player)
+              attemptBuy(player, 12)
               break
             case "l":
-              attemptBuyLadder(player)
+              attemptBuy(player, 11)
               break
           }
         }

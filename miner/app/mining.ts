@@ -2,49 +2,45 @@ import { Player, Block } from './types'
 import { 
   DEFAULT_MINE_TIME, 
   BLOCK_SIZE,
-  PICKAXE_BASE_COST, 
-  PICKAXE_COST_MULTIPLIER,
-  PICKAXE_MINE_INCREMENT,
-  BACKPACK_BASE_COST, 
-  BACKPACK_COST_MULTIPLIER,
-  BACKPACK_CAPACITY_INCREMENT,
-  BLOCK_TYPES,
-  PICKAXE_TYPES,
-  BACKPACK_TYPES,
   MAX_BACKPACK_LEVEL,
   MAX_PICKAXE_LEVEL,
   REFINABLE_BLOCKS,
   REFINING_TIME
 } from './constants'
+import { 
+  updatePickaxePower, getPickaxeUpgradeCost, getBackpackUpgradeCost, updateBackpackCapacity
+} from './utils/calculation-utils'
+import { 
+  getBlockData, getPickaxeData, getBackpackData, 
+  canHoldBlock, getBlockInventory, buyBlock 
+} from './utils/data-utils'
 
 
 export function handleMining(
   player: Player, 
   miningTargetBlock: Block | null,
   miningProgress: number
-): { miningProgress: number; miningTargetBlock: Block | null } {
+): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number } {
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
   }
-  const blockData = Object.values(BLOCK_TYPES)[miningTargetBlock.blockType]
+  const blockData = getBlockData(miningTargetBlock.blockType)
 
   // Stop mining if inventory becomes full
-  if (player.inventory + blockData.density > player.backpackCapacity) {
+  if (!canHoldBlock(player, miningTargetBlock.blockType)) {
     return { miningProgress: 0, miningTargetBlock: null }
   }
 
   miningProgress += 16.67 // approximate per frame at ~60fps
   
   // Calculate required time based on block type
-  const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
-  const pickaxeBoost = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.pickaxeLevel - 1)
-  const baseTime = DEFAULT_MINE_TIME / pickaxeBoost
+  const baseTime = DEFAULT_MINE_TIME / player.pickaxePower
   const requiredTime = baseTime * blockData.miningTimeMultiplier
   
   if (miningProgress >= requiredTime) {
     miningTargetBlock.isMined = true
     // Check if inventory is full based on block density
-    if (player.inventory + blockData.density <= player.backpackCapacity) {
+    if (canHoldBlock(player, miningTargetBlock.blockType)) {
       player.inventory += blockData.density
       player.blockInventory[miningTargetBlock.blockType] ++
     }
@@ -52,44 +48,23 @@ export function handleMining(
     return { miningProgress: 0, miningTargetBlock: null }
   }
 
-  return { miningProgress, miningTargetBlock }
+  return { miningProgress, miningTargetBlock, requiredTime }
 }
 
 export function attemptSell(player: Player) {
-  const selectedBlockCount = player.blockInventory[player.selectedSlot]
+  const selectedBlockCount = getBlockInventory(player)
   if (selectedBlockCount > 0) {
-    const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
-    player.gold += selectedBlockCount * blockData.value
-    
-    player.inventory -= selectedBlockCount * blockData.density
+    const blockData = getBlockData(player.selectedSlot)
+    player.gold += blockData.value * selectedBlockCount
     player.blockInventory[player.selectedSlot] = 0
+    player.inventory -= blockData.density * selectedBlockCount
   }
 }
 
-export function attemptBuyPlatform(player: Player) {
-  const itemData = Object.values(BLOCK_TYPES)[10]
+export function attemptBuy(player: Player, blockType: number) {
+  const itemData = getBlockData(blockType)
   if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
-    player.gold -= itemData.value
-    player.blockInventory[10]++
-    player.inventory ++
-  }
-}
-
-export function attemptBuyTorch(player: Player) {
-  const itemData = Object.values(BLOCK_TYPES)[12]
-  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
-    player.gold -= itemData.value
-    player.blockInventory[12]++
-    player.inventory ++
-  }
-}
-
-export function attemptBuyLadder(player: Player) {
-  const itemData = Object.values(BLOCK_TYPES)[11]
-  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
-    player.gold -= itemData.value
-    player.blockInventory[11]++
-    player.inventory ++
+    buyBlock(player, blockType)
   }
 }
 
@@ -97,13 +72,12 @@ export function attemptPickaxeUpgrade(player: Player) {
   // Check if already at max level
   if (player.pickaxeLevel >= MAX_PICKAXE_LEVEL) return
 
-  const pickaxeData = Object.values(PICKAXE_TYPES)[player.pickaxeType]
-  const baseCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier
-  const cost = baseCost * Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
+  const cost = getPickaxeUpgradeCost(player)
   
   if (player.gold >= cost) {
     player.gold -= cost
     player.pickaxeLevel += 1
+    updatePickaxePower(player)
   }
 }
 
@@ -111,14 +85,12 @@ export function attemptBackpackUpgrade(player: Player) {
   // Check if already at max level
   if (player.backpackLevel >= MAX_BACKPACK_LEVEL) return
 
-  const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
-  const baseCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier
-  const cost = baseCost * Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+  const cost = getBackpackUpgradeCost(player)
   
   if (player.gold >= cost) {
     player.gold -= cost
     player.backpackLevel += 1
-    player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
+    updateBackpackCapacity(player)
   }
 }
 
@@ -179,21 +151,21 @@ export function attemptPlaceBlock(
   // Place the block with the correct block type
   existingBlock.isMined = false
   existingBlock.blockType = player.selectedSlot  // Set block type to match inventory slot
-  const blockData = Object.values(BLOCK_TYPES)[player.selectedSlot]
+  const blockData = getBlockData(player.selectedSlot)
   player.blockInventory[player.selectedSlot]--
   player.inventory -= blockData.density
   return true
 }
 
 export function attemptCraftRefiner(player: Player) {
-  const itemData = Object.values(BLOCK_TYPES)[14] // Refiner block type
+  const itemData = getBlockData(14) // Refiner block type
   if (itemData.requirements) {
     const { blockType, amount } = itemData.requirements
     if (player.blockInventory[blockType] < amount) return false
     
     // Consume materials
     player.blockInventory[blockType] -= amount
-    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density    
+    player.inventory -= amount * getBlockData(blockType).density    
     // add item
     player.blockInventory[14] ++    
     return true
@@ -204,7 +176,7 @@ export function attemptCraftRefiner(player: Player) {
 export function attemptCraftPickaxe(player: Player) {
   // Get next pickaxe type
   const nextPickaxeType = player.pickaxeType + 1
-  const nextPickaxe = Object.values(PICKAXE_TYPES)[nextPickaxeType]
+  const nextPickaxe = getPickaxeData(nextPickaxeType)
   
   // Check if next pickaxe exists
   if (!nextPickaxe) return false
@@ -216,11 +188,12 @@ export function attemptCraftPickaxe(player: Player) {
     
     // Consume materials
     player.blockInventory[blockType] -= amount
-    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density  
+    player.inventory -= amount * getBlockData(blockType).density  
     
     // Upgrade pickaxe
     player.pickaxeType = nextPickaxeType
     player.pickaxeLevel = 1  // Reset level when upgrading type
+    updatePickaxePower(player)
     
     return true
   }
@@ -231,7 +204,7 @@ export function attemptCraftPickaxe(player: Player) {
 export function attemptCraftBackpack(player: Player) {
   // Get next backpack type
   const nextBackpackType = player.backpackType + 1
-  const nextBackpack = Object.values(BACKPACK_TYPES)[nextBackpackType]
+  const nextBackpack = getBackpackData(nextBackpackType)
   
   // Check if next backpack exists
   if (!nextBackpack) return false
@@ -243,18 +216,16 @@ export function attemptCraftBackpack(player: Player) {
     
     // Consume materials
     player.blockInventory[blockType] -= amount
-    player.inventory -= amount * Object.values(BLOCK_TYPES)[blockType].density   
+    player.inventory -= amount * getBlockData(blockType).density   
     
     // Upgrade backpack
     player.backpackType = nextBackpackType
     player.backpackLevel = 1  // Reset level when upgrading type
 
     // Update backpack capacity
-    const backpackData = Object.values(BACKPACK_TYPES)[player.backpackType]
-    player.backpackCapacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.backpackLevel - 1)
+    updateBackpackCapacity(player)
     
     return true
-
   }
 
   return false
@@ -321,7 +292,7 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
   if (!outputBlockType) return false
 
   // Check if inventory has space assuming density does not change
-  const blockData = Object.values(BLOCK_TYPES)[outputBlockType]
+  const blockData = getBlockData(outputBlockType)
   if (player.inventory + blockData.density > player.backpackCapacity) return false
 
   // If refining is incomplete return original block

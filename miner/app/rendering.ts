@@ -46,7 +46,8 @@ export function draw(
   miningProgress: number,
   cameraOffsetY: number,
   upgradeZone: Zone,
-  sellZone: Zone
+  sellZone: Zone,
+  requiredTime?: number
 ) {
   // Clear the main canvas
   ctx.clearRect(0, -CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -54,7 +55,7 @@ export function draw(
   drawBackground(ctx, cameraOffsetY)
   drawBlocks(player.y, ctx, blocks, cameraOffsetY)
   drawPlayer(ctx, player, cameraOffsetY)
-  drawMiningProgress(ctx, miningTargetBlock, miningProgress, player, cameraOffsetY)
+  drawMiningProgress(ctx, miningTargetBlock, miningProgress, requiredTime, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
@@ -213,17 +214,10 @@ function drawMiningProgress(
   ctx: CanvasRenderingContext2D,
   miningTargetBlock: Block | null,
   miningProgress: number,
-  //requiredTime: number,
-  player: Player,
+  requiredTime: number | undefined,
   cameraOffsetY: number
 ) {
-  if (!miningTargetBlock) return
-
-  const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
-  const pickaxeBoost = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.pickaxeLevel - 1)
-  const baseTime = DEFAULT_MINE_TIME / pickaxeBoost
-  const blockData = BLOCK_TYPES_ARRAY[miningTargetBlock.blockType]
-  const requiredTime = baseTime * blockData.miningTimeMultiplier
+  if (!miningTargetBlock || !requiredTime) return
 
   ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
   ctx.fillRect(
