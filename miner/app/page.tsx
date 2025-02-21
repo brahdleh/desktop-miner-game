@@ -233,7 +233,7 @@ export default function MiningGame() {
           return
         }
 
-        // Left click for mining (existing code)
+        // Left click for mining
         for (const block of blocks) {
           if (canMineBlock(block, clickX, clickY, player)) {
             miningTargetBlock = block

@@ -12,7 +12,10 @@ import {
 } from './utils/calculation-utils'
 import { 
   getBlockData, getPickaxeData, getBackpackData, 
-  canHoldBlock, getBlockInventory, buyBlock 
+  canHoldBlock, getBlockInventory, buyBlock, removeBlock,
+  findNearbyBlock,
+  isRefinable, 
+  gainBlock
 } from './utils/data-utils'
 
 
@@ -41,8 +44,7 @@ export function handleMining(
     miningTargetBlock.isMined = true
     // Check if inventory is full based on block density
     if (canHoldBlock(player, miningTargetBlock.blockType)) {
-      player.inventory += blockData.density
-      player.blockInventory[miningTargetBlock.blockType] ++
+      gainBlock(player, miningTargetBlock.blockType)
     }
 
     return { miningProgress: 0, miningTargetBlock: null }
@@ -56,8 +58,7 @@ export function attemptSell(player: Player) {
   if (selectedBlockCount > 0) {
     const blockData = getBlockData(player.selectedSlot)
     player.gold += blockData.value * selectedBlockCount
-    player.blockInventory[player.selectedSlot] = 0
-    player.inventory -= blockData.density * selectedBlockCount
+    removeBlock(player, player.selectedSlot, selectedBlockCount)
   }
 }
 
@@ -101,7 +102,7 @@ export function canMineBlock(
   player: Player
 ): boolean {
   // Check if inventory is full
-  if (player.inventory >= player.backpackCapacity) return false
+  if (!canHoldBlock(player, block.blockType)) return false
   
   if (block.isMined || !block.mineable) return false
 
@@ -127,7 +128,7 @@ export function attemptPlaceBlock(
   clickY: number
 ): boolean {
   // Check if player has blocks to place
-  if (player.blockInventory[player.selectedSlot] <= 0) return false
+  if (getBlockInventory(player) <= 0) return false
 
   // Calculate grid position
   const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
@@ -151,9 +152,7 @@ export function attemptPlaceBlock(
   // Place the block with the correct block type
   existingBlock.isMined = false
   existingBlock.blockType = player.selectedSlot  // Set block type to match inventory slot
-  const blockData = getBlockData(player.selectedSlot)
-  player.blockInventory[player.selectedSlot]--
-  player.inventory -= blockData.density
+  removeBlock(player, player.selectedSlot, 1)
   return true
 }
 
@@ -161,11 +160,10 @@ export function attemptCraftRefiner(player: Player) {
   const itemData = getBlockData(14) // Refiner block type
   if (itemData.requirements) {
     const { blockType, amount } = itemData.requirements
-    if (player.blockInventory[blockType] < amount) return false
+    if (getBlockInventory(player) < amount) return false
     
     // Consume materials
-    player.blockInventory[blockType] -= amount
-    player.inventory -= amount * getBlockData(blockType).density    
+    removeBlock(player, blockType, amount)
     // add item
     player.blockInventory[14] ++    
     return true
@@ -177,18 +175,15 @@ export function attemptCraftPickaxe(player: Player) {
   // Get next pickaxe type
   const nextPickaxeType = player.pickaxeType + 1
   const nextPickaxe = getPickaxeData(nextPickaxeType)
-  
-  // Check if next pickaxe exists
   if (!nextPickaxe) return false
   
   // Check requirements
   if (nextPickaxe.requirements) {
     const { blockType, amount } = nextPickaxe.requirements
-    if (player.blockInventory[blockType] < amount) return false
+    if (getBlockInventory(player) < amount) return false
     
     // Consume materials
-    player.blockInventory[blockType] -= amount
-    player.inventory -= amount * getBlockData(blockType).density  
+    removeBlock(player, blockType, amount)
     
     // Upgrade pickaxe
     player.pickaxeType = nextPickaxeType
@@ -205,18 +200,15 @@ export function attemptCraftBackpack(player: Player) {
   // Get next backpack type
   const nextBackpackType = player.backpackType + 1
   const nextBackpack = getBackpackData(nextBackpackType)
-  
-  // Check if next backpack exists
   if (!nextBackpack) return false
   
   // Check requirements
   if (nextBackpack.requirements) {
     const { blockType, amount } = nextBackpack.requirements
-    if (player.blockInventory[blockType] < amount) return false
+    if (getBlockInventory(player) < amount) return false
     
     // Consume materials
-    player.blockInventory[blockType] -= amount
-    player.inventory -= amount * getBlockData(blockType).density   
+    removeBlock(player, blockType, amount)
     
     // Upgrade backpack
     player.backpackType = nextBackpackType
@@ -232,31 +224,18 @@ export function attemptCraftBackpack(player: Player) {
 }
 
 export function findNearbyRefiner(player: Player, blocks: Block[]): Block | null {
-  const playerCenterX = player.x + BLOCK_SIZE / 2
-  const playerBottom = player.y + BLOCK_SIZE
-
-  for (const block of blocks) {
-    if (block.blockType === 14 && !block.isMined) { // 14 is refiner
-      const distX = Math.abs((block.x + BLOCK_SIZE / 2) - playerCenterX)
-      const distY = Math.abs((block.y) - playerBottom)
-      
-      if (distX <= BLOCK_SIZE && distY <= BLOCK_SIZE) {
-        return block
-      }
-    }
-  }
-  return null
+  return findNearbyBlock(player, 14, blocks)
 }
 
 export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
   const refiner = findNearbyRefiner(player, blocks)
   if (!refiner) return false
 
-  const selectedBlock = player.blockInventory[player.selectedSlot]
+  const selectedBlock = getBlockInventory(player)
   if (selectedBlock <= 0) return false
 
   // Check if the selected block is refinable
-  if (!REFINABLE_BLOCKS[player.selectedSlot as keyof typeof REFINABLE_BLOCKS]) return false
+  if (!isRefinable(player.selectedSlot)) return false
 
   // Initialize machine state if needed
   if (!refiner.machineState) {
@@ -276,8 +255,7 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
   refiner.machineState.isFinished = false
 
   // Remove block from inventory
-  player.blockInventory[player.selectedSlot]--
-  player.inventory--
+  removeBlock(player, player.selectedSlot, 1)
 
   return true
 }
@@ -292,18 +270,15 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
   if (!outputBlockType) return false
 
   // Check if inventory has space assuming density does not change
-  const blockData = getBlockData(outputBlockType)
-  if (player.inventory + blockData.density > player.backpackCapacity) return false
+  if (!canHoldBlock(player, outputBlockType)) return false
 
   // If refining is incomplete return original block
   const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
   if (elapsedTime < REFINING_TIME) {
-    player.blockInventory[inputBlockType]++
-    player.inventory += blockData.density
+    gainBlock(player, inputBlockType)
   } else {
     // Add refined block to inventory
-    player.blockInventory[outputBlockType]++
-    player.inventory += blockData.density
+    gainBlock(player, outputBlockType)
   }
 
   // Reset machine state

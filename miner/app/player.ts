@@ -4,6 +4,7 @@ import {
   GRAVITY, CANVAS_WIDTH, BLOCK_SIZE, SURFACE_Y, MINE_LEFT, 
   MINE_WIDTH, BLOCK_TYPES, BLOCK_ID_TO_TYPE
 } from './constants'
+import { isClimbable, isSolid } from './utils/data-utils'
 
 export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
@@ -59,13 +60,13 @@ export function updatePlayer(player: Player, blocks: Block[]) {
   for (const block of blocks) {
     if (!block.isMined && collision(player, block)) {
       // Check if block is climbable
-      if (BLOCK_TYPES[BLOCK_ID_TO_TYPE[block.blockType]].climbable) {
+      if (isClimbable(block.blockType)) {
         player.onClimbable = true
         continue // Skip collision resolution for climbable blocks
       }
 
       // Skip collision for non-solid blocks
-      if (BLOCK_TYPES[BLOCK_ID_TO_TYPE[block.blockType]].solid === false) {
+      if (!isSolid(block.blockType)) {
         continue
       }
 
