@@ -217,7 +217,8 @@ export const BLOCK_TYPES = {
     requirements: {
       blockType: 1,
       amount: 1
-    }
+    },
+    size: [3, 2]
   },
   POLISHED_STONE: {
     id: 15,

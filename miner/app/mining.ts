@@ -1,11 +1,7 @@
-import { Player, Block } from './types'
+import { Player, Block, BlockData } from './types'
 import { 
-  DEFAULT_MINE_TIME, 
-  BLOCK_SIZE,
-  MAX_BACKPACK_LEVEL,
-  MAX_PICKAXE_LEVEL,
-  REFINABLE_BLOCKS,
-  REFINING_TIME
+  DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_BACKPACK_LEVEL, MAX_PICKAXE_LEVEL,
+  REFINABLE_BLOCKS, REFINING_TIME
 } from './constants'
 import { 
   updatePickaxePower, getPickaxeUpgradeCost, getBackpackUpgradeCost, updateBackpackCapacity
@@ -13,27 +9,21 @@ import {
 import { 
   getBlockData, getPickaxeData, getBackpackData, 
   canHoldBlock, getBlockInventory, buyBlock, removeFromInventory,
-  findNearbyBlock,
-  isRefinable, 
-  addToInventory,
-  getSelectedBlockType
+  findNearbyBlock, isRefinable, addToInventory, getSelectedBlockType
 } from './utils/data-utils'
+import { mineBlock, placeBlock } from './utils/mine-utils';
 
 
 export function handleMining(
   player: Player, 
   miningTargetBlock: Block | null,
-  miningProgress: number
+  miningProgress: number,
+  blocks: Block[]
 ): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number } {
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
   }
   const blockData = getBlockData(miningTargetBlock.blockType)
-
-  // Stop mining if inventory becomes full
-  if (!canHoldBlock(player, miningTargetBlock.blockType)) {
-    return { miningProgress: 0, miningTargetBlock: null }
-  }
 
   miningProgress += 16.67 // approximate per frame at ~60fps
   
@@ -42,10 +32,10 @@ export function handleMining(
   const requiredTime = baseTime * blockData.miningTimeMultiplier
   
   if (miningProgress >= requiredTime) {
-    miningTargetBlock.isMined = true
     // Check if inventory is full based on block density
     if (canHoldBlock(player, miningTargetBlock.blockType)) {
       addToInventory(player, miningTargetBlock.blockType)
+      mineBlock(miningTargetBlock, blocks)
     }
 
     return { miningProgress: 0, miningTargetBlock: null }
@@ -137,81 +127,17 @@ export function attemptPlaceBlock(
   const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
   const gridY = Math.floor(clickY / BLOCK_SIZE) * BLOCK_SIZE
 
-  // Special handling for refiner placement
-  if (selectedBlockType === 14) { // Refiner
-    // Adjust placement to bottom-left corner
-    const refinerY = gridY - BLOCK_SIZE // Move up one block to place from bottom
-    
-    // Check if we have enough space (3x2 blocks)
-    for (let dx = 0; dx < 3; dx++) {
-      for (let dy = 0; dy < 2; dy++) {
-        const blockAtPosition = blocks.find(b => 
-          b.x === gridX + dx * BLOCK_SIZE && 
-          b.y === refinerY + dy * BLOCK_SIZE
-        )
-        
-        // Space must exist and be mined
-        if (!blockAtPosition?.isMined || blockAtPosition.isSecondaryBlock) return false
-      }
-    }
-
-    // Create the main refiner block (bottom-left)
-    const mainBlock = blocks.find(b => b.x === gridX && b.y === refinerY)
-    if (mainBlock) {
-      mainBlock.isMined = false
-      mainBlock.blockType = 14
-      mainBlock.isSecondaryBlock = false
-      mainBlock.machineState = {
-        processingBlockType: null,
-        processingStartTime: null,
-        isFinished: false
-      }
-
-      // Create secondary blocks
-      for (let dx = 0; dx < 3; dx++) {
-        for (let dy = 0; dy < 2; dy++) {
-          if (dx === 0 && dy === 0) continue // Skip main block
-          const secondaryBlock = blocks.find(b => 
-            b.x === gridX + dx * BLOCK_SIZE && 
-            b.y === refinerY + dy * BLOCK_SIZE
-          )
-          if (secondaryBlock) {
-            secondaryBlock.isMined = false
-            secondaryBlock.blockType = 14
-            secondaryBlock.isSecondaryBlock = true
-            secondaryBlock.mainBlockX = gridX
-            secondaryBlock.mainBlockY = refinerY
-          }
-        }
-      }
-
-      removeFromInventory(player, selectedBlockType, 1)
-      return true
-    }
-  }
-
-  // Regular block placement logic
-  const existingBlock = blocks.find(b => 
-    b.x === gridX && 
-    b.y === gridY && 
-    b.isMined && 
-    b.mineable
-  )
-
-  if (!existingBlock) return false
-
-  // Check if trying to place over a refiner's secondary blocks
-  if (existingBlock.isSecondaryBlock) return false
-
   // Distance check
   const distX = Math.abs((player.x + BLOCK_SIZE/2) - (gridX + BLOCK_SIZE/2))
   const distY = Math.abs((player.y + BLOCK_SIZE/2) - (gridY + BLOCK_SIZE/2))
   if (distX > BLOCK_SIZE * 2 || distY > BLOCK_SIZE * 2) return false
 
-  existingBlock.isMined = false
-  existingBlock.blockType = selectedBlockType
-  removeFromInventory(player, selectedBlockType, 1)
-  return true
+  // PlaceBlock checks for space
+  if (placeBlock(player, blocks, gridX, gridY)) {
+    removeFromInventory(player, selectedBlockType, 1)
+    return true
+  }
+  return false
 }
 
 export function attemptCraftRefiner(player: Player) {

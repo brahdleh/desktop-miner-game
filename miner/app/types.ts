@@ -26,13 +26,29 @@ export interface Block {
   mineable: boolean
   blockType: number
   value: number
-  solid: boolean    // New property for collision detection
-  climbable: boolean // New property for ladder mechanics
+  solid: boolean    // property for collision detection
+  climbable: boolean // property for ladder mechanics
+  size?: [number, number] // Optional property for multi-block structures
   machineState?: MachineState // Optional machine state for blocks that are machines
-  // New properties for multi-block structures
   isSecondaryBlock?: boolean
   mainBlockX?: number
   mainBlockY?: number
+}
+
+export interface BlockData {
+  id: number
+  value: number
+  color: string
+  miningTimeMultiplier: number
+  density: number
+  name: string
+  solid: boolean
+  climbable: boolean
+  requirements: {
+    blockType: number
+    amount: number
+  }
+  size?: [number, number]
 }
 
 export interface MachineState {

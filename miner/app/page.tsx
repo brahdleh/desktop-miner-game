@@ -72,6 +72,7 @@ export default function MiningGame() {
           player, 
           miningTargetBlock, 
           miningProgress,
+          blocks
         )
         miningProgress = miningResult.miningProgress
         miningTargetBlock = miningResult.miningTargetBlock
