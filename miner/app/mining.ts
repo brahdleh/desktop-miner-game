@@ -48,6 +48,7 @@ export function handleMining(
 
 export function attemptSell(player: Player) {
   const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return
   const selectedBlockCount = getBlockInventory(player, selectedBlockType)
   if (selectedBlockCount > 0) {
     const blockData = getBlockData(selectedBlockType)
@@ -121,12 +122,13 @@ export function attemptPlaceBlock(
   clickY: number
 ): boolean {
   const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return false
   if (getBlockInventory(player, selectedBlockType) <= 0) return false
 
   const grid = getGridPosition(clickX, clickY)
 
   // Distance check
-  if (distanceToBlock(player, grid[0], grid[1]) > BLOCK_SIZE * 2) return false
+  if (distanceToBlock(player, grid[0], grid[1]) > BLOCK_SIZE * 3) return false
 
   // PlaceBlock checks for space
   if (placeBlock(player, blocks, grid[0], grid[1])) {
@@ -204,7 +206,14 @@ export function attemptCraftBackpack(player: Player) {
 }
 
 export function findNearbyRefiner(player: Player, blocks: Block[]): Block | null {
-  return findNearbyBlock(player, 14, blocks)
+  const refiner = findNearbyBlock(player, 14, blocks)
+  if (!refiner) return null
+  if (refiner.isSecondaryBlock) {
+    const mainBlock = blocks.find(b => b.x === refiner.mainBlockX && b.y === refiner.mainBlockY)
+    if (!mainBlock) return null
+    return mainBlock
+  }
+  return refiner
 }
 
 export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
@@ -212,6 +221,7 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
   if (!refiner) return false
 
   const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return false
   const selectedBlockCount = getBlockInventory(player, selectedBlockType)
   if (selectedBlockCount <= 0) return false
 

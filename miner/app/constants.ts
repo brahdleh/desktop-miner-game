@@ -281,7 +281,7 @@ export const BLOCK_TYPES = {
 export const PICKAXE_TYPES = {
   STONE: {
     id: 0,
-    miningTimeMultiplier: 1,
+    miningTimeMultiplier: 100,
     name: "Stone",
     requirements: null,  // Starting pickaxe
     upgradeCostMultiplier: 1
@@ -332,7 +332,7 @@ export const PICKAXE_TYPES = {
 export const BACKPACK_TYPES = {
   STONE: {
     id: 0,
-    capacity: 5,
+    capacity: 5000,
     name: "Stone",
     requirements: null,
     upgradeCostMultiplier: 1

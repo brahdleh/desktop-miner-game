@@ -1,4 +1,4 @@
-import { Player, Block, Zone } from './types'
+import { Player, Block, Zone, BlockData } from './types'
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, SURFACE_Y, MINE_DEPTH_PX,
   MINE_LEFT, BLOCK_SIZE, PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -52,8 +52,8 @@ export function draw(
 
   drawBackground(ctx, cameraOffsetY)
   drawBlocks(player.y, ctx, blocks, cameraOffsetY)
-  drawPlayer(ctx, player, cameraOffsetY)
   drawMiningProgress(ctx, miningTargetBlock, miningProgress, requiredTime, cameraOffsetY)
+  drawPlayer(ctx, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
@@ -102,8 +102,8 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   // Draw mine shaft
   if (mineTexture) {
     for (let y = SURFACE_Y+5; y < SURFACE_Y + MINE_DEPTH_PX; y += 4*BLOCK_SIZE) {
-      ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 4*BLOCK_SIZE, 4*BLOCK_SIZE)
-      ctx.drawImage(mineTexture, MINE_LEFT + 4*BLOCK_SIZE, y - roundedOffset, 4*BLOCK_SIZE, 4*BLOCK_SIZE)
+      ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 4.5*BLOCK_SIZE, 4*BLOCK_SIZE)
+      ctx.drawImage(mineTexture, MINE_LEFT + 4.5*BLOCK_SIZE, y - roundedOffset, 4.5*BLOCK_SIZE, 4*BLOCK_SIZE)
     }
   }
   /*
@@ -124,7 +124,7 @@ function drawBlocks(
     if (block.isMined) continue
     if (Math.abs(block.y - player_y) > CANVAS_HEIGHT) continue
 
-    const blockData = BLOCK_TYPES_ARRAY[block.blockType]
+    const blockData = BLOCK_TYPES_ARRAY[block.blockType] as BlockData
     const texture = getBlockTexture(blockData.name)
     const x = block.x
     const y = block.y - cameraOffsetY
@@ -132,13 +132,14 @@ function drawBlocks(
     // Special handling for refiner (type 14)
     if (block.blockType === 14) {
       // Only draw if this is the root block (bottom-left of the refiner)
+      if (!blockData) continue
+      if (!blockData.size) continue
       if (!block.isSecondaryBlock) {
-        // Draw 3x2 refiner from bottom-left anchor point
         if (texture) {
-          ctx.drawImage(texture, x, y, BLOCK_SIZE * 3, BLOCK_SIZE * 2)
+          ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
         } else {
           ctx.fillStyle = blockData.color
-          ctx.fillRect(x, y, BLOCK_SIZE * 3, BLOCK_SIZE * 2)
+          ctx.fillRect(x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
         }
 
         // Draw refiner state if processing

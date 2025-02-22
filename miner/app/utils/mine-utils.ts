@@ -19,6 +19,7 @@ export function canPlaceBlock(size: [number, number], blocks: Block[], gridX: nu
 
 export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY: number): boolean {
   const selectedBlockType = getSelectedBlockType(player)  
+  if (selectedBlockType === null) return false
   const blockData = getBlockData(selectedBlockType) as BlockData
   let size = blockData.size
   if (!size) size = [1, 1]

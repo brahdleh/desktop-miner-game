@@ -41,8 +41,10 @@ export function getBlockInventory(player: Player, blockType: number): number {
   if (slotIndex === -1) return 0
   return player.inventorySlots[slotIndex].count
 }
-export function getSelectedBlockType(player: Player): number {
-  return player.inventorySlots[player.selectedSlot].blockType ?? 0
+export function getSelectedBlockType(player: Player): number | null {
+  const slot = player.inventorySlots[player.selectedSlot];
+  // Explicitly check if blockType is null, rather than falsy
+  return slot.blockType === null ? null : slot.blockType;
 }
 
 function findAvailableSlot(player: Player, blockType: number): number {
@@ -103,15 +105,10 @@ export function buyBlock(player: Player, blockType: number): void {
 }
 
 export function findNearbyBlock(player: Player, blockType: number, blocks: Block[]): Block | null {
-  const playerCenterX = player.x + BLOCK_SIZE / 2
-  const playerBottom = player.y + BLOCK_SIZE
 
   for (const block of blocks) {
     if (block.blockType === blockType && !block.isMined) {
-      const distX = Math.abs((block.x + BLOCK_SIZE / 2) - playerCenterX)
-      const distY = Math.abs((block.y) - playerBottom)
-      
-      if (distX <= BLOCK_SIZE && distY <= BLOCK_SIZE) {
+      if (distanceToBlock(player, block.x, block.y) <= BLOCK_SIZE * 0.5) {
         return block
       }
     }
