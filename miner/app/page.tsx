@@ -30,7 +30,7 @@ import {
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
-import { saveGame, loadGame } from "./storage"
+import { saveGame, loadGame, blocksToHexArray } from "./storage"
 import { loadAllTextures } from "./assets"
 
 
@@ -98,26 +98,29 @@ export default function MiningGame() {
       const handleKeyDown = (e: KeyboardEvent) => {
         keys[e.key] = true
 
-        // Save/Load shortcuts
+        // Save/Load/Export/Import shortcuts
         if (e.shiftKey) {
           if (e.key === 'S') {
-            e.preventDefault() // Prevent browser save dialog
+            e.preventDefault()
             saveGame(player, blocks)
-            // Show save notification
             setShowSaveNotification(true)
-            // Hide notification after 2 seconds
             setTimeout(() => setShowSaveNotification(false), 2000)
           } else if (e.key === 'L') {
             const savedData = loadGame()
             if (savedData.player && savedData.blocks) {
-              // Update player
               Object.assign(player, savedData.player)
-              
-              // Update blocks
-              blocks.length = 0 // Clear existing blocks
+              blocks.length = 0
               blocks.push(...savedData.blocks)
             }
-          }
+          }/* else if (e.key === 'C') {
+            e.preventDefault()
+            const hexArray = blocksToHexArray(blocks)
+            const hexString = JSON.stringify(hexArray)
+            navigator.clipboard.writeText(hexString).then(() => {
+              setShowSaveNotification(true)
+              setTimeout(() => setShowSaveNotification(false), 2000)
+            })
+          }*/
           return
         }
 

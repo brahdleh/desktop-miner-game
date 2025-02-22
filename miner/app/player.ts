@@ -8,13 +8,16 @@ import { isClimbable, isSolid } from './utils/data-utils'
 
 export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
+  player.isWalking = false
   if (keys["a"]) { 
     player.velocityX = -MOVE_SPEED
     player.facingRight = false
+    player.isWalking = true
   }
   if (keys["d"]) {
     player.velocityX = MOVE_SPEED
     player.facingRight = true
+    player.isWalking = true
   }
 
   // Check if player is on a climbable block (ladder)

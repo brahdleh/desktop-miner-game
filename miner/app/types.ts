@@ -25,10 +25,6 @@ export interface Block {
   isMined: boolean
   mineable: boolean
   blockType: number
-  value: number
-  solid: boolean    // property for collision detection
-  climbable: boolean // property for ladder mechanics
-  size?: [number, number] // Optional property for multi-block structures
   machineState?: MachineState // Optional machine state for blocks that are machines
   isSecondaryBlock?: boolean
   mainBlockX?: number

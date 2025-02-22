@@ -191,21 +191,40 @@ function drawPlayer(
 ) {
   const playerStanding = getPlayerTexture('standing')
   const playerJump = getPlayerTexture('jump')
-  if (playerStanding && playerJump) {
+  const playerWalk1 = getPlayerTexture('step1')
+  const playerWalk2 = getPlayerTexture('step2')
+  const pickaxeType = PICKAXE_TYPES_ARRAY[player.pickaxeType].name.toLowerCase()
+  const pickIcon = getPickTexture(pickaxeType)
+  
+  // Animation frame selection (4 frames per walk cycle)
+  const walkFrame = Math.floor(Date.now() / 100) % 4
+  let currentTexture = playerStanding
+
+  if (!player.onGround) {
+    currentTexture = playerJump
+  } else if (player.isWalking) {
+    // Alternate between walk1, standing, walk2, standing
+    switch(walkFrame) {
+      case 0: currentTexture = playerWalk1; break;
+      case 1: currentTexture = playerStanding; break;
+      case 2: currentTexture = playerWalk2; break;
+      case 3: currentTexture = playerStanding; break;
+    }
+  }
+
+  if (currentTexture) {
     if (player.facingRight) {
-      if (player.onGround) {
-        ctx.drawImage(playerStanding, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-      } else {
-        ctx.drawImage(playerJump, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      ctx.drawImage(currentTexture, player.x, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      if (pickIcon) {
+        ctx.drawImage(pickIcon, player.x+18, player.y + 18- cameraOffsetY, 0.75*BLOCK_SIZE, 0.75*BLOCK_SIZE)
       }
     } else {
-      // Flip context, draw player, then restore context
+      // Flip context, draw player and pickaxe, then restore context
       ctx.save()
       ctx.scale(-1, 1)
-      if (player.onGround) {
-        ctx.drawImage(playerStanding, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
-      } else {
-        ctx.drawImage(playerJump, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      ctx.drawImage(currentTexture, -player.x - PLAYER_WIDTH, player.y - cameraOffsetY, PLAYER_WIDTH, PLAYER_HEIGHT)
+      if (pickIcon) {
+        ctx.drawImage(pickIcon, -player.x-12, player.y + 18- cameraOffsetY, 0.75*BLOCK_SIZE, 0.75*BLOCK_SIZE)
       }
       ctx.restore()
     }

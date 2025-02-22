@@ -35,9 +35,6 @@ export function initializeBlocks(): Block[] {
       isMined: false,
       mineable: x >= MINE_LEFT && x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE,
       blockType: 0,
-      value: 1,
-      solid: true,
-      climbable: false
     })
   }
 
@@ -83,9 +80,6 @@ export function initializeBlocks(): Block[] {
         isMined: false,
         mineable: true,
         blockType,
-        value: blockData.value,
-        solid: blockData.solid,
-        climbable: blockData.climbable
       })
     }
   }
