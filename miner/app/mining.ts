@@ -99,7 +99,7 @@ export function canMineBlock(
   if (!canHoldBlock(player, block.blockType)) return false
 
   // Check if secondary block or already mined
-  if (block.isSecondaryBlock) return false
+  //if (block.isSecondaryBlock) return false
   if (block.isMined || !block.mineable) return false
 
   const isClickInBlock = 

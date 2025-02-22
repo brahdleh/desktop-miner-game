@@ -60,13 +60,32 @@ export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY
 }
 
 export function mineBlock(block: Block, blocks: Block[]) {
-  // Mine the main block
-  block.isMined = true
-  
-  // Find and mine all secondary blocks that reference this block as their main block
-  blocks.forEach(b => {
-    if (b.mainBlockX === block.x && b.mainBlockY === block.y) {
-      b.isMined = true
+  // If this is a secondary block, find the main block first
+  if (block.isSecondaryBlock && block.mainBlockX !== undefined && block.mainBlockY !== undefined) {
+    const mainBlock = blocks.find(b => 
+      b.x === block.mainBlockX && 
+      b.y === block.mainBlockY
+    )
+    if (mainBlock) {
+      // Mine the main block
+      mainBlock.isMined = true
+      
+      // Find and mine all secondary blocks that reference this main block
+      blocks.forEach(b => {
+        if (b.mainBlockX === mainBlock.x && b.mainBlockY === mainBlock.y) {
+          b.isMined = true
+        }
+      })
     }
-  })
+  } else {
+    // Original behavior for mining main blocks
+    block.isMined = true
+    
+    // Find and mine all secondary blocks that reference this block as their main block
+    blocks.forEach(b => {
+      if (b.mainBlockX === block.x && b.mainBlockY === block.y) {
+        b.isMined = true
+      }
+    })
+  }
 }
