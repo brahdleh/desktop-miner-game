@@ -1,4 +1,4 @@
-import { Player, Block, BlockData } from './types'
+import { Player, Block } from './types'
 import { 
   DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_BACKPACK_LEVEL, MAX_PICKAXE_LEVEL,
   REFINABLE_BLOCKS, REFINING_TIME
@@ -9,7 +9,9 @@ import {
 import { 
   getBlockData, getPickaxeData, getBackpackData, 
   canHoldBlock, getBlockInventory, buyBlock, removeFromInventory,
-  findNearbyBlock, isRefinable, addToInventory, getSelectedBlockType
+  findNearbyBlock, isRefinable, addToInventory, getSelectedBlockType,
+  getGridPosition,
+  distanceToBlock
 } from './utils/data-utils'
 import { mineBlock, placeBlock } from './utils/mine-utils';
 
@@ -109,10 +111,7 @@ export function canMineBlock(
   if (!isClickInBlock) return false
 
   // Distance check from player
-  const distX = Math.abs((player.x + BLOCK_SIZE / 2) - (block.x + BLOCK_SIZE / 2))
-  const distY = Math.abs((player.y + BLOCK_SIZE / 2) - (block.y + BLOCK_SIZE / 2))
-  
-  return distX <= BLOCK_SIZE * 2 && distY <= BLOCK_SIZE * 2
+  return distanceToBlock(player, block.x, block.y) <= BLOCK_SIZE * 1.8
 }
 
 export function attemptPlaceBlock(
@@ -124,16 +123,13 @@ export function attemptPlaceBlock(
   const selectedBlockType = getSelectedBlockType(player)
   if (getBlockInventory(player, selectedBlockType) <= 0) return false
 
-  const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
-  const gridY = Math.floor(clickY / BLOCK_SIZE) * BLOCK_SIZE
+  const grid = getGridPosition(clickX, clickY)
 
   // Distance check
-  const distX = Math.abs((player.x + BLOCK_SIZE/2) - (gridX + BLOCK_SIZE/2))
-  const distY = Math.abs((player.y + BLOCK_SIZE/2) - (gridY + BLOCK_SIZE/2))
-  if (distX > BLOCK_SIZE * 2 || distY > BLOCK_SIZE * 2) return false
+  if (distanceToBlock(player, grid[0], grid[1]) > BLOCK_SIZE * 2) return false
 
   // PlaceBlock checks for space
-  if (placeBlock(player, blocks, gridX, gridY)) {
+  if (placeBlock(player, blocks, grid[0], grid[1])) {
     removeFromInventory(player, selectedBlockType, 1)
     return true
   }

@@ -1,8 +1,23 @@
-import { BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_ID_TO_TYPE } from '../constants'
-import { Block, Player } from '../types'
+import { BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH } from '../constants'
+import { Block, Player, BlockData } from '../types'
 
-export function getBlockData(blockType: number) {
-  return Object.values(BLOCK_TYPES)[blockType]
+export function getBlockData(blockType: number): BlockData {
+  return Object.values(BLOCK_TYPES)[blockType] as BlockData
+}
+
+export function getGridPosition(x: number, y: number): [number, number] {
+  return [
+    Math.floor(x / BLOCK_SIZE) * BLOCK_SIZE,
+    Math.floor(y / BLOCK_SIZE) * BLOCK_SIZE
+  ]
+}
+
+export function distanceToBlock(player: Player, x: number, y: number): number {
+  
+  const distX = Math.abs(player.x - x)
+  const distY = Math.abs(player.y - y)
+  
+  return Math.sqrt(distX * distX + distY * distY)
 }
 
 export function getPickaxeData(pickaxeType: number) {

@@ -1,32 +1,27 @@
 import { Player, BlockData, Block } from "../types";
-import { getSelectedBlockType } from "./data-utils"
+import { getGridPosition, getSelectedBlockType } from "./data-utils"
 import { BLOCK_SIZE } from "../constants"
 import { getBlockData } from "./data-utils"
 
 export function canPlaceBlock(size: [number, number], blocks: Block[], gridX: number, gridY: number): boolean {
-
-  // Check if we have enough space treating click as bottom-left corner
   for (let dx = 0; dx < size[0]; dx++) {
     for (let dy = 0; dy < size[1]; dy++) {
       const blockAtPosition = blocks.find(b => 
         b.x === gridX + dx * BLOCK_SIZE && 
         b.y === gridY + dy * BLOCK_SIZE
       )
-      // Check if block exists and is mined
-      if (!blockAtPosition?.isMined) return false
+      // Allow placement if block doesn't exist or is mined
+      if (blockAtPosition && !blockAtPosition.isMined) return false
     }
   }
   return true
 }
 
-export function placeBlock(player: Player, blocks: Block[], clickX: number, clickY: number): boolean {
+export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY: number): boolean {
   const selectedBlockType = getSelectedBlockType(player)  
   const blockData = getBlockData(selectedBlockType) as BlockData
   let size = blockData.size
   if (!size) size = [1, 1]
-
-  const gridX = Math.floor(clickX / BLOCK_SIZE) * BLOCK_SIZE
-  const gridY = Math.floor(clickY / BLOCK_SIZE) * BLOCK_SIZE
 
   if (!canPlaceBlock(size, blocks, gridX, gridY)) return false
 
@@ -65,22 +60,13 @@ export function placeBlock(player: Player, blocks: Block[], clickX: number, clic
 }
 
 export function mineBlock(block: Block, blocks: Block[]) {
-  let size = block.size
-  if (!size) size = [1, 1]
-
-  const gridX = Math.floor(block.x / BLOCK_SIZE) * BLOCK_SIZE
-  const gridY = Math.floor(block.y / BLOCK_SIZE) * BLOCK_SIZE
-
-  for (let dx = 0; dx < size[0]; dx++) {
-    for (let dy = 0; dy < size[1]; dy++) {
-      const blockAtPosition = blocks.find(b => 
-        b.x === gridX + dx * BLOCK_SIZE && 
-        b.y === gridY + dy * BLOCK_SIZE
-      )
-      if (blockAtPosition) {
-        blockAtPosition.isMined = true
-        blockAtPosition.isSecondaryBlock = false
-      }
+  // Mine the main block
+  block.isMined = true
+  
+  // Find and mine all secondary blocks that reference this block as their main block
+  blocks.forEach(b => {
+    if (b.mainBlockX === block.x && b.mainBlockY === block.y) {
+      b.isMined = true
     }
-  }
+  })
 }
