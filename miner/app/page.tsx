@@ -215,11 +215,6 @@ export default function MiningGame() {
             attemptCraftRefiner(player)
           }
         }
-
-        // Allow s to place block just below player to help escape the mine
-        if (e.key === "s") {
-          attemptPlaceBlock(player, blocks, player.x, player.y + PLAYER_HEIGHT + 0.8*BLOCK_SIZE)
-        }
       }
 
       const handleKeyUp = (e: KeyboardEvent) => {
@@ -305,11 +300,15 @@ export default function MiningGame() {
           <br />
           <span className="text-xs opacity-50">R CLICK to place</span>
           <br />
-          <span className="text-xs opacity-50">s to place down</span>
-          <br />
           <span className="text-xs opacity-50">SHIFT S to Save</span>
           <br />
           <span className="text-xs opacity-50">SHIFT L to Load</span>
+          <br />
+          <span className="text-xs opacity-50">↑↓←→ for Inventory</span>
+          <br />
+          <span className="text-xs opacity-50">T Deposit in Refiner</span>
+          <br />
+          <span className="text-xs opacity-50">Y Collect from Refiner</span>
         </div>
       </div>
     </div>

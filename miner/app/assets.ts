@@ -72,7 +72,9 @@ export async function loadBlockTextures(): Promise<void> {
     await Promise.all([
       loadBlockTexture('grass'),
       loadBlockTexture('stone'),
+      loadBlockTexture('polished_stone'),
       loadBlockTexture('slate'),
+      loadBlockTexture('polished_slate'),
       loadBlockTexture('magma'),
       loadBlockTexture('bedrock'),
       loadBlockTexture('copper'),
@@ -173,7 +175,8 @@ export async function loadAllTextures(): Promise<void> {
 
 // Function to get a texture
 export function getBlockTexture(name: string): HTMLImageElement | null {
-  return blockTextures[name.toLowerCase()] || null
+  const normalizedName = name.toLowerCase().replace(/\s+/g, '_')
+  return blockTextures[normalizedName] || null
 } 
 
 export function getSceneTexture(name: string): HTMLImageElement | null {

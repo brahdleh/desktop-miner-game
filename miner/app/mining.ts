@@ -52,8 +52,8 @@ export function attemptSell(player: Player) {
   const selectedBlockCount = getBlockInventory(player, selectedBlockType)
   if (selectedBlockCount > 0) {
     const blockData = getBlockData(selectedBlockType)
-    player.gold += blockData.value * selectedBlockCount
-    removeFromInventory(player, selectedBlockType, selectedBlockCount)
+    player.gold += blockData.value
+    removeFromInventory(player, selectedBlockType, 1)
   }
 }
 
