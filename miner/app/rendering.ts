@@ -150,40 +150,58 @@ function drawBlocks(
       if (!blockData) continue
       if (!blockData.size) continue
       if (!block.isSecondaryBlock) {
-        if (texture) {
-          ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-        } else {
-          ctx.fillStyle = blockData.color
-          ctx.fillRect(x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-        }
-
         // Draw refiner state if processing
-        if (block.machineState?.processingBlockType !== null) {
-          // Center the processed block in the middle block
-          const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState!.processingBlockType]
+        if (block.machineState?.processingBlockType !== null && block.machineState) {
+          const refiner2 = getBlockTexture('refiner2')
+          const refiner3 = getBlockTexture('refiner3')
+          const refiner4 = getBlockTexture('refiner4')
+          const refiner5 = getBlockTexture('refiner5')
+          const refiner6 = getBlockTexture('refiner6')
+
+          // Calculate progress
+          const elapsedTime = Date.now() - (block.machineState?.processingStartTime || 0)
+          const progress = Math.min(elapsedTime / REFINING_TIME, 1)
+          
+          // Select the appropriate refiner texture based on progress
+          let currentTexture = texture
+          if (progress >= 1) {
+            currentTexture = refiner6 // Done, ready for collection
+          } else if (progress >= 0.75) {
+            currentTexture = refiner5 // 75-100%
+          } else if (progress >= 0.5) {
+            currentTexture = refiner4 // 50-75%
+          } else if (progress >= 0.25) {
+            currentTexture = refiner3 // 25-50%
+          } else {
+            currentTexture = refiner2 // 0-25%
+          }
+
+          // Draw the current refiner state
+          if (currentTexture) {
+            ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
+          }
+          
+          // Draw the block being processed
+          const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
           const processedTexture = getBlockTexture(processedBlockData.name)
           
           if (processedTexture) {
             ctx.drawImage(
               processedTexture, 
-              x + BLOCK_SIZE, // Center block x
-              y, // Bottom row
-              BLOCK_SIZE, 
-              BLOCK_SIZE
+              x + BLOCK_SIZE, // Center horizontally
+              y + BLOCK_SIZE * 1 + 2, // Position vertically
+              BLOCK_SIZE * 0.5, // Make the block half as big
+              BLOCK_SIZE * 0.5
             )
           }
-
-          // Draw progress bar at the bottom of the processed block
-          const elapsedTime = Date.now() - (block.machineState!.processingStartTime || 0)
-          const progress = Math.min(elapsedTime / REFINING_TIME, 1)
-          
-          // Background
-          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
-          ctx.fillRect(x + BLOCK_SIZE, y + BLOCK_SIZE - 5, BLOCK_SIZE, 3)
-          
-          // Progress
-          ctx.fillStyle = progress >= 1 ? "#00FF00" : "#FFFF00"
-          ctx.fillRect(x + BLOCK_SIZE, y + BLOCK_SIZE - 5, BLOCK_SIZE * progress, 2)
+        } else {
+          // Draw idle refiner state
+          if (texture) {
+            ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
+          } else {
+            ctx.fillStyle = blockData.color
+            ctx.fillRect(x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
+          }
         }
       }
       continue // Skip regular block drawing for refiner blocks

@@ -14,8 +14,8 @@ export function getGridPosition(x: number, y: number): [number, number] {
 
 export function distanceToBlock(player: Player, x: number, y: number): number {
   
-  const distX = Math.abs(player.x - x)
-  const distY = Math.abs(player.y - y)
+  const distX = Math.abs(player.x + PLAYER_WIDTH/2 - x)
+  const distY = Math.abs(player.y + PLAYER_HEIGHT/2 - y)
   
   return Math.sqrt(distX * distX + distY * distY)
 }

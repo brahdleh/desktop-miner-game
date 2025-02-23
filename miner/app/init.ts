@@ -72,8 +72,6 @@ export function initializeBlocks(): Block[] {
         blockType = 8 
       }
 
-      const blockData = Object.values(BLOCK_TYPES)[blockType]
-
       blocks.push({
         x,
         y,

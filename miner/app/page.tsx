@@ -141,8 +141,8 @@ export default function MiningGame() {
               break
             case "ArrowDown":
               // Move down one slot, wrap to top of same column if at bottom
-              currentSlot = (currentSlot - 1) % rowHeight + 
-                           Math.floor(currentSlot / rowHeight) * rowHeight
+              currentSlot = ((currentSlot - 1 + rowHeight) % rowHeight) + 
+                            Math.floor(currentSlot / rowHeight) * rowHeight
               break
             case "ArrowLeft":
               // Move left one column, wrap to rightmost column if at leftmost
