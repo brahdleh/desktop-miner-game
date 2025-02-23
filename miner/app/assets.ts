@@ -81,6 +81,7 @@ export async function loadBlockTextures(): Promise<void> {
       loadBlockTexture('diamond'),
       loadBlockTexture('platform'),
       loadBlockTexture('torch'),
+      loadBlockTexture('torch2'),
       loadBlockTexture('ladder')
     ])
     console.log('Block textures loaded successfully')

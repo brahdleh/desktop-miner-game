@@ -1,5 +1,4 @@
 import { Player, Block } from './types'
-import { getGridPosition } from './utils/data-utils'
 import { BLOCK_SIZE, CANVAS_WIDTH, SURFACE_Y, MINE_LEFT, MINE_WIDTH, MINE_DEPTH_PX } from './constants'
 
 export function saveGame(player: Player, blocks: Block[]) {

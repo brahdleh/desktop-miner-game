@@ -129,6 +129,21 @@ function drawBlocks(
     const x = block.x
     const y = block.y - cameraOffsetY
 
+    // Torch animation
+    if (block.blockType === 12) {
+      const torchFrame = Math.floor(Date.now() / 1000) % 2
+      let currentTexture = texture
+      if (torchFrame === 0) {
+        currentTexture = getBlockTexture('torch')
+      } else if (torchFrame === 1) {
+        currentTexture = getBlockTexture('torch2')
+      }
+      if (currentTexture) {
+        ctx.drawImage(currentTexture, x, y, BLOCK_SIZE, BLOCK_SIZE)
+      }
+      continue
+    }
+
     // Special handling for refiner (type 14)
     if (block.blockType === 14) {
       // Only draw if this is the root block (bottom-left of the refiner)
