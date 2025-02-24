@@ -186,7 +186,7 @@ export const BLOCK_ID_TO_TYPE = Object.fromEntries(
 ) as { [id: number]: keyof typeof BLOCK_TYPES }
 
 // Refining constants
-export const REFINING_TIME = 60000 // 60 seconds to refine a block
+export const REFINING_TIME = 30000 // 30 seconds to refine a block
 export const REFINABLE_BLOCKS = {
   1: 15,  // Stone -> Polished Stone
   2: 16,  // Slate -> Polished Slate

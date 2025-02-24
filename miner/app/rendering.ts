@@ -152,7 +152,8 @@ function drawBlocks(
         let currentTexture = texture
         if (progress >= 1 && refiner6) {
           currentTexture = refiner6 // Done, ready for collection
-          
+          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
+                    
           // Draw the polished version of the block when finished
           const processedBlockType = REFINABLE_BLOCKS[block.machineState.processingBlockType as keyof typeof REFINABLE_BLOCKS]
           if (processedBlockType) {
@@ -175,6 +176,7 @@ function drawBlocks(
           else if (progress >= 0.5 && refiner4) currentTexture = refiner4
           else if (progress >= 0.25 && refiner3) currentTexture = refiner3
           else if (refiner2) currentTexture = refiner2
+          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
           
           // Draw the block being processed
           const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
@@ -189,10 +191,6 @@ function drawBlocks(
               BLOCK_SIZE * 0.5
             )
           }
-        }
-
-        if (currentTexture) {
-          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
         }
       } else {
         // Draw idle refiner state
