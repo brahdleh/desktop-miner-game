@@ -13,7 +13,7 @@ export const SURFACE_Y = 5 * BLOCK_SIZE
 // Mining constants
 // Intend 3 upgrades (3.33x per phase, with 3x from tools that is 10x mining and capacity)
 export const PROFICIENCY_BASE_COST = 10
-export const PICKAXE_MINE_INCREMENT = 1.4938
+export const PICKAXE_MINE_INCREMENT = 1.494
 export const PROFICIENCY_COST_MULTIPLIER = 5
 export const DEFAULT_MINE_TIME = 1500
 export const MAX_PROFICIENCY_LEVEL = 10
@@ -54,9 +54,9 @@ export const BLOCK_TYPES = {
   // Natural blocks (organized by depth/hardness)
   GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", ...DEFAULT_BLOCK },
   STONE: { id: 1, value: 1, miningTimeMultiplier: 1, density: 1, name: "Stone", ...DEFAULT_BLOCK },
-  SLATE: { id: 2, value: 5, miningTimeMultiplier: 10, density: 10, name: "Slate", ...DEFAULT_BLOCK },
-  MAGMA: { id: 3, value: 20, miningTimeMultiplier: 100, density: 100, name: "Magma", ...DEFAULT_BLOCK },
-  BEDROCK: { id: 4, value: 100, miningTimeMultiplier: 1000, density: 1000, name: "Bedrock", ...DEFAULT_BLOCK },
+  SLATE: { id: 2, value: 10, miningTimeMultiplier: 10, density: 10, name: "Slate", ...DEFAULT_BLOCK },
+  MAGMA: { id: 3, value: 100, miningTimeMultiplier: 100, density: 100, name: "Magma", ...DEFAULT_BLOCK },
+  BEDROCK: { id: 4, value: 1000, miningTimeMultiplier: 1000, density: 1000, name: "Bedrock", ...DEFAULT_BLOCK },
 
   // Ores
   COPPER: { id: 5, value: 20, miningTimeMultiplier: 4, density: 1, name: "Copper", ...DEFAULT_BLOCK },
@@ -74,9 +74,9 @@ export const BLOCK_TYPES = {
 
   // Polished variants (value = 5x base)
   POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", ...DEFAULT_BLOCK },
-  POLISHED_SLATE: { id: 16, value: 25, miningTimeMultiplier: 10, density: 5, name: "Polished Slate", ...DEFAULT_BLOCK },
-  POLISHED_MAGMA: { id: 17, value: 100, miningTimeMultiplier: 100, density: 20, name: "Polished Magma", ...DEFAULT_BLOCK },
-  POLISHED_BEDROCK: { id: 18, value: 500, miningTimeMultiplier: 1000, density: 100, name: "Polished Bedrock", ...DEFAULT_BLOCK },
+  POLISHED_SLATE: { id: 16, value: 50, miningTimeMultiplier: 10, density: 10, name: "Polished Slate", ...DEFAULT_BLOCK },
+  POLISHED_MAGMA: { id: 17, value: 500, miningTimeMultiplier: 100, density: 100, name: "Polished Magma", ...DEFAULT_BLOCK },
+  POLISHED_BEDROCK: { id: 18, value: 5000, miningTimeMultiplier: 1000, density: 1000, name: "Polished Bedrock", ...DEFAULT_BLOCK },
 } as const
 
 // Pickaxe types

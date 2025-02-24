@@ -9,8 +9,7 @@ import {
   UPGRADE_ZONE,
   MINE_DEPTH_PX,
   CRAFT_ZONE,
-  PLAYER_HEIGHT,
-  BLOCK_SIZE
+
 } from "./constants"
 import { handleInput, updatePlayer, isPlayerInZone } from "./player"
 import { 
@@ -29,14 +28,18 @@ import {
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
-import { saveGame, loadGame, blocksToHexArray } from "./storage"
+import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
 
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  // Add state for save notification
-  const [showSaveNotification, setShowSaveNotification] = useState(false)
+  const [notification, setNotification] = useState<{text: string, type: 'success' | 'warning'} | null>(null)
+
+  const showNotification = (text: string, type: 'success' | 'warning' = 'success') => {
+    setNotification({ text, type })
+    setTimeout(() => setNotification(null), 2000)
+  }
 
   useEffect(() => {
     if (typeof window === "undefined" || !canvasRef.current) return
@@ -102,14 +105,14 @@ export default function MiningGame() {
           if (e.key === 'S') {
             e.preventDefault()
             saveGame(player, blocks)
-            setShowSaveNotification(true)
-            setTimeout(() => setShowSaveNotification(false), 2000)
+            showNotification('Game Saved!')
           } else if (e.key === 'L') {
             const savedData = loadGame()
             if (savedData.player && savedData.blocks) {
               Object.assign(player, savedData.player)
               blocks.length = 0
               blocks.push(...savedData.blocks)
+              showNotification('Game Loaded!')
             }
           }/* else if (e.key === 'C') {
             e.preventDefault()
@@ -168,14 +171,20 @@ export default function MiningGame() {
         if (e.key === "t") {
           const nearbyRefiner = findNearbyRefiner(player, blocks)
           if (nearbyRefiner) {
-            attemptDepositInRefiner(player, blocks)
+            const depositCheck = attemptDepositInRefiner(player, blocks)
+            if (depositCheck.reason){
+              showNotification(depositCheck.reason, 'warning')
+            }
             return
           }
         }
         if (e.key === "y") {
           const nearbyRefiner = findNearbyRefiner(player, blocks)
           if (nearbyRefiner) {
-            attemptCollectFromRefiner(player, blocks)
+            const collectCheck = attemptCollectFromRefiner(player, blocks)
+            if (collectCheck.reason){
+              showNotification(collectCheck.reason, 'warning')
+            }
             return
           }
         }
@@ -192,16 +201,20 @@ export default function MiningGame() {
               attemptSell(player)
               break
             case "j":
-              attemptBuy(player, 10)
+              const buyResult1 = attemptBuy(player, 10)
+              if (buyResult1.reason) showNotification(buyResult1.reason, 'warning')
               break
             case "k":
-              attemptBuy(player, 12)
+              const buyResult2 = attemptBuy(player, 12)
+              if (buyResult2.reason) showNotification(buyResult2.reason, 'warning')
               break
             case "l":
-              attemptBuy(player, 11)
+              const buyResult3 = attemptBuy(player, 11)
+              if (buyResult3.reason) showNotification(buyResult3.reason, 'warning')
               break
             case "n":
-              attemptBuy(player, 14)
+              const buyResult4 = attemptBuy(player, 14)
+              if (buyResult4.reason) showNotification(buyResult4.reason, 'warning')
           }
         }
 
@@ -232,7 +245,12 @@ export default function MiningGame() {
 
         // Left click for mining
         for (const block of blocks) {
-          if (canMineBlock(block, clickX, clickY, player)) {
+          const miningCheck = canMineBlock(block, clickX, clickY, player)
+          if (miningCheck.reason) {
+            showNotification(miningCheck.reason, 'warning')
+            return
+          }
+          if (miningCheck.canMine) {
             miningTargetBlock = block
             miningProgress = 0
             break
@@ -275,9 +293,12 @@ export default function MiningGame() {
     <div className="flex justify-center items-center min-h-screen bg-black">
       <div id="gameContainer" className="relative">
         {/* Add save notification */}
-        {showSaveNotification && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-md">
-            Game Saved!
+        {notification && (
+          <div 
+            className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md
+              ${notification.type === 'success' ? 'bg-green-500' : 'bg-yellow-500'} text-white`}
+          >
+            {notification.text}
           </div>
         )}
         

@@ -57,11 +57,17 @@ export function attemptSell(player: Player) {
   }
 }
 
-export function attemptBuy(player: Player, blockType: number) {
+export function attemptBuy(player: Player, blockType: number): { success: boolean; reason?: string } {
   const itemData = getBlockData(blockType)
-  if (player.gold >= itemData.value && player.inventory < player.backpackCapacity) {
-    buyBlock(player, blockType)
+  if (player.gold < itemData.value) {
+    return { success: false, reason: "Not enough gold!" }
   }
+  if (player.inventory >= player.backpackCapacity) {
+    return { success: false, reason: "Inventory Full!" }
+  }
+  
+  buyBlock(player, blockType)
+  return { success: true }
 }
 
 export function attemptProficiencyUpgrade(player: Player) {
@@ -95,13 +101,12 @@ export function canMineBlock(
   clickX: number,
   clickY: number,
   player: Player,
-): boolean {
-  // Check if inventory is full
-  if (!canHoldBlock(player, block.blockType)) return false
-
-  // Check if secondary block or already mined
-  //if (block.isSecondaryBlock) return false
-  if (block.isMined || !block.mineable) return false
+): { canMine: boolean; reason?: string } {
+  
+  // Check if already mined
+  if (block.isMined || !block.mineable) {
+    return { canMine: false }
+  }
 
   const isClickInBlock = 
     clickX >= block.x &&
@@ -109,10 +114,21 @@ export function canMineBlock(
     clickY >= block.y &&
     clickY < block.y + BLOCK_SIZE
 
-  if (!isClickInBlock) return false
+  if (!isClickInBlock) {
+    return { canMine: false }
+  }
 
   // Distance check from player
-  return distanceToBlock(player, block.x, block.y) <= BLOCK_SIZE * 1.8
+  if (distanceToBlock(player, block.x, block.y) > BLOCK_SIZE * 1.8) {
+    return { canMine: false }
+  }
+
+  // Check if inventory is full
+  const canHold = canHoldBlock(player, block.blockType)
+  return { 
+    canMine: canHold, 
+    reason: canHold ? undefined : "Not Enough Space!" 
+  }
 }
 
 export function attemptPlaceBlock(
@@ -214,17 +230,17 @@ export function findNearbyRefiner(player: Player, blocks: Block[]): Block | null
   return refiner
 }
 
-export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
+export function attemptDepositInRefiner(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
   const refiner = findNearbyRefiner(player, blocks)
-  if (!refiner) return false
+  if (!refiner) return { success: false, reason: "No refiner nearby!" }
 
   const selectedBlockType = getSelectedBlockType(player)
-  if (selectedBlockType === null) return false
+  if (selectedBlockType === null) return { success: false, reason: "No block selected!" }
+  
   const selectedBlockCount = getBlockInventory(player, selectedBlockType)
-  if (selectedBlockCount <= 0) return false
+  if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
 
-  // Check if the selected block is refinable
-  if (!isRefinable(selectedBlockType)) return false
+  if (!isRefinable(selectedBlockType)) return { success: false, reason: "Block cannot be refined!" }
 
   // Initialize machine state if needed
   if (!refiner.machineState) {
@@ -235,38 +251,39 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]) {
     }
   }
 
-  // Check if refiner is already processing
-  if (refiner.machineState.processingBlockType !== null) return false
+  if (refiner.machineState.processingBlockType !== null) {
+    return { success: false, reason: "Refiner is busy!" }
+  }
 
   // Start processing
   refiner.machineState.processingBlockType = selectedBlockType
   refiner.machineState.processingStartTime = Date.now()
   refiner.machineState.isFinished = false
 
-  // Remove block from inventory
   removeFromInventory(player, selectedBlockType, 1)
-
-  return true
+  return { success: true }
 }
 
-export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
+export function attemptCollectFromRefiner(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
   const refiner = findNearbyRefiner(player, blocks)
-  if (!refiner || !refiner.machineState?.processingBlockType) return false
+  if (!refiner) return { success: false, reason: "No refiner nearby!" }
+  
+  if (!refiner.machineState?.processingBlockType) {
+    return { success: false, reason: "Nothing to collect!" }
+  }
 
-  // Check what block is output and that it exists
   const inputBlockType = refiner.machineState.processingBlockType
   const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS]
-  if (!outputBlockType) return false
+  if (!outputBlockType) return { success: false, reason: "Block Error??!" }
 
-  // Check if inventory has space assuming density does not change
-  if (!canHoldBlock(player, outputBlockType)) return false
+  if (!canHoldBlock(player, outputBlockType)) {
+    return { success: false, reason: "Not Enough Space!" }
+  }
 
-  // If refining is incomplete return original block
   const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
   if (elapsedTime < REFINING_TIME) {
     addToInventory(player, inputBlockType)
   } else {
-    // Add refined block to inventory
     addToInventory(player, outputBlockType)
   }
 
@@ -275,5 +292,5 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]) {
   refiner.machineState.processingStartTime = null
   refiner.machineState.isFinished = false
 
-  return true
+  return { success: true }
 }

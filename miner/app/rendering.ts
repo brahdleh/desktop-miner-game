@@ -522,7 +522,7 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     ctx.drawImage(backpackIcon, startX + 9, startY + 10 + 30, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`${player.inventory} / ${Math.round(player.backpackCapacity)}`, startX + iconSize + 15, startY + 60)
+    ctx.fillText(`${player.inventory} / ${Math.floor(player.backpackCapacity)}`, startX + iconSize + 15, startY + 60)
   }
   
   // Pickaxe display.
@@ -532,7 +532,7 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     ctx.drawImage(pickIcon, startX + 10, startY + 10 + 60, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`${Math.round(player.pickaxePower)}x`, startX + iconSize + 15, startY + 90)
+    ctx.fillText(`${player.pickaxePower.toPrecision(2)}x`, startX + iconSize + 15, startY + 90)
   }
 
   // Selected block info

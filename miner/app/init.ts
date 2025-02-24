@@ -97,7 +97,7 @@ export function initializePlayer() {
     facingRight: true,
     isWalking: false,
     inventory: 0,
-    gold: 0,
+    gold: 100000,
     proficiency: 1,
     strength: 1,
     backpackCapacity: BACKPACK_TYPES.STONE.capacity,
