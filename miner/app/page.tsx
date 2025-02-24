@@ -16,14 +16,13 @@ import { handleInput, updatePlayer, isPlayerInZone } from "./player"
 import { 
   handleMining, 
   attemptSell, 
-  attemptPickaxeUpgrade, 
-  attemptBackpackUpgrade, 
+  attemptProficiencyUpgrade, 
+  attemptStrengthUpgrade, 
   canMineBlock,
   attemptPlaceBlock,
   attemptCraftPickaxe,
   attemptCraftBackpack,
   attemptBuy,
-  attemptCraftRefiner,
   attemptDepositInRefiner,
   attemptCollectFromRefiner,
   findNearbyRefiner,
@@ -184,10 +183,10 @@ export default function MiningGame() {
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           switch (e.key) {
             case "e":
-              attemptPickaxeUpgrade(player)
+              attemptProficiencyUpgrade(player)
               break
             case "r":
-              attemptBackpackUpgrade(player)
+              attemptStrengthUpgrade(player)
               break
             case "p":
               attemptSell(player)
@@ -201,6 +200,8 @@ export default function MiningGame() {
             case "l":
               attemptBuy(player, 11)
               break
+            case "n":
+              attemptBuy(player, 14)
           }
         }
 
@@ -210,9 +211,6 @@ export default function MiningGame() {
           }
           if (e.key === "r") {
             attemptCraftBackpack(player)
-          }
-          if (e.key === "m") {
-            attemptCraftRefiner(player)
           }
         }
       }

@@ -1,10 +1,10 @@
 import { Player, Block } from './types'
 import { 
-  DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_BACKPACK_LEVEL, MAX_PICKAXE_LEVEL,
+  DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_PROFICIENCY_LEVEL, MAX_STRENGTH_LEVEL,
   REFINABLE_BLOCKS, REFINING_TIME
 } from './constants'
 import { 
-  updatePickaxePower, getPickaxeUpgradeCost, getBackpackUpgradeCost, updateBackpackCapacity
+  updatePickaxePower, getProficiencyUpgradeCost, getStrengthUpgradeCost, updateBackpackCapacity
 } from './utils/calculation-utils'
 import { 
   getBlockData, getPickaxeData, getBackpackData, 
@@ -64,28 +64,28 @@ export function attemptBuy(player: Player, blockType: number) {
   }
 }
 
-export function attemptPickaxeUpgrade(player: Player) {
+export function attemptProficiencyUpgrade(player: Player) {
   // Check if already at max level
-  if (player.pickaxeLevel >= MAX_PICKAXE_LEVEL) return
+  if (player.proficiency >= MAX_PROFICIENCY_LEVEL) return
 
-  const cost = getPickaxeUpgradeCost(player)
+  const cost = getProficiencyUpgradeCost(player)
   
   if (player.gold >= cost) {
     player.gold -= cost
-    player.pickaxeLevel += 1
+    player.proficiency += 1
     updatePickaxePower(player)
   }
 }
 
-export function attemptBackpackUpgrade(player: Player) {
+export function attemptStrengthUpgrade(player: Player) {
   // Check if already at max level
-  if (player.backpackLevel >= MAX_BACKPACK_LEVEL) return
+  if (player.strength >= MAX_STRENGTH_LEVEL) return
 
-  const cost = getBackpackUpgradeCost(player)
+  const cost = getStrengthUpgradeCost(player)
   
   if (player.gold >= cost) {
     player.gold -= cost
-    player.backpackLevel += 1
+    player.strength += 1
     updateBackpackCapacity(player)
   }
 }
@@ -138,8 +138,8 @@ export function attemptPlaceBlock(
   return false
 }
 
-export function attemptCraftRefiner(player: Player) {
-  const itemData = getBlockData(14) // Refiner block type
+export function attemptCraft(player: Player, blockType: number) {
+  const itemData = getBlockData(blockType) // Refiner block type
   if (itemData.requirements) {
     const { blockType, amount } = itemData.requirements
     if (getBlockInventory(player, blockType) < amount) return false
@@ -147,7 +147,7 @@ export function attemptCraftRefiner(player: Player) {
     // Consume materials
     removeFromInventory(player, blockType, amount)
     // add item
-    addToInventory(player, 14)    
+    addToInventory(player, blockType)    
     return true
   }
   return false
@@ -169,7 +169,6 @@ export function attemptCraftPickaxe(player: Player) {
     
     // Upgrade pickaxe
     player.pickaxeType = nextPickaxeType
-    player.pickaxeLevel = 1  // Reset level when upgrading type
     updatePickaxePower(player)
     
     return true
@@ -194,7 +193,6 @@ export function attemptCraftBackpack(player: Player) {
     
     // Upgrade backpack
     player.backpackType = nextBackpackType
-    player.backpackLevel = 1  // Reset level when upgrading type
 
     // Update backpack capacity
     updateBackpackCapacity(player)

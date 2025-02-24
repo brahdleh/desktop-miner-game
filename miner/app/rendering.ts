@@ -2,17 +2,16 @@ import { Player, Block, Zone, BlockData } from './types'
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, SURFACE_Y, MINE_DEPTH_PX,
   MINE_LEFT, BLOCK_SIZE, PLAYER_WIDTH, PLAYER_HEIGHT,
-  PICKAXE_COST_MULTIPLIER, BACKPACK_COST_MULTIPLIER,
   BLOCK_TYPES,
   PICKAXE_TYPES,
   BACKPACK_TYPES,
-  MAX_PICKAXE_LEVEL,
-  MAX_BACKPACK_LEVEL,
-  PICKAXE_BASE_COST,
-  BACKPACK_BASE_COST,
-  REFINING_TIME
+  MAX_PROFICIENCY_LEVEL,
+  MAX_STRENGTH_LEVEL,
+  REFINING_TIME,
+  REFINABLE_BLOCKS
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
+import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
@@ -81,15 +80,10 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   if (smithTexture) {
     ctx.drawImage(smithTexture, CANVAS_WIDTH - 200, SURFACE_Y - 200 - roundedOffset + 20, 200, 230)
   }
-  
-  //if (sellTexture) {
-  //  ctx.drawImage(sellTexture, 160, SURFACE_Y - 80 - roundedOffset + 10, 80, 90)
-  //}
 
   // Draw underground areas
   const undergroundTexture = getSceneTexture('underground')
   const mineTexture = getSceneTexture('mine')
-  //const dirtTexture = getSceneTexture('dirt')
   
   if (undergroundTexture) {
     for (let y = SURFACE_Y+5; y < SURFACE_Y + MINE_DEPTH_PX; y += 4*BLOCK_SIZE) {
@@ -106,12 +100,6 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
       ctx.drawImage(mineTexture, MINE_LEFT + 4.5*BLOCK_SIZE, y - roundedOffset, 4.5*BLOCK_SIZE, 4*BLOCK_SIZE)
     }
   }
-  /*
-  if (dirtTexture) {
-    ctx.drawImage(dirtTexture, MINE_LEFT, SURFACE_Y - roundedOffset, 160, 40)
-    ctx.drawImage(dirtTexture, MINE_LEFT + 160, SURFACE_Y - roundedOffset, 160, 40)
-  }
-  */
 }
 
 function drawBlocks(
@@ -129,14 +117,15 @@ function drawBlocks(
     const x = block.x
     const y = block.y - cameraOffsetY
 
+    if (!texture) continue // Skip if no texture is available
+
     // Torch animation
     if (block.blockType === 12) {
       const torchFrame = Math.floor(Date.now() / 1000) % 2
       let currentTexture = texture
-      if (torchFrame === 0) {
-        currentTexture = getBlockTexture('torch')
-      } else if (torchFrame === 1) {
-        currentTexture = getBlockTexture('torch2')
+      const torch2 = getBlockTexture('torch2')
+      if (torchFrame === 1 && torch2) {
+        currentTexture = torch2
       }
       if (currentTexture) {
         ctx.drawImage(currentTexture, x, y, BLOCK_SIZE, BLOCK_SIZE)
@@ -146,40 +135,46 @@ function drawBlocks(
 
     // Special handling for refiner (type 14)
     if (block.blockType === 14) {
-      // Only draw if this is the root block (bottom-left of the refiner)
-      if (!blockData) continue
-      if (!blockData.size) continue
-      if (!block.isSecondaryBlock) {
-        // Draw refiner state if processing
-        if (block.machineState?.processingBlockType !== null && block.machineState) {
-          const refiner2 = getBlockTexture('refiner2')
-          const refiner3 = getBlockTexture('refiner3')
-          const refiner4 = getBlockTexture('refiner4')
-          const refiner5 = getBlockTexture('refiner5')
-          const refiner6 = getBlockTexture('refiner6')
+      if (!blockData || !blockData.size || block.isSecondaryBlock) continue
 
-          // Calculate progress
-          const elapsedTime = Date.now() - (block.machineState?.processingStartTime || 0)
-          const progress = Math.min(elapsedTime / REFINING_TIME, 1)
+      if (block.machineState?.processingBlockType !== null && block.machineState) {
+        const refiner2 = getBlockTexture('refiner2')
+        const refiner3 = getBlockTexture('refiner3')
+        const refiner4 = getBlockTexture('refiner4')
+        const refiner5 = getBlockTexture('refiner5')
+        const refiner6 = getBlockTexture('refiner6')
+
+        // Calculate progress
+        const elapsedTime = Date.now() - (block.machineState?.processingStartTime || 0)
+        const progress = Math.min(elapsedTime / REFINING_TIME, 1)
+        
+        // Select the appropriate refiner texture based on progress
+        let currentTexture = texture
+        if (progress >= 1 && refiner6) {
+          currentTexture = refiner6 // Done, ready for collection
           
-          // Select the appropriate refiner texture based on progress
-          let currentTexture = texture
-          if (progress >= 1) {
-            currentTexture = refiner6 // Done, ready for collection
-          } else if (progress >= 0.75) {
-            currentTexture = refiner5 // 75-100%
-          } else if (progress >= 0.5) {
-            currentTexture = refiner4 // 50-75%
-          } else if (progress >= 0.25) {
-            currentTexture = refiner3 // 25-50%
-          } else {
-            currentTexture = refiner2 // 0-25%
+          // Draw the polished version of the block when finished
+          const processedBlockType = REFINABLE_BLOCKS[block.machineState.processingBlockType as keyof typeof REFINABLE_BLOCKS]
+          if (processedBlockType) {
+            const processedBlockData = BLOCK_TYPES_ARRAY[processedBlockType]
+            const processedTexture = getBlockTexture(processedBlockData.name)
+            
+            if (processedTexture) {
+              ctx.drawImage(
+                processedTexture, 
+                x + BLOCK_SIZE, // Center horizontally
+                y + BLOCK_SIZE * 1 + 2, // Position vertically
+                BLOCK_SIZE * 0.5, // Make the block half as big
+                BLOCK_SIZE * 0.5
+              )
+            }
           }
-
-          // Draw the current refiner state
-          if (currentTexture) {
-            ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-          }
+        } else {
+          // Show processing animation
+          if (progress >= 0.75 && refiner5) currentTexture = refiner5
+          else if (progress >= 0.5 && refiner4) currentTexture = refiner4
+          else if (progress >= 0.25 && refiner3) currentTexture = refiner3
+          else if (refiner2) currentTexture = refiner2
           
           // Draw the block being processed
           const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
@@ -188,32 +183,26 @@ function drawBlocks(
           if (processedTexture) {
             ctx.drawImage(
               processedTexture, 
-              x + BLOCK_SIZE, // Center horizontally
-              y + BLOCK_SIZE * 1 + 2, // Position vertically
-              BLOCK_SIZE * 0.5, // Make the block half as big
+              x + BLOCK_SIZE,
+              y + BLOCK_SIZE * 1 + 2,
+              BLOCK_SIZE * 0.5,
               BLOCK_SIZE * 0.5
             )
           }
-        } else {
-          // Draw idle refiner state
-          if (texture) {
-            ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-          } else {
-            ctx.fillStyle = blockData.color
-            ctx.fillRect(x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-          }
         }
+
+        if (currentTexture) {
+          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
+        }
+      } else {
+        // Draw idle refiner state
+        ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
       }
-      continue // Skip regular block drawing for refiner blocks
+      continue
     }
 
     // Regular block drawing
-    if (texture) {
-      ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
-    } else {
-      ctx.fillStyle = blockData.color
-      ctx.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
-    }
+    ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
   }
 }
 
@@ -336,6 +325,7 @@ function drawZoneText(
   drawShopOption(ctx, "Buy Platform [J]", startX, startY + 60, 3, coinIcon)
   drawShopOption(ctx, "Buy Torch [K]", startX, startY + 100, 5, coinIcon)
   drawShopOption(ctx, "Buy Ladder [L]", startX, startY + 140, 10, coinIcon)
+  drawShopOption(ctx, "Buy Refiner [N]", startX, startY + 180, 100, coinIcon)
 
   // Right column - Upgrades
   const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
@@ -345,30 +335,28 @@ function drawZoneText(
   drawShopOption(ctx, "Sell Blocks [P]", rightX, startY + 60)
 
   // Pickaxe upgrade
-  const pickaxeMaxed = player.pickaxeLevel >= MAX_PICKAXE_LEVEL
-  const pickaxeCost = PICKAXE_BASE_COST * pickaxeData.upgradeCostMultiplier * 
-    Math.pow(PICKAXE_COST_MULTIPLIER, player.pickaxeLevel - 1)
+  const proficiencyMaxed = player.proficiency >= MAX_PROFICIENCY_LEVEL
+  const proficiencyCost = getProficiencyUpgradeCost(player)
   
   drawShopOption(
     ctx, 
-    "↑ Pickaxe [E]", 
+    "↑ Proficiency [E]", 
     rightX, 
     startY + 100,
-    pickaxeMaxed ? "MAXED" : pickaxeCost,
+    proficiencyMaxed ? "MAXED" : proficiencyCost,
     coinIcon
   )
 
   // Backpack upgrade
-  const backpackMaxed = player.backpackLevel >= MAX_BACKPACK_LEVEL
-  const backpackCost = BACKPACK_BASE_COST * backpackData.upgradeCostMultiplier * 
-    Math.pow(BACKPACK_COST_MULTIPLIER, player.backpackLevel - 1)
+  const strengthMaxed = player.strength >= MAX_STRENGTH_LEVEL
+  const strengthCost = getStrengthUpgradeCost(player)
   
   drawShopOption(
     ctx, 
-    "↑ Backpack [R]", 
+    "↑ Strength [R]", 
     rightX, 
     startY + 140,
-    backpackMaxed ? "MAXED" : backpackCost,
+    strengthMaxed ? "MAXED" : strengthCost,
     coinIcon
   )
 }
@@ -431,7 +419,7 @@ function drawCraftZoneText(
     if (nextPickaxe.requirements) {
       const blockData = BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType]
       ctx.font = "12px Arial"
-      ctx.fillText(`Requires: ${nextPickaxe.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 80 - cameraOffsetY)
+      ctx.fillText(`${nextPickaxe.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 80 - cameraOffsetY)
     }
   } else {
     ctx.font = "14px Arial"
@@ -449,24 +437,11 @@ function drawCraftZoneText(
     if (nextBackpack.requirements) {
       const blockData = BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType]
       ctx.font = "12px Arial"
-      ctx.fillText(`Requires: ${nextBackpack.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 130 - cameraOffsetY)
+      ctx.fillText(`${nextBackpack.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 130 - cameraOffsetY)
     }
   } else {
     ctx.font = "14px Arial"
     ctx.fillText("Final Backpack", zone.x + 10, zone.y + 130 - cameraOffsetY)
-  }
-  // refiner
-  if (Object.values(BLOCK_TYPES)[14])
-  {
-    const refiner = Object.values(BLOCK_TYPES)[14]
-    ctx.font = "14px Arial"
-    ctx.fillText(`${refiner.name} [M]`, zone.x + 10, zone.y + 160 - cameraOffsetY)
-
-    if(refiner.requirements) {
-      const blockRequired = Object.values(BLOCK_TYPES)[refiner.requirements.blockType]
-      ctx.font = "12px Arial"
-      ctx.fillText(`Requires: ${refiner.requirements.amount}x ${blockRequired.name}`, zone.x + 20, zone.y + 180 - cameraOffsetY)
-    }
   }
 }  
 
@@ -557,7 +532,7 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     ctx.drawImage(pickIcon, startX + 10, startY + 10 + 60, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`Level ${player.pickaxeLevel}`, startX + iconSize + 15, startY + 90)
+    ctx.fillText(`${player.pickaxePower}x`, startX + iconSize + 15, startY + 90)
   }
 }
 

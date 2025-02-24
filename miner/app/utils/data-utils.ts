@@ -14,10 +14,14 @@ export function getGridPosition(x: number, y: number): [number, number] {
 
 export function distanceToBlock(player: Player, x: number, y: number): number {
   
-  const distX = Math.abs(player.x + PLAYER_WIDTH/2 - x)
-  const distY = Math.abs(player.y + PLAYER_HEIGHT/2 - y)
+  const distX = Math.abs(player.x - x)
+  const distYHead = Math.abs(player.y - y)
+  const distYCore = Math.abs(player.y + PLAYER_HEIGHT/2 - y)
   
-  return Math.sqrt(distX * distX + distY * distY)
+  return Math.min(
+    Math.sqrt(distX * distX + distYHead * distYHead),
+    Math.sqrt(distX * distX + distYCore * distYCore)
+  )
 }
 
 export function getPickaxeData(pickaxeType: number) {
@@ -124,6 +128,10 @@ export function isClimbable(blockType: number): boolean {
 }
 export function isSolid(blockType: number): boolean {
   return BLOCK_TYPES[BLOCK_ID_TO_TYPE[blockType]].solid
+}
+
+export function clamp(value: number, min: number, max: number): number{
+  return Math.max(Math.min(value, max), min)
 }
 
 

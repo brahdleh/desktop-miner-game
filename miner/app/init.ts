@@ -8,7 +8,9 @@ import {
   MINE_DEPTH_PX,
   BLOCK_TYPES,
   BACKPACK_TYPES,
+  PICKAXE_TYPES
 } from './constants'
+import { clamp } from './utils/data-utils'
 
 export interface oreDist {
   mean: number,
@@ -21,7 +23,9 @@ export interface oreDist {
 function oreDistributionFunction(depth: number, oreDist: oreDist): number {
   // Normal distribution until mean+std then plateau kicks in
   const exp = -0.5 * Math.pow((depth - oreDist.mean) / oreDist.std, 2);
-  return oreDist.maxProb * Math.exp(exp) + oreDist.plateau * Math.min(Math.max(((depth-oreDist.mean)/oreDist.std),0),1);
+  const normaldist =  oreDist.maxProb * Math.exp(exp);
+  const plateauDist = oreDist.plateau * clamp((depth-oreDist.mean)/oreDist.std, 0, 1);
+  return  normaldist + plateauDist;
 }
 
 export function initializeBlocks(): Block[] {
@@ -40,10 +44,10 @@ export function initializeBlocks(): Block[] {
 
   // Define ore distribution parameters
   const oreDistributions = {
-    copper: { mean: 15, std: 30, maxProb: 0.09, plateau: 0.09 },
-    iron: { mean: 40, std: 30, maxProb: 0.08, plateau: 0.08},
-    gold: { mean: 65, std: 30, maxProb: 0.07, plateau: 0.07},
-    diamond: { mean: 90, std: 30, maxProb: 0.06, plateau: 0.06 }
+    copper: { mean: 15, std: 30, maxProb: 0.09, plateau: 0.04 },
+    iron: { mean: 40, std: 30, maxProb: 0.08, plateau: 0.04},
+    gold: { mean: 65, std: 30, maxProb: 0.07, plateau: 0.04},
+    diamond: { mean: 90, std: 30, maxProb: 0.06, plateau: 0.05 }
   };
 
   // Generate mine shaft
@@ -51,24 +55,21 @@ export function initializeBlocks(): Block[] {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
       let blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
-      
-      // Calculate ore probabilities using normal distribution
-      const random = Math.random()
-      
+            
       // Copper (type 5)
-      if (depth >= 6 && random < oreDistributionFunction(depth, oreDistributions.copper)) {
+      if (depth >= 6 && Math.random() < oreDistributionFunction(depth, oreDistributions.copper)) {
         blockType = 5
       }
       // Iron (type 6)
-      else if (depth >= 28 && random < oreDistributionFunction(depth, oreDistributions.iron)) {
+      if (depth >= 28 && Math.random() < oreDistributionFunction(depth, oreDistributions.iron)) {
         blockType = 6
       }
       // Gold (type 7)
-      else if (depth >= 53 && random < oreDistributionFunction(depth, oreDistributions.gold)) {
+      if (depth >= 53 && Math.random() < oreDistributionFunction(depth, oreDistributions.gold)) {
         blockType = 7
       }
       // Diamond (type 8)
-      else if (depth >= 78 && random < oreDistributionFunction(depth, oreDistributions.diamond)) {
+      if (depth >= 78 && Math.random() < oreDistributionFunction(depth, oreDistributions.diamond)) {
         blockType = 8 
       }
 
@@ -96,11 +97,11 @@ export function initializePlayer() {
     facingRight: true,
     isWalking: false,
     inventory: 0,
-    gold: 0,
-    pickaxeLevel: 1,
-    backpackLevel: 1,
+    gold: 10000,
+    proficiency: 1,
+    strength: 1,
     backpackCapacity: BACKPACK_TYPES.STONE.capacity,
-    pickaxePower: 1,
+    pickaxePower: PICKAXE_TYPES.STONE.miningTimeMultiplier,
     inventorySlots: Array(15).fill(null).map(() => ({ 
       blockType: null, 
       count: 0 

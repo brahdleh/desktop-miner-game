@@ -9,8 +9,8 @@ export interface Player {
   isWalking: boolean
   inventory: number
   gold: number
-  pickaxeLevel: number
-  backpackLevel: number
+  proficiency: number
+  strength: number
   backpackCapacity: number
   pickaxePower: number
   inventorySlots: InventorySlot[]
@@ -43,7 +43,7 @@ export interface BlockData {
   requirements: {
     blockType: number
     amount: number
-  }
+  } | null
   size?: [number, number]
 }
 

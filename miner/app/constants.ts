@@ -11,19 +11,19 @@ export const MINE_LEFT = 7 * BLOCK_SIZE //(CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZ
 export const SURFACE_Y = 5 * BLOCK_SIZE
 
 // Mining constants
-export const PICKAXE_BASE_COST = 10
+export const PROFICIENCY_BASE_COST = 10
 export const PICKAXE_MINE_INCREMENT = 1.5
-export const PICKAXE_COST_MULTIPLIER = 2
+export const PROFICIENCY_COST_MULTIPLIER = 2
 export const DEFAULT_MINE_TIME = 2000
-export const MAX_PICKAXE_LEVEL = 3
+export const MAX_PROFICIENCY_LEVEL = 10
 
 // Backpack constants
-export const BACKPACK_CAPACITY_INCREMENT = 2
-export const BACKPACK_BASE_COST = 10
-export const BACKPACK_COST_MULTIPLIER = 2
-export const MAX_BACKPACK_LEVEL = 3
+export const BACKPACK_CAPACITY_INCREMENT = 1.5
+export const STRENGTH_BASE_COST = 10
+export const STRENGTH_COST_MULTIPLIER = 2
+export const MAX_STRENGTH_LEVEL = 10
 // Mine dimensions
-export const MINE_DEPTH_BLOCKS = 300
+export const MINE_DEPTH_BLOCKS = 150
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
 // Action zones
@@ -41,247 +41,48 @@ y: SURFACE_Y - 250,
   height: 250,
 }
 
+// Base block properties that most blocks share
+const DEFAULT_BLOCK = {
+  solid: true,
+  climbable: false,
+  requirements: null,
+} as const
+
 // Block type definitions
 export const BLOCK_TYPES = {
-  GRASS: {
-    id: 0,
-    value: 1,
-    color: "#228B22",
-    miningTimeMultiplier: 0.5,
-    density: 1,
-    name: "Grass",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  STONE: {
-    id: 1,
-    value: 1,
-    color: "#808080",
-    miningTimeMultiplier: 1,
-    density: 1,
-    name: "Stone",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  SLATE: {
-    id: 2,
-    value: 5,
-    color: "#3A3B3C",
-    miningTimeMultiplier: 5,
-    density: 5,
-    name: "Slate",
-    solid: true,
-    climbable: false,
-    requirements: null,
+  // Natural blocks (organized by depth/hardness)
+  GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", ...DEFAULT_BLOCK },
+  STONE: { id: 1, value: 1, miningTimeMultiplier: 1, density: 1, name: "Stone", ...DEFAULT_BLOCK },
+  SLATE: { id: 2, value: 5, miningTimeMultiplier: 5, density: 5, name: "Slate", ...DEFAULT_BLOCK },
+  MAGMA: { id: 3, value: 20, miningTimeMultiplier: 20, density: 20, name: "Magma", ...DEFAULT_BLOCK },
+  BEDROCK: { id: 4, value: 100, miningTimeMultiplier: 100, density: 100, name: "Bedrock", ...DEFAULT_BLOCK },
 
-  },
-  MAGMA: {
-    id: 3,
-    value: 20,
-    color: "#380000",
-    miningTimeMultiplier: 20,
-    density: 20,
-    name: "Magma",
-    solid: true,
-    climbable: false,
-    requirements: null,
+  // Ores
+  COPPER: { id: 5, value: 20, miningTimeMultiplier: 5, density: 1, name: "Copper", ...DEFAULT_BLOCK },
+  IRON: { id: 6, value: 50, miningTimeMultiplier: 30, density: 1, name: "Iron", ...DEFAULT_BLOCK },
+  GOLD: { id: 7, value: 100, miningTimeMultiplier: 100, density: 1, name: "Gold", ...DEFAULT_BLOCK },
+  DIAMOND: { id: 8, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Diamond", ...DEFAULT_BLOCK },
+  UNAMED: { id: 9, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed", ...DEFAULT_BLOCK },
 
-  },
-  BEDROCK: {
-    id: 4,
-    value: 100,
-    color: "#101111",
-    miningTimeMultiplier: 100,
-    density: 100,
-    name: "Bedrock",
-    solid: true,
-    climbable: false,
-    requirements: null,
+  // Mine Equipment
+  PLATFORM: { id: 10, value: 3, miningTimeMultiplier: 0.5, density: 1, name: "Platform", ...DEFAULT_BLOCK },
+  LADDER: { id: 11, value: 10, miningTimeMultiplier: 0.5, density: 1, name: "Ladder", solid: false, climbable: true, requirements: null },
+  TORCH: { id: 12, value: 5, miningTimeMultiplier: 0.5, density: 1, name: "Torch", solid: false, climbable: false, requirements: null },
+  UNAMED2: { id: 13, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed2", ...DEFAULT_BLOCK },
+  REFINER: { id: 14, value: 100, miningTimeMultiplier: 1, density: 1, name: "Refiner", solid: false, climbable: false, requirements: null, size: [3, 2] },
 
-  },
-  COPPER: {
-    id: 5,
-    value: 20,
-    color: "#D16002",
-    miningTimeMultiplier: 5,
-    density: 1,
-    name: "Copper",
-    solid: true,
-    climbable: false,
-    requirements: null,
-
-  },
-  IRON: {
-    id: 6,
-    value: 50,
-    color: "#A2A4A4",
-    miningTimeMultiplier: 30,
-    density: 1,
-    name: "Iron",
-    solid: true,
-    climbable: false,
-    requirements: null,
-
-  },
-  GOLD: {
-    id: 7,
-    value: 100,
-    color: "#FCAE1E",
-    miningTimeMultiplier: 100,
-    density: 1,
-    name: "Gold",
-    solid: true,
-    climbable: false,
-    requirements: null,
-
-  },
-  DIAMOND: {
-    id: 8,
-    value: 1000,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 300,
-    density: 1,
-    name: "Diamond",
-    solid: true,
-    climbable: false,
-    requirements: null,
-
-  },
-  UNAMED: {
-    id: 9,
-    value: 1000,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 300,
-    density: 1,
-    name: "Unamed",
-    solid: true,
-    climbable: false,
-    requirements: null,
-
-  },
-  PLATFORM: {
-    id: 10,
-    value: 3,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 0.5,
-    density: 1,
-    name: "Platform",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  LADDER: {
-    id: 11,
-    value: 10,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 0.5,
-    density: 1,
-    name: "Ladder",
-    solid: false,
-    climbable: true,
-    requirements: null,
-  },
-  TORCH: {
-    id: 12,
-    value: 5,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 0.5,
-    density: 1,
-    name: "Torch",
-    solid: false,
-    climbable: false,
-    requirements: null,
-  },
-  UNAMED2: {
-    id: 13,
-    value: 1000,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 300,
-    density: 1,
-    name: "Unamed2",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  REFINER: {
-    id: 14,
-    value: 100,
-    color: "#6B4423",
-    miningTimeMultiplier: 1,
-    density: 1,
-    name: "Refiner",
-    solid: false,
-    climbable: false,
-    requirements: {
-      blockType: 1,
-      amount: 1
-    },
-    size: [3, 2]
-  },
-  POLISHED_STONE: {
-    id: 15,
-    value: 3, // 3x value of stone
-    color: "#A0A0A0", // Lighter gray
-    miningTimeMultiplier: 1,
-    density: 1,
-    name: "Polished Stone",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  POLISHED_SLATE: {
-    id: 16,
-    value: 15, // 3x value of slate
-    color: "#4A4B4C", // Lighter slate
-    miningTimeMultiplier: 5,
-    density: 5,
-    name: "Polished Slate",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  POLISHED_MAGMA: {
-    id: 17,
-    value: 60, // 3x value of magma
-    color: "#581010", // Lighter magma
-    miningTimeMultiplier: 20,
-    density: 20,
-    name: "Polished Magma",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  POLISHED_BEDROCK: {
-    id: 18,
-    value: 300, // 3x value of bedrock
-    color: "#202222", // Lighter bedrock
-    miningTimeMultiplier: 100,
-    density: 100,
-    name: "Polished Bedrock",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  },
-  UNAMED3: {
-    id: 13,
-    value: 1000,
-    color: "#4EE2EC",
-    miningTimeMultiplier: 300,
-    density: 1,
-    name: "Unamed3",
-    solid: true,
-    climbable: false,
-    requirements: null,
-  }
-} as const 
+  // Polished variants (value = 5x base)
+  POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", ...DEFAULT_BLOCK },
+  POLISHED_SLATE: { id: 16, value: 25, miningTimeMultiplier: 5, density: 5, name: "Polished Slate", ...DEFAULT_BLOCK },
+  POLISHED_MAGMA: { id: 17, value: 100, miningTimeMultiplier: 20, density: 20, name: "Polished Magma", ...DEFAULT_BLOCK },
+  POLISHED_BEDROCK: { id: 18, value: 500, miningTimeMultiplier: 100, density: 100, name: "Polished Bedrock", ...DEFAULT_BLOCK },
+} as const
 
 // Pickaxe types
 export const PICKAXE_TYPES = {
   STONE: {
     id: 0,
-    miningTimeMultiplier: 100,
+    miningTimeMultiplier: 1,
     name: "Stone",
     requirements: null,  // Starting pickaxe
     upgradeCostMultiplier: 1
@@ -332,7 +133,7 @@ export const PICKAXE_TYPES = {
 export const BACKPACK_TYPES = {
   STONE: {
     id: 0,
-    capacity: 5000,
+    capacity: 5,
     name: "Stone",
     requirements: null,
     upgradeCostMultiplier: 1
@@ -385,7 +186,7 @@ export const BLOCK_ID_TO_TYPE = Object.fromEntries(
 ) as { [id: number]: keyof typeof BLOCK_TYPES }
 
 // Refining constants
-export const REFINING_TIME = 100000 // 100 seconds to refine a block
+export const REFINING_TIME = 60000 // 60 seconds to refine a block
 export const REFINABLE_BLOCKS = {
   1: 15,  // Stone -> Polished Stone
   2: 16,  // Slate -> Polished Slate
