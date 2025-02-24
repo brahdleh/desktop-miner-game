@@ -14,14 +14,14 @@ export const SURFACE_Y = 5 * BLOCK_SIZE
 // Intend 3 upgrades (3.33x per phase, with 3x from tools that is 10x mining and capacity)
 export const PROFICIENCY_BASE_COST = 10
 export const PICKAXE_MINE_INCREMENT = 1.494
-export const PROFICIENCY_COST_MULTIPLIER = 5
+export const PROFICIENCY_COST_MULTIPLIER = 4
 export const DEFAULT_MINE_TIME = 1500
 export const MAX_PROFICIENCY_LEVEL = 10
 
 // Backpack constants
-export const BACKPACK_CAPACITY_INCREMENT = 1.4938
+export const BACKPACK_CAPACITY_INCREMENT = 1.494
 export const STRENGTH_BASE_COST = 10
-export const STRENGTH_COST_MULTIPLIER = 5
+export const STRENGTH_COST_MULTIPLIER = 4
 export const MAX_STRENGTH_LEVEL = 10
 // Mine dimensions
 export const MINE_DEPTH_BLOCKS = 150

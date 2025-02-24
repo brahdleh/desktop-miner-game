@@ -127,7 +127,7 @@ export function canMineBlock(
   const canHold = canHoldBlock(player, block.blockType)
   return { 
     canMine: canHold, 
-    reason: canHold ? undefined : "Not Enough Space!" 
+    reason: canHold ? undefined : "Not Enough Inventory!" 
   }
 }
 
@@ -277,7 +277,7 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]): { su
   if (!outputBlockType) return { success: false, reason: "Block Error??!" }
 
   if (!canHoldBlock(player, outputBlockType)) {
-    return { success: false, reason: "Not Enough Space!" }
+    return { success: false, reason: "Not Enough Inventory!" }
   }
 
   const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
