@@ -12,6 +12,7 @@ import {
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
 import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
+import { getSelectedBlockType } from './utils/data-utils'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
@@ -455,8 +456,8 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   if (!player.inventorySlots) return
 
   for (let i = 0; i < player.inventorySlots.length; i++) {
-    const column = Math.floor(i / 5)
-    const row = (i % 5) 
+    const column = Math.floor(i / 3)
+    const row = (i % 3) 
     const x = startX + column * (slotSize + padding)
     const y = startY - row * (slotSize + padding)
 
@@ -491,10 +492,11 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
       
       const coinIcon = getIconTexture('coin')
       if (coinIcon) {
-        ctx.drawImage(coinIcon, x + 3, y + 3, 12, 12)
+        ctx.drawImage(coinIcon, x + 3, y + 3, 10, 10)
         ctx.fillStyle = "#FFD700"
         ctx.font = "10px Arial"
-        ctx.fillText(blockData.value.toString(), x + 16, y + 12)
+        ctx.strokeText(blockData.value.toString(), x + 12, y + 12)
+        ctx.fillText(blockData.value.toString(), x + 12, y + 12)
       }
     }
   }
@@ -502,7 +504,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
 
 function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
   const startX = 5
-  const startY = CANVAS_HEIGHT - 320
+  const startY = CANVAS_HEIGHT - 260
   const iconSize = 25
   
   // Gold display.
@@ -520,7 +522,7 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     ctx.drawImage(backpackIcon, startX + 9, startY + 10 + 30, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`${player.inventory} / ${player.backpackCapacity}`, startX + iconSize + 15, startY + 60)
+    ctx.fillText(`${player.inventory} / ${Math.round(player.backpackCapacity)}`, startX + iconSize + 15, startY + 60)
   }
   
   // Pickaxe display.
@@ -530,8 +532,19 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     ctx.drawImage(pickIcon, startX + 10, startY + 10 + 60, iconSize, iconSize)
     ctx.fillStyle = "white"
     ctx.font = "16px Arial"
-    ctx.fillText(`${player.pickaxePower}x`, startX + iconSize + 15, startY + 90)
+    ctx.fillText(`${Math.round(player.pickaxePower)}x`, startX + iconSize + 15, startY + 90)
   }
+
+  // Selected block info
+  const selectedBlockType = getSelectedBlockType(player)
+  let selectedBlockName = "Empty"
+  if(selectedBlockType){
+    const selectedBlockData = BLOCK_TYPES_ARRAY[selectedBlockType]
+    selectedBlockName = selectedBlockData.name
+  }
+  ctx.fillStyle = "#999999"  // Light grey color
+  ctx.font = "italic 16px Arial"
+  ctx.fillText(`${selectedBlockName}`, startX + 10, startY + 118)
 }
 
 function drawDarknessOverlay(

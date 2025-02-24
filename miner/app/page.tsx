@@ -128,7 +128,7 @@ export default function MiningGame() {
           e.preventDefault() // Prevent page scrolling
           
           const inventorySize = player.inventorySlots.length
-          const rowHeight = 5
+          const rowHeight = 3
           
           let currentSlot = player.selectedSlot
           
@@ -304,9 +304,9 @@ export default function MiningGame() {
           <br />
           <span className="text-xs opacity-50">↑↓←→ for Inventory</span>
           <br />
-          <span className="text-xs opacity-50">T Deposit in Refiner</span>
+          <span className="text-xs opacity-50">T Deposit Refiner</span>
           <br />
-          <span className="text-xs opacity-50">Y Collect from Refiner</span>
+          <span className="text-xs opacity-50">Y Collect Refiner</span>
         </div>
       </div>
     </div>
