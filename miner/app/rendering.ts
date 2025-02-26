@@ -639,7 +639,7 @@ function drawDarknessOverlay(
   ctx.drawImage(lightingCanvas, 0, 0);
 }
 
-// Add a new function to draw the block preview
+// Update the drawBlockPreview function to only render when in placement range
 function drawBlockPreview(
   ctx: CanvasRenderingContext2D,
   player: Player,
@@ -654,6 +654,13 @@ function drawBlockPreview(
   const blockData = BLOCK_TYPES_ARRAY[selectedBlockType] as BlockData
   if (!blockData) return
   
+  // Check if player is close enough to place and if placement is valid
+  // Also check if we're below ground level
+  const isInRange = y >= SURFACE_Y && distanceToBlock(player, x, y) <= BLOCK_SIZE * 3
+  
+  // Only render preview if in range
+  if (!isInRange) return
+  
   const texture = getBlockTexture(blockData.name)
   if (!texture) return
   
@@ -661,11 +668,8 @@ function drawBlockPreview(
   const blockWidth = blockData.size ? blockData.size[0] * BLOCK_SIZE : BLOCK_SIZE
   const blockHeight = blockData.size ? blockData.size[1] * BLOCK_SIZE : BLOCK_SIZE
   
-  // Check if player is close enough to place and if placement is valid
-  // Also check if we're below ground level
-  const canPlace = y >= SURFACE_Y && 
-                  distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && 
-                  canPlaceBlock(blockData.size || [1, 1], blocks, x, y)
+  // Check if placement is valid
+  const canPlace = canPlaceBlock(blockData.size || [1, 1], blocks, x, y)
   
   // Draw with transparency
   ctx.globalAlpha = canPlace ? 0.7 : 0.3

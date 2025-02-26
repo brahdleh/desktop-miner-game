@@ -70,6 +70,10 @@ export default function MiningGame() {
       let previewX = 0
       let previewY = 0
 
+      // Add variables to track last mouse position
+      let lastMouseX = 0
+      let lastMouseY = 0
+
       // -------------------------------------------------------------------------
       // Game Loop
       // -------------------------------------------------------------------------
@@ -120,6 +124,22 @@ export default function MiningGame() {
         if (e.key === 'f' || e.key === 'F') {
           isPlacingMode = !isPlacingMode
           showNotification(isPlacingMode ? 'Block Placement Mode' : 'Mining Mode')
+          
+          // Update preview coordinates when switching to placement mode
+          if (isPlacingMode) {
+            // Get current mouse position and update preview coordinates
+            const rect = canvas.getBoundingClientRect()
+            const mouseX = lastMouseX || rect.width / 2
+            const mouseY = lastMouseY || rect.height / 2
+            
+            const worldX = mouseX
+            const worldY = mouseY + cameraOffsetY
+            
+            // Get grid-aligned position for preview
+            const gridPos = getGridPosition(worldX, worldY)
+            previewX = gridPos[0]
+            previewY = gridPos[1]
+          }
           return
         }
 
@@ -304,10 +324,14 @@ export default function MiningGame() {
       }
 
       const handleMouseMove = (e: MouseEvent) => {
+        // Update last mouse position
+        const rect = canvas.getBoundingClientRect()
+        lastMouseX = e.clientX - rect.left
+        lastMouseY = e.clientY - rect.top
+        
         if (isPlacingMode) {
-          const rect = canvas.getBoundingClientRect()
-          const mouseX = e.clientX - rect.left
-          const mouseY = e.clientY - rect.top + cameraOffsetY
+          const mouseX = lastMouseX
+          const mouseY = lastMouseY + cameraOffsetY
           
           // Get grid-aligned position for preview
           const gridPos = getGridPosition(mouseX, mouseY)
