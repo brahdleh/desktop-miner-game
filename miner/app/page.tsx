@@ -30,7 +30,7 @@ import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
 import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
-import { getGridPosition } from "./utils/data-utils"
+import { getBlockInventory, getGridPosition, getSelectedBlockType } from "./utils/data-utils"
 
 
 export default function MiningGame() {
@@ -260,8 +260,8 @@ export default function MiningGame() {
         if (e.button === 0) {
           if (isPlacingMode) {
             const placeResult = attemptPlaceBlock(player, blocks, clickX, clickY)
-            if (!placeResult) {
-              showNotification("Can't place block here", 'warning')
+            if (!placeResult.canPlace && placeResult.reason) {
+              showNotification(placeResult.reason, 'warning')
             }
           } else {
             // Mining mode (original behavior)

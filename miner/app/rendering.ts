@@ -8,7 +8,8 @@ import {
   MAX_PROFICIENCY_LEVEL,
   MAX_STRENGTH_LEVEL,
   REFINING_TIME,
-  REFINABLE_BLOCKS
+  REFINABLE_BLOCKS,
+  MINE_WIDTH
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
 import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
@@ -68,6 +69,7 @@ export function draw(
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
   drawHUD(ctx, player, isPlacingMode)
+  drawDepthProgressBar(ctx, player)
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
@@ -639,8 +641,11 @@ function drawBlockPreview(
   const blockWidth = blockData.size ? blockData.size[0] * BLOCK_SIZE : BLOCK_SIZE
   const blockHeight = blockData.size ? blockData.size[1] * BLOCK_SIZE : BLOCK_SIZE
   
-  // Check if player is close enough to place
-  const canPlace = distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && canPlaceBlock(blockData.size || [1, 1], blocks, x, y)
+  // Check if player is close enough to place and if placement is valid
+  // Also check if we're below ground level
+  const canPlace = y >= SURFACE_Y && 
+                  distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && 
+                  canPlaceBlock(blockData.size || [1, 1], blocks, x, y)
   
   // Draw with transparency
   ctx.globalAlpha = canPlace ? 0.7 : 0.3
@@ -651,4 +656,52 @@ function drawBlockPreview(
   ctx.strokeStyle = canPlace ? "rgba(0, 255, 0, 0.7)" : "rgba(255, 0, 0, 0.7)"
   ctx.lineWidth = 2
   ctx.strokeRect(x, y - cameraOffsetY, blockWidth, blockHeight)
+}
+
+// Add this function to draw the depth progress bar
+function drawDepthProgressBar(ctx: CanvasRenderingContext2D, player: Player) {
+  const barWidth = MINE_WIDTH * BLOCK_SIZE - 50
+  const barHeight = 12
+  const barX = MINE_LEFT + 25
+  const barY = CANVAS_HEIGHT - 40
+  const padding = 2
+  
+  // Draw background
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+  ctx.fillRect(barX, barY, barWidth, barHeight)
+  
+  // Calculate progress (player's depth as a percentage of total mine depth)
+  const playerDepth = Math.max(0, player.y - SURFACE_Y)
+  const maxDepth = MINE_DEPTH_PX
+  const progress = Math.min(playerDepth / maxDepth, 1)
+  
+  // Draw progress bar
+  ctx.fillStyle = "rgba(0, 200, 0, 0.7)"
+  ctx.fillRect(barX + padding, barY + padding, (barWidth - padding * 2) * progress, barHeight - padding * 2)
+  
+  // Draw border
+  ctx.strokeStyle = "white"
+  ctx.lineWidth = 1
+  ctx.strokeRect(barX, barY, barWidth, barHeight)
+  
+  // Draw pickaxe icon at current position
+  const pickaxeType = PICKAXE_TYPES_ARRAY[player.pickaxeType].name.toLowerCase()
+  const pickIcon = getPickTexture(pickaxeType)
+  if (pickIcon) {
+    const iconSize = 20
+    const iconX = barX + padding + (barWidth - padding * 2) * progress - iconSize / 2
+    ctx.drawImage(pickIcon, iconX, barY -3, iconSize, iconSize)
+  }
+  
+  // Save current context state
+  ctx.save()
+  
+  // Draw depth text
+  ctx.fillStyle = "white"
+  ctx.font = "10px Arial"
+  ctx.textAlign = "right"
+  ctx.fillText(`Depth: ${Math.floor(playerDepth / BLOCK_SIZE)}m`, barX + barWidth - 5, barY + barHeight + 12)
+  
+  // Restore context state to reset text alignment and other properties
+  ctx.restore()
 }

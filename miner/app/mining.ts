@@ -138,22 +138,22 @@ export function attemptPlaceBlock(
   blocks: Block[],
   clickX: number,
   clickY: number
-): boolean {
+): { canPlace: boolean; reason?: string } {
   const selectedBlockType = getSelectedBlockType(player)
-  if (selectedBlockType === null) return false
-  if (getBlockInventory(player, selectedBlockType) <= 0) return false
+  if (selectedBlockType === null) return { canPlace: false }
+  if (getBlockInventory(player, selectedBlockType) <= 0) return { canPlace: false, reason: "No block selected!" }
 
   const grid = getGridPosition(clickX, clickY)
 
   // Distance check
-  if (distanceToBlock(player, grid[0], grid[1]) > BLOCK_SIZE * 3) return false
+  if (distanceToBlock(player, grid[0], grid[1]) > BLOCK_SIZE * 3) return { canPlace: false }
 
   // PlaceBlock checks for space
   if (placeBlock(player, blocks, grid[0], grid[1])) {
     removeFromInventory(player, selectedBlockType, 1)
-    return true
+    return { canPlace: true }
   }
-  return false
+  return { canPlace: false }
 }
 
 export function attemptCraft(player: Player, blockType: number) {
