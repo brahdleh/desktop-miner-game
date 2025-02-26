@@ -14,18 +14,33 @@ import {
   distanceToBlock
 } from './utils/data-utils'
 import { mineBlock, placeBlock } from './utils/mine-utils';
-
+import { 
+  initializeStorageState, hasMachineSpace, addItemToMachine 
+} from './utils/machinery-utils'
+import { MACHINE_STORAGE_LIMIT } from './constants'
 
 export function handleMining(
   player: Player, 
   miningTargetBlock: Block | null,
   miningProgress: number,
   blocks: Block[]
-): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number; success?: boolean } {
+): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number; success?: boolean; message?: string } {
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
   }
   const blockData = getBlockData(miningTargetBlock.blockType)
+
+  // Check if this is a storage block with items
+  if ((miningTargetBlock.blockType === 19 || miningTargetBlock.blockType === 20) &&
+      miningTargetBlock.storageState &&
+      miningTargetBlock.storageState.storedBlocks.length > 0) {
+    return { 
+      miningProgress: 0, 
+      miningTargetBlock: null, 
+      success: false, 
+      message: "Empty storage before mining!" 
+    }
+  }
 
   miningProgress += 16.67 // approximate per frame at ~60fps
   
@@ -318,25 +333,16 @@ export function attemptDepositInCollector(player: Player, blocks: Block[]): { su
   const selectedBlockCount = getBlockInventory(player, selectedBlockType)
   if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
 
-  // Only allow stone, slate, magma, and bedrock
-  if (![1, 2, 3, 4].includes(selectedBlockType)) {
-    return { success: false, reason: "Only basic blocks can be automated!" }
-  }
+  // Initialize storage state if needed
+  initializeStorageState(collector)
 
-  // Initialize machine state if needed
-  if (!collector.storageState) {
-    collector.storageState = {
-      storedBlocks: []
-    }
-  }
-
-  // Check if collector is full (arbitrary limit for now)
-  if (collector.storageState.storedBlocks.length >= 10) {
+  // Check if collector is full
+  if (!hasMachineSpace(collector, MACHINE_STORAGE_LIMIT)) {
     return { success: false, reason: "Collector is full!" }
   }
 
-  // Add item to collector
-  collector.storageState.storedBlocks.push({ blockType: selectedBlockType, count: 1 })
+  // Add item to collector - allow any block type
+  addItemToMachine(collector, selectedBlockType)
   removeFromInventory(player, selectedBlockType, 1)
   return { success: true }
 }
@@ -427,7 +433,7 @@ export function attemptCollectFromMachinery(player: Player, blocks: Block[]): { 
   }
 }
 
-// New function to deposit into a chest
+// Attempt to deposit into a chest
 export function attemptDepositInChest(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
   const chest = findNearbyChest(player, blocks)
   if (!chest) return { success: false, reason: "No chest nearby!" }
@@ -439,19 +445,15 @@ export function attemptDepositInChest(player: Player, blocks: Block[]): { succes
   if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
 
   // Initialize storage state if needed
-  if (!chest.storageState) {
-    chest.storageState = {
-      storedBlocks: []
-    }
-  }
+  initializeStorageState(chest)
 
-  // Check if chest is full (arbitrary limit for now)
-  if (chest.storageState.storedBlocks.length >= 10) {
+  // Check if chest is full
+  if (!hasMachineSpace(chest)) {
     return { success: false, reason: "Chest is full!" }
   }
 
   // Add item to chest
-  chest.storageState.storedBlocks.push({ blockType: selectedBlockType, count: 1 })
+  addItemToMachine(chest, selectedBlockType)
   removeFromInventory(player, selectedBlockType, 1)
   return { success: true }
 }

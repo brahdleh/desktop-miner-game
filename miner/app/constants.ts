@@ -27,6 +27,10 @@ export const MAX_STRENGTH_LEVEL = 10
 export const MINE_DEPTH_BLOCKS = 150
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
+// Automation constants
+export const MACHINE_STORAGE_LIMIT = 10 // Maximum items a machine can store
+export const MACHINE_INTERACTION_DISTANCE = 100 // Distance in pixels for interacting with machines
+
 // Action zones
 export const UPGRADE_ZONE = {
   x: 0,
@@ -168,4 +172,5 @@ export const REFINABLE_BLOCKS = {
   3: 17,  // Magma -> Polished Magma
   4: 18   // Bedrock -> Polished Bedrock
 } as const
+
 

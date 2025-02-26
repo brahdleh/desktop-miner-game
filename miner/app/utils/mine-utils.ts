@@ -1,5 +1,5 @@
 import { Player, BlockData, Block } from "../types";
-import { getGridPosition, getSelectedBlockType } from "./data-utils"
+import { getSelectedBlockType } from "./data-utils"
 import { BLOCK_SIZE } from "../constants"
 import { getBlockData } from "./data-utils"
 
@@ -61,6 +61,14 @@ export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY
 }
 
 export function mineBlock(block: Block, blocks: Block[]) {
+  // Check if this is a storage block with items
+  if ((block.blockType === 19 || block.blockType === 20) && 
+      block.storageState &&
+      block.storageState.storedBlocks.length > 0) {
+    // Don't allow mining if storage has items
+    return false;
+  }
+  
   // If this is a secondary block, find the main block first
   if (block.isSecondaryBlock && block.mainBlockX !== undefined && block.mainBlockY !== undefined) {
     const mainBlock = blocks.find(b => 
@@ -68,6 +76,13 @@ export function mineBlock(block: Block, blocks: Block[]) {
       b.y === block.mainBlockY
     )
     if (mainBlock) {
+      // Check if main block is a storage with items
+      if ((mainBlock.blockType === 19 || mainBlock.blockType === 20) && 
+          mainBlock.storageState &&
+          mainBlock.storageState.storedBlocks.length > 0) {
+        return false;
+      }
+      
       // Mine the main block
       mainBlock.isMined = true
       
@@ -89,4 +104,6 @@ export function mineBlock(block: Block, blocks: Block[]) {
       }
     })
   }
+  
+  return true;
 }
