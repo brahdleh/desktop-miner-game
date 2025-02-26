@@ -296,3 +296,183 @@ export function attemptCollectFromRefiner(player: Player, blocks: Block[]): { su
 
   return { success: true }
 }
+
+// Find nearby collector
+export function findNearbyCollector(player: Player, blocks: Block[]): Block | null {
+  return findNearbyBlock(player, 19, blocks)
+}
+
+// Find nearby chest
+export function findNearbyChest(player: Player, blocks: Block[]): Block | null {
+  return findNearbyBlock(player, 20, blocks)
+}
+
+// Attempt to deposit a block into a collector
+export function attemptDepositInCollector(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const collector = findNearbyCollector(player, blocks)
+  if (!collector) return { success: false, reason: "No collector nearby!" }
+
+  const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return { success: false, reason: "No block selected!" }
+  
+  const selectedBlockCount = getBlockInventory(player, selectedBlockType)
+  if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
+
+  // Only allow stone, slate, magma, and bedrock
+  if (![1, 2, 3, 4].includes(selectedBlockType)) {
+    return { success: false, reason: "Only basic blocks can be automated!" }
+  }
+
+  // Initialize machine state if needed
+  if (!collector.storageState) {
+    collector.storageState = {
+      storedBlocks: []
+    }
+  }
+
+  // Check if collector is full (arbitrary limit for now)
+  if (collector.storageState.storedBlocks.length >= 10) {
+    return { success: false, reason: "Collector is full!" }
+  }
+
+  // Add item to collector
+  collector.storageState.storedBlocks.push({ blockType: selectedBlockType, count: 1 })
+  removeFromInventory(player, selectedBlockType, 1)
+  return { success: true }
+}
+
+// Attempt to collect a block from a chest
+export function attemptCollectFromChest(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const chest = findNearbyChest(player, blocks)
+  if (!chest) return { success: false, reason: "No chest nearby!" }
+  
+  if (!chest.storageState?.storedBlocks || chest.storageState.storedBlocks.length === 0) {
+    return { success: false, reason: "Chest is empty!" }
+  }
+
+  // Check if player has inventory space
+  if (player.inventory >= player.backpackCapacity) {
+    return { success: false, reason: "Not Enough Inventory!" }
+  }
+
+  // Take the first item from the chest
+  const block = chest.storageState.storedBlocks.shift()!
+  addToInventory(player, block.blockType)
+
+  return { success: true }
+}
+
+// Find any nearby machinery (refiner, collector, or chest)
+export function findNearbyMachinery(player: Player, blocks: Block[]): { block: Block, type: 'refiner' | 'collector' | 'chest' } | null {
+  // Check for refiner first
+  const refiner = findNearbyRefiner(player, blocks)
+  if (refiner) {
+    return { block: refiner, type: 'refiner' }
+  }
+  
+  // Check for collector
+  const collector = findNearbyCollector(player, blocks)
+  if (collector) {
+    return { block: collector, type: 'collector' }
+  }
+  
+  // Check for chest
+  const chest = findNearbyChest(player, blocks)
+  if (chest) {
+    return { block: chest, type: 'chest' }
+  }
+  
+  return null
+}
+
+// Universal deposit function
+export function attemptDepositInMachinery(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const machinery = findNearbyMachinery(player, blocks)
+  if (!machinery) {
+    return { success: false, reason: "No machinery nearby!" }
+  }
+  
+  // Handle based on machinery type
+  switch (machinery.type) {
+    case 'refiner':
+      return attemptDepositInRefiner(player, blocks)
+    case 'collector':
+      return attemptDepositInCollector(player, blocks)
+    case 'chest':
+      // Allow depositing into chests
+      return attemptDepositInChest(player, blocks)
+    default:
+      return { success: false, reason: "Unknown machinery type!" }
+  }
+}
+
+// Universal collect function
+export function attemptCollectFromMachinery(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const machinery = findNearbyMachinery(player, blocks)
+  if (!machinery) {
+    return { success: false, reason: "No machinery nearby!" }
+  }
+  
+  // Handle based on machinery type
+  switch (machinery.type) {
+    case 'refiner':
+      return attemptCollectFromRefiner(player, blocks)
+    case 'collector':
+      // Allow collecting from collectors
+      return attemptCollectFromCollector(player, blocks)
+    case 'chest':
+      return attemptCollectFromChest(player, blocks)
+    default:
+      return { success: false, reason: "Unknown machinery type!" }
+  }
+}
+
+// New function to deposit into a chest
+export function attemptDepositInChest(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const chest = findNearbyChest(player, blocks)
+  if (!chest) return { success: false, reason: "No chest nearby!" }
+
+  const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return { success: false, reason: "No block selected!" }
+  
+  const selectedBlockCount = getBlockInventory(player, selectedBlockType)
+  if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
+
+  // Initialize storage state if needed
+  if (!chest.storageState) {
+    chest.storageState = {
+      storedBlocks: []
+    }
+  }
+
+  // Check if chest is full (arbitrary limit for now)
+  if (chest.storageState.storedBlocks.length >= 10) {
+    return { success: false, reason: "Chest is full!" }
+  }
+
+  // Add item to chest
+  chest.storageState.storedBlocks.push({ blockType: selectedBlockType, count: 1 })
+  removeFromInventory(player, selectedBlockType, 1)
+  return { success: true }
+}
+
+// New function to collect from a collector
+export function attemptCollectFromCollector(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
+  const collector = findNearbyCollector(player, blocks)
+  if (!collector) return { success: false, reason: "No collector nearby!" }
+  
+  if (!collector.storageState?.storedBlocks || collector.storageState.storedBlocks.length === 0) {
+    return { success: false, reason: "Collector is empty!" }
+  }
+
+  // Check if player has inventory space
+  if (player.inventory >= player.backpackCapacity) {
+    return { success: false, reason: "Not Enough Inventory!" }
+  }
+
+  // Take the first item from the collector
+  const block = collector.storageState.storedBlocks.shift()!
+  addToInventory(player, block.blockType)
+
+  return { success: true }
+}

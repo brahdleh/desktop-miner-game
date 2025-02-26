@@ -22,15 +22,16 @@ import {
   attemptCraftPickaxe,
   attemptCraftBackpack,
   attemptBuy,
-  attemptDepositInRefiner,
-  attemptCollectFromRefiner,
-  findNearbyRefiner,
+  attemptDepositInMachinery,
+  attemptCollectFromMachinery,
+  findNearbyMachinery,
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
 import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
-import { getBlockInventory, getGridPosition, getSelectedBlockType } from "./utils/data-utils"
+import { getGridPosition } from "./utils/data-utils"
+import { processAutomation } from './automation'
 
 
 export default function MiningGame() {
@@ -75,6 +76,9 @@ export default function MiningGame() {
       function gameLoop() {
         handleInput(player, keys)
         updatePlayer(player, blocks)
+        
+        // Process automation machinery
+        processAutomation(blocks)
         
         // Update camera
         cameraOffsetY = Math.min(player.y - CANVAS_HEIGHT/3, SURFACE_Y + MINE_DEPTH_PX - CANVAS_HEIGHT)
@@ -186,26 +190,25 @@ export default function MiningGame() {
           }
         }
 
-        // Check for refiner interactions
+        // Universal machinery interactions
         if (e.key === "t") {
-          const nearbyRefiner = findNearbyRefiner(player, blocks)
-          if (nearbyRefiner) {
-            const depositCheck = attemptDepositInRefiner(player, blocks)
-            if (depositCheck.reason){
-              showNotification(depositCheck.reason, 'warning')
-            }
-            return
+          const depositCheck = attemptDepositInMachinery(player, blocks)
+          if (depositCheck.reason) {
+            showNotification(depositCheck.reason, 'warning')
+          } else {
+            showNotification('Item deposited successfully', 'success')
           }
+          return
         }
+        
         if (e.key === "y") {
-          const nearbyRefiner = findNearbyRefiner(player, blocks)
-          if (nearbyRefiner) {
-            const collectCheck = attemptCollectFromRefiner(player, blocks)
-            if (collectCheck.reason){
-              showNotification(collectCheck.reason, 'warning')
-            }
-            return
+          const collectCheck = attemptCollectFromMachinery(player, blocks)
+          if (collectCheck.reason) {
+            showNotification(collectCheck.reason, 'warning')
+          } else {
+            showNotification('Item collected successfully', 'success')
           }
+          return
         }
 
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
@@ -234,6 +237,19 @@ export default function MiningGame() {
             case "n":
               const buyResult4 = attemptBuy(player, 14)
               if (buyResult4.reason) showNotification(buyResult4.reason, 'warning')
+              break
+            case "m":
+              const buyResult5 = attemptBuy(player, 19)
+              if (buyResult5.reason) showNotification(buyResult5.reason, 'warning')
+              break
+            case "o":
+              const buyResult6 = attemptBuy(player, 20)
+              if (buyResult6.reason) showNotification(buyResult6.reason, 'warning')
+              break
+            case "q":
+              const buyResult7 = attemptBuy(player, 21)
+              if (buyResult7.reason) showNotification(buyResult7.reason, 'warning')
+              break
           }
         }
 
@@ -366,9 +382,9 @@ export default function MiningGame() {
           <br />
           <span className="text-xs opacity-50">↑↓←→ for Inventory</span>
           <br />
-          <span className="text-xs opacity-50">T Deposit Refiner</span>
+          <span className="text-xs opacity-50">T Deposit to Machinery</span>
           <br />
-          <span className="text-xs opacity-50">Y Collect Refiner</span>
+          <span className="text-xs opacity-50">Y Collect from Machinery</span>
         </div>
       </div>
     </div>

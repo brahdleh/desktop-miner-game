@@ -78,6 +78,11 @@ export const BLOCK_TYPES = {
   POLISHED_SLATE: { id: 16, value: 50, miningTimeMultiplier: 10, density: 10, name: "Polished Slate", ...DEFAULT_BLOCK },
   POLISHED_MAGMA: { id: 17, value: 500, miningTimeMultiplier: 100, density: 100, name: "Polished Magma", ...DEFAULT_BLOCK },
   POLISHED_BEDROCK: { id: 18, value: 5000, miningTimeMultiplier: 1000, density: 1000, name: "Polished Bedrock", ...DEFAULT_BLOCK },
+
+  // Automation Machinery
+  COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", solid: false, climbable: false, requirements: null, size: [1, 1] },
+  CHEST: { id: 20, value: 100, miningTimeMultiplier: 3, density: 1, name: "Chest", solid: false, climbable: false, requirements: null, size: [1, 1] },
+  TUBE: { id: 21, value: 100, miningTimeMultiplier: 0.5, density: 1, name: "Tube", solid: false, climbable: false, requirements: null, size: [1, 1] },
 } as const
 
 // Pickaxe types

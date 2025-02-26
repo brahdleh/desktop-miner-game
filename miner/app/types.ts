@@ -26,6 +26,7 @@ export interface Block {
   mineable: boolean
   blockType: number
   machineState?: MachineState // Optional machine state for blocks that are machines
+  storageState?: StorageState // Optional storage state for blocks that are storage
   isSecondaryBlock?: boolean
   mainBlockX?: number
   mainBlockY?: number
@@ -51,6 +52,13 @@ export interface MachineState {
   processingBlockType: number | null // The type of block being processed
   processingStartTime: number | null // When processing started
   isFinished: boolean // Whether processing is complete
+}
+
+export interface StorageState {
+  storedBlocks: {
+    blockType: number
+    count: number
+  }[]
 }
 
 export interface Zone {

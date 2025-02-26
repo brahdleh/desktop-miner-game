@@ -215,6 +215,26 @@ function drawBlocks(
       continue
     }
 
+    // Special handling for collector (type 19)
+    if (block.blockType === 19 && !block.isSecondaryBlock) {
+      // Draw the collector base
+      ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
+      
+      // Draw mini inventory for collector
+      drawMachineInventory(ctx, block, x, y, 'collector')
+      continue
+    }
+
+    // Special handling for chest (type 20)
+    if (block.blockType === 20 && !block.isSecondaryBlock) {
+      // Draw the chest base
+      ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
+      
+      // Draw mini inventory for chest
+      drawMachineInventory(ctx, block, x, y, 'chest')
+      continue
+    }
+
     // Regular block drawing
     ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
   }
@@ -704,4 +724,63 @@ function drawDepthProgressBar(ctx: CanvasRenderingContext2D, player: Player) {
   
   // Restore context state to reset text alignment and other properties
   ctx.restore()
+}
+
+// Helper function to draw mini inventory for machines
+function drawMachineInventory(
+  ctx: CanvasRenderingContext2D,
+  block: Block,
+  x: number,
+  y: number,
+  type: 'collector' | 'chest'
+) {
+  // Only draw if the block has storage state
+  if (!block.storageState || !block.storageState.storedBlocks) return
+  
+  const slotSize = 12 // Size of each inventory slot
+  const padding = 2 // Padding between slots
+  const startX = x + (BLOCK_SIZE - (slotSize * 2 + padding)) / 2 // Center horizontally
+  const startY = y + BLOCK_SIZE - slotSize * 2 - padding - 5 // Position near bottom
+  
+  // Background for inventory
+  ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
+  ctx.fillRect(
+    startX - 2, 
+    startY - 2, 
+    slotSize * 2 + padding + 4, 
+    slotSize * 2 + padding + 4
+  )
+  
+  // Draw up to 4 slots in a 2x2 grid
+  for (let i = 0; i < 4; i++) {
+    const row = Math.floor(i / 2)
+    const col = i % 2
+    const slotX = startX + col * (slotSize + padding)
+    const slotY = startY + row * (slotSize + padding)
+    
+    // Draw slot background
+    ctx.fillStyle = "rgba(80, 80, 80, 0.6)"
+    ctx.fillRect(slotX, slotY, slotSize, slotSize)
+    ctx.strokeStyle = "rgba(150, 150, 150, 0.8)"
+    ctx.strokeRect(slotX, slotY, slotSize, slotSize)
+    
+    // Draw item in slot if it exists
+    const item = block.storageState.storedBlocks[i]
+    if (item) {
+      const blockData = BLOCK_TYPES_ARRAY[item.blockType] as BlockData
+      if (blockData) {
+        const itemTexture = getBlockTexture(blockData.name)
+        if (itemTexture) {
+          ctx.drawImage(itemTexture, slotX + 1, slotY + 1, slotSize - 2, slotSize - 2)
+          
+          // Draw count if more than 1
+          if (item.count > 1) {
+            ctx.fillStyle = "white"
+            ctx.font = "6px Arial"
+            ctx.fillText(item.count.toString(), slotX + 2, slotY + slotSize - 2)
+          }
+        }
+      }
+    }
+  }
 }
