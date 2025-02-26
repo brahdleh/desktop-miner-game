@@ -44,7 +44,7 @@ export interface BlockData {
     blockType: number
     amount: number
   } | null
-  size?: [number, number]
+  size: [number, number]
 }
 
 export interface MachineState {

@@ -12,7 +12,8 @@ import {
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
 import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
-import { getSelectedBlockType } from './utils/data-utils'
+import { getSelectedBlockType, distanceToBlock } from './utils/data-utils'
+import { canPlaceBlock } from './utils/mine-utils'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
@@ -45,7 +46,10 @@ export function draw(
   cameraOffsetY: number,
   upgradeZone: Zone,
   sellZone: Zone,
-  requiredTime?: number
+  requiredTime?: number,
+  isPlacingMode?: boolean,
+  previewX?: number,
+  previewY?: number
 ) {
   // Clear the main canvas
   ctx.clearRect(0, -CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -53,11 +57,17 @@ export function draw(
   drawBackground(ctx, cameraOffsetY)
   drawBlocks(player.y, ctx, blocks, cameraOffsetY)
   drawMiningProgress(ctx, miningTargetBlock, miningProgress, requiredTime, cameraOffsetY)
+  
+  // Draw block placement preview if in placing mode
+  if (isPlacingMode && previewX !== undefined && previewY !== undefined) {
+    drawBlockPreview(ctx, player, blocks, previewX, previewY, cameraOffsetY)
+  }
+  
   drawPlayer(ctx, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
-  drawHUD(ctx, player)
+  drawHUD(ctx, player, isPlacingMode)
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
@@ -502,7 +512,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   }
 }
 
-function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
+function drawHUD(ctx: CanvasRenderingContext2D, player: Player, isPlacingMode?: boolean) {
   const startX = 5
   const startY = CANVAS_HEIGHT - 260
   const iconSize = 25
@@ -597,4 +607,41 @@ function drawDarknessOverlay(
   if (lightingCanvas) {
     ctx.drawImage(lightingCanvas, 0, 0);
   }
+}
+
+// Add a new function to draw the block preview
+function drawBlockPreview(
+  ctx: CanvasRenderingContext2D,
+  player: Player,
+  blocks: Block[],
+  x: number,
+  y: number,
+  cameraOffsetY: number
+) {
+  const selectedBlockType = getSelectedBlockType(player)
+  if (selectedBlockType === null) return
+  
+  const blockData = BLOCK_TYPES_ARRAY[selectedBlockType] as BlockData
+  if (!blockData) return
+  
+  const texture = getBlockTexture(blockData.name)
+  if (!texture) return
+  
+  // Check if player is close enough to place
+  const canPlace = distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && canPlaceBlock(blockData.size, blocks, x, y)
+  
+  // Get block size (default to 1x1 if not specified)
+  const blockWidth = (blockData as any).size ? (blockData as any).size[0] * BLOCK_SIZE : BLOCK_SIZE
+  const blockHeight = (blockData as any).size ? (blockData as any).size[1] * BLOCK_SIZE : BLOCK_SIZE
+  
+  
+  // Draw with transparency
+  ctx.globalAlpha = canPlace ? 0.7 : 0.3
+  ctx.drawImage(texture, x, y - cameraOffsetY, blockWidth, blockHeight)
+  ctx.globalAlpha = 1.0
+  
+  // Draw border
+  ctx.strokeStyle = canPlace ? "rgba(0, 255, 0, 0.7)" : "rgba(255, 0, 0, 0.7)"
+  ctx.lineWidth = 2
+  ctx.strokeRect(x, y - cameraOffsetY, blockWidth, blockHeight)
 }

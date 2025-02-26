@@ -47,6 +47,7 @@ const DEFAULT_BLOCK = {
   solid: true,
   climbable: false,
   requirements: null,
+  size: [1, 1]
 } as const
 
 // Block type definitions

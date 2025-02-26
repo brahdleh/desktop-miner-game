@@ -30,6 +30,7 @@ import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
 import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
+import { getGridPosition } from "./utils/data-utils"
 
 
 export default function MiningGame() {
@@ -59,6 +60,10 @@ export default function MiningGame() {
       let cameraOffsetY = 0
       let miningProgress = 0
       let miningTargetBlock: Block | null = null
+      // Add mode state
+      let isPlacingMode = false
+      let previewX = 0
+      let previewY = 0
 
       // -------------------------------------------------------------------------
       // Game Loop
@@ -88,7 +93,10 @@ export default function MiningGame() {
           cameraOffsetY, 
           UPGRADE_ZONE, 
           CRAFT_ZONE,
-          miningResult.requiredTime
+          miningResult.requiredTime,
+          isPlacingMode,
+          previewX,
+          previewY
         )
         
         requestAnimationFrame(gameLoop)
@@ -99,6 +107,13 @@ export default function MiningGame() {
       // -------------------------------------------------------------------------
       const handleKeyDown = (e: KeyboardEvent) => {
         keys[e.key] = true
+
+        // Toggle between mining and placing modes with F key
+        if (e.key === 'f' || e.key === 'F') {
+          isPlacingMode = !isPlacingMode
+          showNotification(isPlacingMode ? 'Block Placement Mode' : 'Mining Mode')
+          return
+        }
 
         // Save/Load/Export/Import shortcuts
         if (e.shiftKey) {
@@ -237,24 +252,29 @@ export default function MiningGame() {
         const clickX = e.clientX - rect.left
         const clickY = e.clientY - rect.top + cameraOffsetY
 
-        // Right click for placement
-        if (e.button === 2) {
-          attemptPlaceBlock(player, blocks, clickX, clickY)
+        // Left click for mining or placing based on mode
+        if (e.button === 0) {
+          if (isPlacingMode) {
+            const placeResult = attemptPlaceBlock(player, blocks, clickX, clickY)
+            if (!placeResult) {
+              showNotification("Can't place block here", 'warning')
+            }
+          } else {
+            // Mining mode (original behavior)
+            for (const block of blocks) {
+              const miningCheck = canMineBlock(block, clickX, clickY, player)
+              if (miningCheck.reason) {
+                showNotification(miningCheck.reason, 'warning')
+                return
+              }
+              if (miningCheck.canMine) {
+                miningTargetBlock = block
+                miningProgress = 0
+                break
+              }
+            }
+          }
           return
-        }
-
-        // Left click for mining
-        for (const block of blocks) {
-          const miningCheck = canMineBlock(block, clickX, clickY, player)
-          if (miningCheck.reason) {
-            showNotification(miningCheck.reason, 'warning')
-            return
-          }
-          if (miningCheck.canMine) {
-            miningTargetBlock = block
-            miningProgress = 0
-            break
-          }
         }
       }
 
@@ -263,6 +283,18 @@ export default function MiningGame() {
         miningProgress = 0
       }
 
+      const handleMouseMove = (e: MouseEvent) => {
+        if (isPlacingMode) {
+          const rect = canvas.getBoundingClientRect()
+          const mouseX = e.clientX - rect.left
+          const mouseY = e.clientY - rect.top + cameraOffsetY
+          
+          // Get grid-aligned position for preview
+          const gridPos = getGridPosition(mouseX, mouseY)
+          previewX = gridPos[0]
+          previewY = gridPos[1]
+        }
+      }
 
       // Prevent context menu
       canvas.addEventListener("contextmenu", (e) => e.preventDefault())
@@ -272,6 +304,7 @@ export default function MiningGame() {
       document.addEventListener("keyup", handleKeyUp)
       canvas.addEventListener("mousedown", handleMouseDown)
       canvas.addEventListener("mouseup", handleMouseUp)
+      canvas.addEventListener("mousemove", handleMouseMove)
 
       // Initialize and start game
       gameLoop()
@@ -282,6 +315,7 @@ export default function MiningGame() {
         document.removeEventListener("keyup", handleKeyUp)
         canvas.removeEventListener("mousedown", handleMouseDown)
         canvas.removeEventListener("mouseup", handleMouseUp)
+        canvas.removeEventListener("mousemove", handleMouseMove)
         
         // Optional: Auto-save on exit
         saveGame(player, blocks)
@@ -315,9 +349,9 @@ export default function MiningGame() {
           id="controls"
           className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded"
         >
-          <span className="text-xs opacity-50">L CLICK to mine</span>
+          <span className="text-xs opacity-50">L CLICK to mine/place</span>
           <br />
-          <span className="text-xs opacity-50">R CLICK to place</span>
+          <span className="text-xs opacity-50">F to toggle mode</span>
           <br />
           <span className="text-xs opacity-50">SHIFT S to Save</span>
           <br />
