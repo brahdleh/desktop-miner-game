@@ -63,6 +63,9 @@ function findAvailableSlot(player: Player, blockType: number): number {
 }
 
 export function addToInventory(player: Player, blockType: number): boolean {
+  // First check if we can hold this block
+  if (!canHoldBlock(player, blockType)) return false
+  
   const slotIndex = findAvailableSlot(player, blockType)
   if (slotIndex === -1) return false // No available slots
 
@@ -78,7 +81,7 @@ export function addToInventory(player: Player, blockType: number): boolean {
     slot.count++
   }
   
-  player.inventory+= getBlockData(blockType).density
+  player.inventory += getBlockData(blockType).density
   return true
 }
 export function removeFromInventory(player: Player, blockType: number, count: number): boolean {

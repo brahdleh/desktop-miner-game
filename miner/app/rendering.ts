@@ -119,10 +119,13 @@ function drawBlocks(
   blocks: Block[], 
   cameraOffsetY: number
 ) {
-  for (const block of blocks) {
-    if (block.isMined) continue
-    if (Math.abs(block.y - player_y) > CANVAS_HEIGHT) continue
-
+  // Only process blocks that are within the visible area
+  const visibleBlocks = blocks.filter(block => 
+    !block.isMined && 
+    Math.abs(block.y - player_y) <= CANVAS_HEIGHT
+  )
+  
+  for (const block of visibleBlocks) {
     const blockData = BLOCK_TYPES_ARRAY[block.blockType] as BlockData
     const texture = getBlockTexture(blockData.name)
     const x = block.x
@@ -562,7 +565,7 @@ function drawDarknessOverlay(
   blocks: Block[],
   cameraOffsetY: number
 ) {
-  if (!lightingCtx) return
+  if (!lightingCtx || !lightingCanvas) return
 
   // Clear the offscreen canvas.
   lightingCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -580,33 +583,38 @@ function drawDarknessOverlay(
 
   // Use destination-out to "punch" light around torches.
   lightingCtx.globalCompositeOperation = 'destination-out'
-  for (const block of blocks) {
-    // Assuming blockType 12 represents a torch.
-    if (block.blockType === 12 && !block.isMined) {
-      const centerX = block.x + BLOCK_SIZE / 2
-      const centerY = block.y - cameraOffsetY + BLOCK_SIZE / 2
-      const torchGradient = lightingCtx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, TORCH_OUTER_RADIUS
-      )
-      
-      torchGradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
-      torchGradient.addColorStop(TORCH_INNER_RADIUS / TORCH_OUTER_RADIUS, 'rgba(0, 0, 0, 0.7)')
-      torchGradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      
-      lightingCtx.fillStyle = torchGradient
-      lightingCtx.beginPath()
-      lightingCtx.arc(centerX, centerY, TORCH_OUTER_RADIUS, 0, Math.PI * 2)
-      lightingCtx.fill()
-    }
+  
+  // Only process torches that are visible on screen
+  const visibleTorches = blocks.filter(block => 
+    block.blockType === 12 && 
+    !block.isMined && 
+    block.y >= cameraOffsetY - TORCH_OUTER_RADIUS && 
+    block.y <= cameraOffsetY + CANVAS_HEIGHT + TORCH_OUTER_RADIUS
+  )
+  
+  for (const block of visibleTorches) {
+    const centerX = block.x + BLOCK_SIZE / 2
+    const centerY = block.y - cameraOffsetY + BLOCK_SIZE / 2
+    const torchGradient = lightingCtx.createRadialGradient(
+      centerX, centerY, 0,
+      centerX, centerY, TORCH_OUTER_RADIUS
+    )
+    
+    torchGradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
+    torchGradient.addColorStop(TORCH_INNER_RADIUS / TORCH_OUTER_RADIUS, 'rgba(0, 0, 0, 0.7)')
+    torchGradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    
+    lightingCtx.fillStyle = torchGradient
+    lightingCtx.beginPath()
+    lightingCtx.arc(centerX, centerY, TORCH_OUTER_RADIUS, 0, Math.PI * 2)
+    lightingCtx.fill()
   }
+  
   // Reset composite mode before drawing to main canvas.
   lightingCtx.globalCompositeOperation = 'source-over'
   
   // Draw the lighting overlay onto the main canvas.
-  if (lightingCanvas) {
-    ctx.drawImage(lightingCanvas, 0, 0);
-  }
+  ctx.drawImage(lightingCanvas, 0, 0);
 }
 
 // Add a new function to draw the block preview
@@ -627,13 +635,12 @@ function drawBlockPreview(
   const texture = getBlockTexture(blockData.name)
   if (!texture) return
   
-  // Check if player is close enough to place
-  const canPlace = distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && canPlaceBlock(blockData.size, blocks, x, y)
-  
   // Get block size (default to 1x1 if not specified)
-  const blockWidth = (blockData as any).size ? (blockData as any).size[0] * BLOCK_SIZE : BLOCK_SIZE
-  const blockHeight = (blockData as any).size ? (blockData as any).size[1] * BLOCK_SIZE : BLOCK_SIZE
+  const blockWidth = blockData.size ? blockData.size[0] * BLOCK_SIZE : BLOCK_SIZE
+  const blockHeight = blockData.size ? blockData.size[1] * BLOCK_SIZE : BLOCK_SIZE
   
+  // Check if player is close enough to place
+  const canPlace = distanceToBlock(player, x, y) <= BLOCK_SIZE * 3 && canPlaceBlock(blockData.size || [1, 1], blocks, x, y)
   
   // Draw with transparency
   ctx.globalAlpha = canPlace ? 0.7 : 0.3

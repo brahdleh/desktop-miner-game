@@ -35,11 +35,15 @@ import { getGridPosition } from "./utils/data-utils"
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [notification, setNotification] = useState<{text: string, type: 'success' | 'warning'} | null>(null)
+  const [notifications, setNotifications] = useState<{id: number, text: string, type: 'success' | 'warning'}[]>([])
+  const nextNotificationId = useRef(0)
 
   const showNotification = (text: string, type: 'success' | 'warning' = 'success') => {
-    setNotification({ text, type })
-    setTimeout(() => setNotification(null), 2000)
+    const id = nextNotificationId.current++
+    setNotifications(prev => [...prev, { id, text, type }])
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id))
+    }, 2000)
   }
 
   useEffect(() => {
@@ -326,15 +330,18 @@ export default function MiningGame() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">
       <div id="gameContainer" className="relative">
-        {/* Add save notification */}
-        {notification && (
-          <div 
-            className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md
-              ${notification.type === 'success' ? 'bg-green-500' : 'bg-yellow-500'} text-white`}
-          >
-            {notification.text}
-          </div>
-        )}
+        {/* Notifications */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col gap-2">
+          {notifications.map(notification => (
+            <div 
+              key={notification.id}
+              className={`px-4 py-2 rounded-md
+                ${notification.type === 'success' ? 'bg-green-500' : 'bg-yellow-500'} text-white`}
+            >
+              {notification.text}
+            </div>
+          ))}
+        </div>
         
         <canvas
           id="gameCanvas"

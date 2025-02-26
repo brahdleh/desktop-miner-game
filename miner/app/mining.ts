@@ -21,7 +21,7 @@ export function handleMining(
   miningTargetBlock: Block | null,
   miningProgress: number,
   blocks: Block[]
-): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number } {
+): { miningProgress: number; miningTargetBlock: Block | null; requiredTime?: number; success?: boolean } {
   if (!miningTargetBlock) {
     return { miningProgress, miningTargetBlock }
   }
@@ -29,7 +29,7 @@ export function handleMining(
 
   miningProgress += 16.67 // approximate per frame at ~60fps
   
-  // Calculate required time based on block type
+  // Calculate required time based on block type and player's pickaxe power
   const baseTime = DEFAULT_MINE_TIME / player.pickaxePower
   const requiredTime = baseTime * blockData.miningTimeMultiplier
   
@@ -38,9 +38,11 @@ export function handleMining(
     if (canHoldBlock(player, miningTargetBlock.blockType)) {
       addToInventory(player, miningTargetBlock.blockType)
       mineBlock(miningTargetBlock, blocks)
+      return { miningProgress: 0, miningTargetBlock: null, requiredTime, success: true }
     }
 
-    return { miningProgress: 0, miningTargetBlock: null }
+    // Mining failed due to full inventory
+    return { miningProgress: 0, miningTargetBlock: null, requiredTime, success: false }
   }
 
   return { miningProgress, miningTargetBlock, requiredTime }
