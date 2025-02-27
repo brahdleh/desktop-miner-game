@@ -60,7 +60,7 @@ export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY
   return false
 }
 
-export function mineBlock(block: Block, blocks: Block[]) {
+export function mineBlock(block: Block, blocks: Block[]): boolean {
   // Check if this is a storage block with items
   if ((block.blockType === 19 || block.blockType === 20) && 
       block.storageState &&

@@ -1,4 +1,7 @@
-import { BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH, MACHINE_INTERACTION_DISTANCE } from '../constants'
+import { 
+  BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, 
+  BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, MACHINE_INTERACTION_DISTANCE 
+} from '../constants'
 import { Block, Player, BlockData } from '../types'
 
 export function getBlockData(blockType: number): BlockData {

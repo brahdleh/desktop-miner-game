@@ -4,13 +4,9 @@ import {
   MINE_LEFT, BLOCK_SIZE, PLAYER_WIDTH, PLAYER_HEIGHT,
   BLOCK_TYPES,
   PICKAXE_TYPES,
-  BACKPACK_TYPES,
-  MAX_PROFICIENCY_LEVEL,
-  MAX_STRENGTH_LEVEL,
   MINE_WIDTH
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
-import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
 import { getSelectedBlockType, distanceToBlock } from './utils/data-utils'
 import { canPlaceBlock } from './utils/mine-utils'
 import { drawTube, drawTorch, drawRefiner, drawStorageBlock } from './utils/render-utils'
@@ -18,7 +14,6 @@ import { drawTube, drawTorch, drawRefiner, drawStorageBlock } from './utils/rend
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
 const PICKAXE_TYPES_ARRAY = Object.values(PICKAXE_TYPES)
-const BACKPACK_TYPES_ARRAY = Object.values(BACKPACK_TYPES)
 
 const MAX_DARKNESS = 0.9 // Maximum darkness level (0-1)
 const DARKNESS_START = 100 // Y position where darkness starts
@@ -30,7 +25,7 @@ const TORCH_OUTER_RADIUS = 200
 let lightingCanvas: HTMLCanvasElement | null = null;
 let lightingCtx: CanvasRenderingContext2D | null = null;
 
-if (typeof document !== 'undefined') {
+if (typeof window !== 'undefined') {
   lightingCanvas = document.createElement('canvas');
   lightingCanvas.width = CANVAS_WIDTH;
   lightingCanvas.height = CANVAS_HEIGHT;
@@ -68,7 +63,7 @@ export function draw(
   drawPlayer(ctx, player, cameraOffsetY)
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
-  drawHUD(ctx, player, isPlacingMode)
+  drawHUD(ctx, player)
   drawDepthProgressBar(ctx, player)
 }
 
@@ -272,7 +267,6 @@ function drawZoneText(
 ) {
   const startX = zone.x + 10
   const startY = zone.y - cameraOffsetY
-  const rightX = startX + 110
 
   // Header
   ctx.fillStyle = "#fff"
@@ -309,10 +303,6 @@ function drawCraftZoneText(
   ctx.moveTo(zone.x + 10, zone.y + 35 - cameraOffsetY)
   ctx.lineTo(zone.x + zone.width - 10, zone.y + 35 - cameraOffsetY)
   ctx.stroke()
-
-  // Next pickaxe info
-  const nextPickaxeType = player.pickaxeType + 1
-  const nextPickaxe = PICKAXE_TYPES_ARRAY[nextPickaxeType]
   
   // Info
   ctx.font = "14px Arial"
@@ -378,7 +368,7 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
   }
 }
 
-function drawHUD(ctx: CanvasRenderingContext2D, player: Player, isPlacingMode?: boolean) {
+function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
   const startX = 5
   const startY = CANVAS_HEIGHT - 260
   const iconSize = 25

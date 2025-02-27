@@ -1,7 +1,7 @@
 import { Player, Block } from './types'
 import { REFINABLE_BLOCKS, BLOCK_SIZE, MACHINE_STORAGE_LIMIT } from './constants'
 import { 
-  COLLECTOR_ID, CHEST_ID, REFINER_ID,
+  COLLECTOR_ID, CHEST_ID,
   initializeStorageState, initializeRefinerState,
   hasMachineSpace, addItemToMachine
 } from './utils/machinery-utils'

@@ -181,7 +181,7 @@ export const PICKAXE_TYPES = {
     },
   },
   DIAMOND: {
-    id: 5, miningTimeMultiplier: 81, name: "Diamond",
+    id: 4, miningTimeMultiplier: 81, name: "Diamond",
     requirements: {
       blockType: 8,
       amount: 5
@@ -216,7 +216,7 @@ export const BACKPACK_TYPES = {
     },
   },
   DIAMOND: {
-    id: 5, capacity: 405, name: "Diamond",
+    id: 4, capacity: 405, name: "Diamond",
     requirements: {
       blockType: 8,
       amount: 5

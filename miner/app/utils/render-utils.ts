@@ -185,7 +185,7 @@ export function drawTorch(
 export function drawRefiner(
   ctx: CanvasRenderingContext2D,
   block: Block,
-  blockData: any,
+  blockData: BlockData,
   x: number,
   y: number
 ) {
@@ -315,7 +315,7 @@ export function drawStorageBlock(
   ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE);
   
   // Draw mini inventory
-  drawMachineInventory(ctx, block, x, y, type);
+  drawMachineInventory(ctx, block, x, y);
 }
 
 /**
@@ -326,7 +326,6 @@ export function drawMachineInventory(
   block: Block,
   x: number,
   y: number,
-  type: 'collector' | 'chest'
 ) {
   // Only draw if the block has storage state
   if (!block.storageState || !block.storageState.storedBlocks) return;

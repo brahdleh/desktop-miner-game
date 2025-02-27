@@ -24,7 +24,6 @@ import {
   attemptBuy,
   attemptDepositInMachinery,
   attemptCollectFromMachinery,
-  findNearbyMachinery,
   attemptCraftRefiner,
 } from "./mining"
 import { draw } from "./rendering"
