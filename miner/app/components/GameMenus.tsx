@@ -8,6 +8,7 @@ import {
   MAX_STRENGTH_LEVEL
 } from '../constants';
 import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from '../utils/calculation-utils';
+import { getBlockInventory } from '../utils/data-utils';
 
 // Cache arrays so that Object.values() isn't re-computed each render
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES);
@@ -252,11 +253,10 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
     ) : false;
 
   // Helper function to check if player has materials for a refiner
-  const hasRefinerMaterials = (inputType: number, outputType: number) => {
-    // This is a simplified check - you'll need to adjust based on your actual requirements
-    return player.inventorySlots.some(slot => 
-      slot.blockType === inputType && slot.count >= 5
-    );
+  const hasRefinerMaterials = (baseType: number, oreType: number) => {
+    if (getBlockInventory(player, baseType) < 1) return false
+    if (getBlockInventory(player, oreType) < 1) return false
+    return true
   };
 
   return (
@@ -329,16 +329,16 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
         
         {/* Refiner Crafting */}
         <div>
-          <h3 className="font-bold text-yellow-300 mb-2">Refiners</h3>
+          <h3 className="font-bold text-yellow-300 mb-2">Refiners [1-4]</h3>
           <div className="grid grid-cols-1 gap-2">
             <div className="flex justify-between items-center">
               <div>
-                <div>Stone → Copper Refiner [1]</div>
-                <div className="text-sm text-gray-400">Requires: Stone + Copper</div>
+                <div>Copper Refiner</div>
+                <div className="text-sm text-gray-400">Requires: Stone Refiner + Copper</div>
               </div>
               <MenuButton 
                 onClick={() => onCraftRefiner(22)}
-                disabled={!hasRefinerMaterials(1, 2)} // Assuming 1=stone, 2=copper
+                disabled={!hasRefinerMaterials(14, 5)}
               >
                 Craft
               </MenuButton>
@@ -346,12 +346,12 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
             
             <div className="flex justify-between items-center">
               <div>
-                <div>Copper → Iron Refiner [2]</div>
-                <div className="text-sm text-gray-400">Requires: Copper + Iron</div>
+                <div>Iron Refiner</div>
+                <div className="text-sm text-gray-400">Requires: Copper Refiner + Iron</div>
               </div>
               <MenuButton 
                 onClick={() => onCraftRefiner(23)}
-                disabled={!hasRefinerMaterials(2, 3)} // Assuming 2=copper, 3=iron
+                disabled={!hasRefinerMaterials(22, 6)}
               >
                 Craft
               </MenuButton>
@@ -359,12 +359,12 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
             
             <div className="flex justify-between items-center">
               <div>
-                <div>Iron → Gold Refiner [3]</div>
-                <div className="text-sm text-gray-400">Requires: Iron + Gold</div>
+                <div>Gold Refiner</div>
+                <div className="text-sm text-gray-400">Requires: Iron Refiner + Gold</div>
               </div>
               <MenuButton 
                 onClick={() => onCraftRefiner(24)}
-                disabled={!hasRefinerMaterials(3, 4)} // Assuming 3=iron, 4=gold
+                disabled={!hasRefinerMaterials(23, 7)}
               >
                 Craft
               </MenuButton>
@@ -372,12 +372,12 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
             
             <div className="flex justify-between items-center">
               <div>
-                <div>Gold → Diamond Refiner [4]</div>
-                <div className="text-sm text-gray-400">Requires: Gold + Diamond</div>
+                <div>Diamond Refiner</div>
+                <div className="text-sm text-gray-400">Requires: Gold Refiner + Diamond</div>
               </div>
               <MenuButton 
                 onClick={() => onCraftRefiner(25)}
-                disabled={!hasRefinerMaterials(4, 5)} // Assuming 4=gold, 5=diamond
+                disabled={!hasRefinerMaterials(24, 8)}
               >
                 Craft
               </MenuButton>

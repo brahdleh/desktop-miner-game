@@ -29,9 +29,9 @@ export function getStrengthUpgradeCost(player: Player): number {
 }
 
 export function getRefiningTime(refinerType: number, blockType: number): number {
-  const refinerRate = refinerType === 14 ? 30000 : refinerType === 22 ? 3000 : refinerType === 23 ? 300 : refinerType === 24 ? 30 : 3
+  const refinerRate = refinerType === 14 ? 30000 : refinerType === 22 ? 10000 : refinerType === 23 ? 3333 : refinerType === 24 ? 1111 : 3703
   const blockData = getBlockData(blockType)
-  const refiningTime = refinerRate * blockData.miningTimeMultiplier
+  const refiningTime = refinerRate * Math.sqrt(blockData.miningTimeMultiplier)
   return refiningTime
 }
 

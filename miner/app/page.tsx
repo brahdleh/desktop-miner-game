@@ -172,15 +172,7 @@ export default function MiningGame() {
               blocks.push(...savedData.blocks)
               showNotification('Game Loaded!')
             }
-          }/* else if (e.key === 'C') {
-            e.preventDefault()
-            const hexArray = blocksToHexArray(blocks)
-            const hexString = JSON.stringify(hexArray)
-            navigator.clipboard.writeText(hexString).then(() => {
-              setShowSaveNotification(true)
-              setTimeout(() => setShowSaveNotification(false), 2000)
-            })
-          }*/
+          }
           return
         }
 
@@ -238,21 +230,19 @@ export default function MiningGame() {
           const collectCheck = attemptCollectFromMachinery(player, blocks)
           if (collectCheck.reason) {
             showNotification(collectCheck.reason, 'warning')
-          } else {
-            showNotification('Item collected successfully', 'success')
           }
           return
         }
 
-        // Open shop menu when in upgrade zone
+        // Toggle shop menu when in upgrade zone
         if (e.key === "e" && isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
-          setShowShopMenu(true)
+          setShowShopMenu(prev => !prev)
           return
         }
         
-        // Open crafting menu when in craft zone
+        // Toggle crafting menu when in craft zone
         if (e.key === "e" && isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
-          setShowCraftingMenu(true)
+          setShowCraftingMenu(prev => !prev)
           return
         }
 
@@ -537,23 +527,21 @@ export default function MiningGame() {
         {/* Controls */}
         <div
           id="controls"
-          className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded"
+          className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded text-right"
         >
           <span className="text-xs opacity-50">L CLICK to mine/place</span>
           <br />
-          <span className="text-xs opacity-50">F to toggle mode</span>
-          <br />
-          <span className="text-xs opacity-50">E for Shop/Craft menu</span>
+          <span className="text-xs opacity-50">F to toggle Mode</span>
           <br />
           <span className="text-xs opacity-50">SHIFT S to Save</span>
           <br />
           <span className="text-xs opacity-50">SHIFT L to Load</span>
           <br />
-          <span className="text-xs opacity-50">↑↓←→ for Inventory</span>
+          <span className="text-xs opacity-50">↑↓←→ Inventory</span>
           <br />
-          <span className="text-xs opacity-50">T Deposit to Machinery</span>
+          <span className="text-xs opacity-50">T Deposit</span>
           <br />
-          <span className="text-xs opacity-50">Y Collect from Machinery</span>
+          <span className="text-xs opacity-50">Y Collect</span>
         </div>
       </div>
     </div>
