@@ -116,10 +116,10 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Refiner [N]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">100 🪙</span>
+            <span className="text-yellow-400 mr-2">50 🪙</span>
             <MenuButton 
               onClick={() => onBuyItem(14)}
-              disabled={player.gold < 100}
+              disabled={player.gold < 50}
             >
               Buy
             </MenuButton>
@@ -170,7 +170,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         </div>
         
         <div className="col-span-2 flex justify-between items-center">
-          <span>Proficiency [G]</span>
+          <span>Proficiency</span>
           <div className="flex items-center">
             {proficiencyMaxed ? (
               <span className="text-gray-400">MAXED</span>
@@ -189,7 +189,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         </div>
         
         <div className="col-span-2 flex justify-between items-center">
-          <span>Strength [R]</span>
+          <span>Strength</span>
           <div className="flex items-center">
             {strengthMaxed ? (
               <span className="text-gray-400">MAXED</span>
@@ -275,7 +275,7 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
       <div className="space-y-4">
         {/* Pickaxe Crafting */}
         <div className="border-b border-yellow-700 pb-3">
-          <h3 className="font-bold text-yellow-300 mb-2">Pickaxe Upgrade [E]</h3>
+          <h3 className="font-bold text-yellow-300 mb-2">Pickaxe Upgrade</h3>
           {nextPickaxe ? (
             <div className="flex justify-between items-center">
               <div>
@@ -302,7 +302,7 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
         
         {/* Backpack Crafting */}
         <div className="border-b border-yellow-700 pb-3">
-          <h3 className="font-bold text-yellow-300 mb-2">Backpack Upgrade [R]</h3>
+          <h3 className="font-bold text-yellow-300 mb-2">Backpack Upgrade</h3>
           {nextBackpack ? (
             <div className="flex justify-between items-center">
               <div>

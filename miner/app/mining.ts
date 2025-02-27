@@ -1,7 +1,8 @@
 import { Player, Block } from './types'
 import { 
   DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_PROFICIENCY_LEVEL, MAX_STRENGTH_LEVEL,
-  REFINABLE_BLOCKS
+  REFINABLE_BLOCKS,
+  MINING_REACH
 } from './constants'
 import { 
   updatePickaxePower, getProficiencyUpgradeCost, getStrengthUpgradeCost, updateBackpackCapacity,
@@ -141,7 +142,7 @@ export function canMineBlock(
   }
 
   // Distance check from player
-  if (distanceToBlock(player, block.x, block.y) > BLOCK_SIZE * 1.8) {
+  if (distanceToBlock(player, block.x, block.y) > MINING_REACH) {
     return { canMine: false }
   }
 
@@ -160,7 +161,7 @@ export function attemptPlaceBlock(
   clickY: number
 ): { canPlace: boolean; reason?: string } {
   const selectedBlockType = getSelectedBlockType(player)
-  if (selectedBlockType === null) return { canPlace: false }
+  if (selectedBlockType === null) return { canPlace: false, reason: "No block selected!"}
   if (getBlockInventory(player, selectedBlockType) <= 0) return { canPlace: false, reason: "No block selected!" }
 
   const grid = getGridPosition(clickX, clickY)
@@ -374,16 +375,18 @@ export function attemptCollectFromChest(player: Player, blocks: Block[]): { succ
     return { success: false, reason: "Chest is empty!" }
   }
 
-  // Check if player has inventory space
-  if (player.inventory >= player.backpackCapacity) {
+  // Get the first item from the chest (without removing it yet)
+  const blockToCollect = chest.storageState.storedBlocks[0];
+  
+  // Check if player can hold the item
+  if (canHoldBlock(player, blockToCollect.blockType)) {
+    // Only remove the item if the player can hold it
+    chest.storageState.storedBlocks.shift();
+    addToInventory(player, blockToCollect.blockType);
+    return { success: true };
+  } else {
     return { success: false, reason: "Not Enough Inventory!" }
   }
-
-  // Take the first item from the chest
-  const block = chest.storageState.storedBlocks.shift()!
-  addToInventory(player, block.blockType)
-
-  return { success: true }
 }
 
 // Find any nearby machinery (refiner, collector, or chest)
@@ -485,16 +488,18 @@ export function attemptCollectFromCollector(player: Player, blocks: Block[]): { 
     return { success: false, reason: "Collector is empty!" }
   }
 
-  // Check if player has inventory space
-  if (player.inventory >= player.backpackCapacity) {
+  // Get the first item from the collector (without removing it yet)
+  const blockToCollect = collector.storageState.storedBlocks[0];
+  
+  // Check if player can hold the item
+  if (canHoldBlock(player, blockToCollect.blockType)) {
+    // Only remove the item if the player can hold it
+    collector.storageState.storedBlocks.shift();
+    addToInventory(player, blockToCollect.blockType);
+    return { success: true };
+  } else {
     return { success: false, reason: "Not Enough Inventory!" }
   }
-
-  // Take the first item from the collector
-  const block = collector.storageState.storedBlocks.shift()!
-  addToInventory(player, block.blockType)
-
-  return { success: true }
 }
 
 // Add a function to craft advanced refiners

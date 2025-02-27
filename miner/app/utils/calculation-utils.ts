@@ -31,16 +31,16 @@ export function getStrengthUpgradeCost(player: Player): number {
 export function getRefiningTime(refinerType: number, blockType: number): number {
   // Map refiner types to their base processing rates
   const refinerRates: {[key: number]: number} = {
-    14: 30000, // Stone refiner
-    22: 10000, // Copper refiner
-    23: 3333,  // Iron refiner
-    24: 1111,  // Gold refiner
-    25: 370    // Diamond refiner
+    14: 20000, // Stone refiner
+    22: 5000, // Copper refiner
+    23: 1000,  // Iron refiner
+    24: 200,  // Gold refiner
+    25: 40    // Diamond refiner
   };
   
   const refinerRate = refinerRates[refinerType] || 30000; // Default to stone refiner rate
   const blockData = getBlockData(blockType);
-  return refinerRate * Math.sqrt(blockData.miningTimeMultiplier);
+  return refinerRate * Math.pow(blockData.miningTimeMultiplier, 0.8);
 }
 
 

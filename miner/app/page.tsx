@@ -247,12 +247,6 @@ export default function MiningGame() {
 
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           switch (e.key) {
-            case "g":
-              attemptProficiencyUpgrade(player)
-              break
-            case "r":
-              attemptStrengthUpgrade(player)
-              break
             case "p":
               attemptSell(player)
               break
@@ -287,14 +281,7 @@ export default function MiningGame() {
           }
         }
 
-        if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
-          if (e.key === "g") {
-            attemptCraftPickaxe(player)
-          }
-          if (e.key === "r") {
-            attemptCraftBackpack(player)
-          }
-          
+        if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {         
           // Add new key handlers for crafting refiners
           if (e.key === "1") {
             // Craft copper refiner (ID 22)

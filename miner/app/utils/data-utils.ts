@@ -1,6 +1,6 @@
 import { 
   BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, 
-  BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, MACHINE_INTERACTION_DISTANCE 
+  BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH, MACHINE_INTERACTION_DISTANCE 
 } from '../constants'
 import { Block, Player, BlockData } from '../types'
 
@@ -17,7 +17,7 @@ export function getGridPosition(x: number, y: number): [number, number] {
 
 export function distanceToBlock(player: Player, x: number, y: number): number {
   
-  const distX = Math.abs(player.x - x)
+  const distX = Math.abs(player.x - PLAYER_WIDTH/4 - x)
   const distYHead = Math.abs(player.y - y)
   const distYCore = Math.abs(player.y + PLAYER_HEIGHT/2 - y)
   

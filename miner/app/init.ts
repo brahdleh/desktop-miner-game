@@ -46,14 +46,14 @@ export function initializeBlocks(): Block[] {
     copper: { mean: 15, std: 30, maxProb: 0.09, plateau: 0.04 },
     iron: { mean: 40, std: 30, maxProb: 0.08, plateau: 0.04},
     gold: { mean: 65, std: 30, maxProb: 0.07, plateau: 0.04},
-    diamond: { mean: 90, std: 30, maxProb: 0.06, plateau: 0.05 }
+    diamond: { mean: 90, std: 30, maxProb: 0.06, plateau: 0.04 }
   };
 
   // Generate mine shaft
   for (let y = SURFACE_Y + BLOCK_SIZE; y < SURFACE_Y + MINE_DEPTH_PX; y += BLOCK_SIZE) {
     for (let x = MINE_LEFT; x < MINE_LEFT + MINE_WIDTH * BLOCK_SIZE; x += BLOCK_SIZE) {
       const depth = (y - SURFACE_Y) / BLOCK_SIZE
-      let blockType = depth > 75 ? 4 : depth > 50 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
+      let blockType = depth > 100 ? 4 : depth > 60 ? 3 : depth > 25 ? 2 : 1  // block depends on depth
             
       // Copper (type 5)
       if (depth >= 6 && Math.random() < oreDistributionFunction(depth, oreDistributions.copper)) {
@@ -64,11 +64,11 @@ export function initializeBlocks(): Block[] {
         blockType = 6
       }
       // Gold (type 7)
-      if (depth >= 53 && Math.random() < oreDistributionFunction(depth, oreDistributions.gold)) {
+      if (depth >= 63 && Math.random() < oreDistributionFunction(depth, oreDistributions.gold)) {
         blockType = 7
       }
       // Diamond (type 8)
-      if (depth >= 78 && Math.random() < oreDistributionFunction(depth, oreDistributions.diamond)) {
+      if (depth >= 103 && Math.random() < oreDistributionFunction(depth, oreDistributions.diamond)) {
         blockType = 8 
       }
 
