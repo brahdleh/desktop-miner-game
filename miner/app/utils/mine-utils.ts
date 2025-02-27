@@ -88,7 +88,7 @@ export function mineBlock(block: Block, blocks: Block[]) {
       
       // Find and mine all secondary blocks that reference this main block
       blocks.forEach(b => {
-        if (b.mainBlockX === mainBlock.x && b.mainBlockY === mainBlock.y) {
+        if (b.mainBlockX === mainBlock.x && b.mainBlockY === mainBlock.y && b.isSecondaryBlock) {
           b.isMined = true
         }
       })
@@ -99,7 +99,7 @@ export function mineBlock(block: Block, blocks: Block[]) {
     
     // Find and mine all secondary blocks that reference this block as their main block
     blocks.forEach(b => {
-      if (b.mainBlockX === block.x && b.mainBlockY === block.y) {
+      if (b.mainBlockX === block.x && b.mainBlockY === block.y  && b.isSecondaryBlock) {
         b.isMined = true
       }
     })

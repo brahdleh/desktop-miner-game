@@ -168,11 +168,23 @@ function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]):
   // Add source to visited
   visited.add(`${source.x},${source.y}`)
   
+  // Find all secondary blocks of the source and target
+  const sourceBlocks = [source, ...getSecondaryBlocks(source, blocks)]
+  const targetBlocks = [target, ...getSecondaryBlocks(target, blocks)]
+  
+  // Add all source blocks to the queue and mark as visited
+  for (const sourceBlock of sourceBlocks) {
+    if (sourceBlock !== source) { // Skip the main block as it's already added
+      visited.add(`${sourceBlock.x},${sourceBlock.y}`)
+      queue.push({ block: sourceBlock, path: [sourceBlock] })
+    }
+  }
+  
   while (queue.length > 0) {
     const { block, path } = queue.shift()!
     
-    // If we've reached the target, return the path
-    if (block.x === target.x && block.y === target.y) {
+    // If we've reached any of the target blocks, return the path
+    if (targetBlocks.some(tb => tb.x === block.x && tb.y === block.y)) {
       return path
     }
     
@@ -199,8 +211,8 @@ function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]):
       // Mark as visited
       visited.add(key)
       
-      // If it's the target or a tube, add to queue
-      if (nextBlock === target || nextBlock.blockType === 21) { // Target or Tube ID
+      // If it's one of the target blocks or a tube, add to queue
+      if (targetBlocks.some(tb => tb.x === nextBlock.x && tb.y === nextBlock.y) || nextBlock.blockType === 21) { // Target or Tube ID
         queue.push({ 
           block: nextBlock, 
           path: [...path, nextBlock] 
@@ -211,6 +223,16 @@ function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]):
   
   // No path found
   return null
+}
+
+// Helper function to get all secondary blocks of a machine
+function getSecondaryBlocks(mainBlock: Block, blocks: Block[]): Block[] {
+  return blocks.filter(b => 
+    !b.isMined && 
+    b.isSecondaryBlock && 
+    b.mainBlockX === mainBlock.x && 
+    b.mainBlockY === mainBlock.y
+  )
 }
 
 // Function to check if a player is near a specific block type

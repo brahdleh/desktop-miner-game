@@ -40,9 +40,9 @@ export const UPGRADE_ZONE = {
 }
 
 export const CRAFT_ZONE = {
-  x: CANVAS_WIDTH - 160,
+  x: CANVAS_WIDTH - 180,
 y: SURFACE_Y - 250,
-  width: 160,
+  width: 180,
   height: 250,
 }
 

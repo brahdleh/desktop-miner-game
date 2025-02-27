@@ -289,15 +289,12 @@ function drawZoneText(
   drawShopOption(ctx, "Buy Torch [K]", startX, startY + 100, 5, coinIcon)
   drawShopOption(ctx, "Buy Ladder [L]", startX, startY + 140, 10, coinIcon)
   drawShopOption(ctx, "Buy Refiner [N]", startX, startY + 180, 100, coinIcon)
-
-  // Right column - Upgrades
-  const pickaxeData = PICKAXE_TYPES_ARRAY[player.pickaxeType]
-  const backpackData = BACKPACK_TYPES_ARRAY[player.backpackType]
+  drawShopOption(ctx, "Buy Chest [O]", startX, startY + 220, 150, coinIcon)
   
   // Sell option
   drawShopOption(ctx, "Sell Blocks [P]", rightX, startY + 60)
 
-  // Pickaxe upgrade
+  // Proficiency upgrade
   const proficiencyMaxed = player.proficiency >= MAX_PROFICIENCY_LEVEL
   const proficiencyCost = getProficiencyUpgradeCost(player)
   
@@ -322,7 +319,10 @@ function drawZoneText(
     strengthMaxed ? "MAXED" : strengthCost,
     coinIcon
   )
+  drawShopOption(ctx, "Buy Collector [M]", rightX, startY + 180, 100, coinIcon)
+  drawShopOption(ctx, "Buy Tube [Q]", rightX, startY + 220, 50, coinIcon)
 }
+
 
 // Helper function to draw shop options with consistent formatting
 function drawShopOption(
@@ -406,6 +406,17 @@ function drawCraftZoneText(
     ctx.font = "14px Arial"
     ctx.fillText("Final Backpack", zone.x + 10, zone.y + 130 - cameraOffsetY)
   }
+  
+  // Add Refiner crafting information
+  ctx.font = "14px Arial"
+  ctx.fillText("Refiners", zone.x + 10, zone.y + 160 - cameraOffsetY)
+  
+  ctx.font = "12px Arial"
+  ctx.fillText("[1] Stone refiner + Copper ", zone.x + 20, zone.y + 180 - cameraOffsetY)
+  ctx.fillText("[2] Copper refiner + Iron ", zone.x + 20, zone.y + 200 - cameraOffsetY)
+  ctx.fillText("[3] Iron refiner + Gold ", zone.x + 20, zone.y + 220 - cameraOffsetY)
+  ctx.fillText("[4] Gold refiner + Diamond ", zone.x + 20, zone.y + 240 - cameraOffsetY)
+
 }  
 
 function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {

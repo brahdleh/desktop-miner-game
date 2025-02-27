@@ -1,4 +1,4 @@
-import { Block } from '../types'
+import { Block, BlockData } from '../types'
 import { BLOCK_SIZE, REFINING_TIME, REFINABLE_BLOCKS, BLOCK_TYPES } from '../constants'
 import { getBlockTexture } from '../assets'
 import { getRefiningTime } from '../utils/calculation-utils'
@@ -18,6 +18,8 @@ export function drawTube(
 ) {
   const tubeTexture = getBlockTexture('tube');
   const tubeCornerTexture = getBlockTexture('tube2');
+  const tube3WayTexture = getBlockTexture('tube3');
+  const tube4WayTexture = getBlockTexture('tube4');
   const tubeID = 21
   
   if (!tubeTexture || !tubeCornerTexture) {
@@ -29,51 +31,69 @@ export function drawTube(
     return;
   }
   
-  // Find adjacent tubes (only cardinal directions, not diagonals)
-  const adjacentTubes = {
-    top: blocks.find(b => b.blockType === tubeID && !b.isMined && 
-                    b.x === tubeBlock.x && b.y === tubeBlock.y - BLOCK_SIZE),
-    right: blocks.find(b => b.blockType === tubeID && !b.isMined && 
-                     b.x === tubeBlock.x + BLOCK_SIZE && b.y === tubeBlock.y),
-    bottom: blocks.find(b => b.blockType === tubeID && !b.isMined && 
-                      b.x === tubeBlock.x && b.y === tubeBlock.y + BLOCK_SIZE),
-    left: blocks.find(b => b.blockType === tubeID && !b.isMined && 
-                    b.x === tubeBlock.x - BLOCK_SIZE && b.y === tubeBlock.y)
+  // Find adjacent tubes and machines (only cardinal directions, not diagonals)
+  const adjacentConnections = {
+    top: blocks.find(b => isValidTubeConnection(b, tubeBlock.x, tubeBlock.y - BLOCK_SIZE)),
+    right: blocks.find(b => isValidTubeConnection(b, tubeBlock.x + BLOCK_SIZE, tubeBlock.y)),
+    bottom: blocks.find(b => isValidTubeConnection(b, tubeBlock.x, tubeBlock.y + BLOCK_SIZE)),
+    left: blocks.find(b => isValidTubeConnection(b, tubeBlock.x - BLOCK_SIZE, tubeBlock.y))
   };
   
-  // Count adjacent tubes
-  const adjacentCount = Object.values(adjacentTubes).filter(Boolean).length;
+  // Helper function to check if a block is a valid tube connection
+  function isValidTubeConnection(block: Block, checkX: number, checkY: number) {
+    if (!block || block.isMined) return false;
+    
+    // Check if it's a tube
+    if (block.blockType === tubeID && block.x === checkX && block.y === checkY) return true;
+    
+    // Check if it's a machine (refiner, collector, chest)
+    const blockData = BLOCK_TYPES_ARRAY[block.blockType] as BlockData;
+    if (!blockData) return false;
+    
+    // Check if it's a machine type that can connect to tubes
+    const isMachine = blockData.category === 'refiner' || 
+                      block.blockType === 19 || // Collector
+                      block.blockType === 20;   // Chest
+    
+    // Check if the position matches
+    return isMachine && 
+           block.x === checkX && 
+           block.y === checkY;
+  }
+  
+  // Count adjacent connections
+  const connectionCount = Object.values(adjacentConnections).filter(Boolean).length;
   
   // Save the current context state
   ctx.save();
   
-  // Case 1: No adjacent tubes or more than 2 adjacent tubes - use default texture
-  if (adjacentCount === 0 || adjacentCount > 2) {
+  // Case 1: No adjacent connections - use default texture
+  if (connectionCount === 0) {
     ctx.drawImage(tubeTexture, x, y, BLOCK_SIZE, BLOCK_SIZE);
   }
-  // Case 2: One adjacent tube - use straight tube with rotation
-  else if (adjacentCount === 1) {
-    // Determine rotation angle based on which side has the adjacent tube
+  // Case 2: One adjacent connection - use straight tube with rotation
+  else if (connectionCount === 1) {
+    // Determine rotation angle based on which side has the adjacent connection
     let angle = 0;
-    if (adjacentTubes.top) angle = 0; 
-    else if (adjacentTubes.right) angle = Math.PI / 2;
-    else if (adjacentTubes.bottom) angle = 0;
-    else if (adjacentTubes.left) angle = Math.PI / 2;
+    if (adjacentConnections.top) angle = 0; 
+    else if (adjacentConnections.right) angle = Math.PI / 2;
+    else if (adjacentConnections.bottom) angle = 0;
+    else if (adjacentConnections.left) angle = Math.PI / 2;
     
     // Set the transformation origin to the center of the block
     ctx.translate(x + BLOCK_SIZE / 2, y + BLOCK_SIZE / 2);
     ctx.rotate(angle);
     ctx.drawImage(tubeTexture, -BLOCK_SIZE / 2, -BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE);
   }
-  // Case 3: Two adjacent tubes
-  else if (adjacentCount === 2) {
-    // Check if tubes are on opposite sides (straight connection)
-    if ((adjacentTubes.top && adjacentTubes.bottom) || 
-        (adjacentTubes.left && adjacentTubes.right)) {
+  // Case 3: Two adjacent connections
+  else if (connectionCount === 2) {
+    // Check if connections are on opposite sides (straight connection)
+    if ((adjacentConnections.top && adjacentConnections.bottom) || 
+        (adjacentConnections.left && adjacentConnections.right)) {
       // Use straight tube with appropriate rotation
       let angle = 0;
-      if (adjacentTubes.left && adjacentTubes.right) {
-        angle = Math.PI / 2; // 90 degrees for vertical
+      if (adjacentConnections.left && adjacentConnections.right) {
+        angle = Math.PI / 2; // 90 degrees for horizontal
       }
       
       // Set the transformation origin to the center of the block
@@ -86,13 +106,13 @@ export function drawTube(
       // Determine which corner configuration we have and set rotation accordingly
       let angle = 0;
       
-      if (adjacentTubes.bottom && adjacentTubes.right) {
+      if (adjacentConnections.bottom && adjacentConnections.right) {
         angle = 0; // Default orientation of tube2
-      } else if (adjacentTubes.bottom && adjacentTubes.left) {
+      } else if (adjacentConnections.bottom && adjacentConnections.left) {
         angle = Math.PI / 2; // 90 degrees
-      } else if (adjacentTubes.top && adjacentTubes.left) {
+      } else if (adjacentConnections.top && adjacentConnections.left) {
         angle = Math.PI; // 180 degrees
-      } else if (adjacentTubes.top && adjacentTubes.right) {
+      } else if (adjacentConnections.top && adjacentConnections.right) {
         angle = 3 * Math.PI / 2; // 270 degrees
       }
       
@@ -101,6 +121,34 @@ export function drawTube(
       ctx.rotate(angle);
       ctx.drawImage(tubeCornerTexture, -BLOCK_SIZE / 2, -BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE);
     }
+  }
+  // Case 4: Three adjacent connections - use tube3 with appropriate rotation
+  else if (connectionCount === 3 && tube3WayTexture) {
+    let angle = 0;
+    
+    // Determine which side doesn't have a connection and rotate accordingly
+    if (!adjacentConnections.top) {
+      angle = Math.PI / 2; // Default orientation (open at top)
+    } else if (!adjacentConnections.right) {
+      angle = Math.PI; // 90 degrees (open at right)
+    } else if (!adjacentConnections.bottom) {
+      angle = -Math.PI/2; // 180 degrees (open at bottom)
+    } else if (!adjacentConnections.left) {
+      angle = 0; // 270 degrees (open at left)
+    }
+    
+    // Set the transformation origin to the center of the block
+    ctx.translate(x + BLOCK_SIZE / 2, y + BLOCK_SIZE / 2);
+    ctx.rotate(angle);
+    ctx.drawImage(tube3WayTexture, -BLOCK_SIZE / 2, -BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE);
+  }
+  // Case 5: Four adjacent connections - use tube4 (no rotation needed)
+  else if (connectionCount === 4 && tube4WayTexture) {
+    ctx.drawImage(tube4WayTexture, x, y, BLOCK_SIZE, BLOCK_SIZE);
+  }
+  // Fallback for 3 or 4 connections if textures aren't available
+  else {
+    ctx.drawImage(tubeTexture, x, y, BLOCK_SIZE, BLOCK_SIZE);
   }
   
   // Restore the context state
@@ -141,6 +189,7 @@ export function drawRefiner(
   x: number,
   y: number
 ) {
+  // Only draw if this is the main block of the refiner
   if (!blockData || !blockData.size || block.isSecondaryBlock) return;
   
   // Get the appropriate refiner background texture based on refiner type
