@@ -1,6 +1,6 @@
 import { Block, BlockData } from '../types'
-import { BLOCK_SIZE, REFINING_TIME, REFINABLE_BLOCKS, BLOCK_TYPES } from '../constants'
-import { getBlockTexture } from '../assets'
+import { BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_TYPES } from '../constants'
+import { getBlockTexture, getIconTexture } from '../assets'
 import { getRefiningTime } from '../utils/calculation-utils'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
@@ -331,32 +331,25 @@ export function drawMachineInventory(
   // Only draw if the block has storage state
   if (!block.storageState || !block.storageState.storedBlocks) return;
   
-  const slotSize = 12; // Size of each inventory slot
-  const padding = 2; // Padding between slots
-  const startX = x + (BLOCK_SIZE - (slotSize * 2 + padding)) / 2; // Center horizontally
-  const startY = y + BLOCK_SIZE - slotSize * 2 - padding - 5; // Position near bottom
+  const slotSize = 10; // Size of each inventory slot
+  const padding = 1; // Padding between slots
+  const startX = x + (BLOCK_SIZE - (slotSize * 3 + padding * 2)) / 2; // Center horizontally
+  const startY = y + BLOCK_SIZE - slotSize * 3 - padding * 2 - 4; // Position near bottom
   
-  // Background for inventory
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-  ctx.fillRect(
-    startX - 2, 
-    startY - 2, 
-    slotSize * 2 + padding + 4, 
-    slotSize * 2 + padding + 4
-  );
+  // Get inventory slot textures from the same ones used in main rendering
+  const unselectedSlotTexture = getIconTexture('inventory');
   
-  // Draw up to 4 slots in a 2x2 grid
-  for (let i = 0; i < 4; i++) {
-    const row = Math.floor(i / 2);
-    const col = i % 2;
+  // Draw up to 9 slots in a 3x3 grid
+  for (let i = 0; i < 9; i++) {
+    const row = Math.floor(i / 3);
+    const col = i % 3;
     const slotX = startX + col * (slotSize + padding);
     const slotY = startY + row * (slotSize + padding);
     
-    // Draw slot background
-    ctx.fillStyle = "rgba(80, 80, 80, 0.6)";
-    ctx.fillRect(slotX, slotY, slotSize, slotSize);
-    ctx.strokeStyle = "rgba(150, 150, 150, 0.8)";
-    ctx.strokeRect(slotX, slotY, slotSize, slotSize);
+    // Draw slot background using the inventory texture
+    if (unselectedSlotTexture) {
+      ctx.drawImage(unselectedSlotTexture, slotX, slotY, slotSize, slotSize);
+    }
     
     // Draw item in slot if it exists
     const item = block.storageState.storedBlocks[i];

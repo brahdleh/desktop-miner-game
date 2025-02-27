@@ -28,7 +28,7 @@ export const MINE_DEPTH_BLOCKS = 150
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
 // Automation constants
-export const MACHINE_STORAGE_LIMIT = 4 // Maximum items a machine can store
+export const MACHINE_STORAGE_LIMIT = 9 // Maximum items a machine can store
 export const MACHINE_INTERACTION_DISTANCE = 100 // Distance in pixels for interacting with machines
 
 // Action zones
