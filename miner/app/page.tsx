@@ -33,12 +33,21 @@ import { saveGame, loadGame } from "./storage"
 import { loadAllTextures } from "./assets"
 import { getGridPosition } from "./utils/data-utils"
 import { processAutomation } from './automation'
+import { ShopMenu, CraftingMenu } from "./components/GameMenus"
 
 
 export default function MiningGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [notifications, setNotifications] = useState<{id: number, text: string, type: 'success' | 'warning'}[]>([])
   const nextNotificationId = useRef(0)
+  
+  // Add state for menus
+  const [showShopMenu, setShowShopMenu] = useState(false)
+  const [showCraftingMenu, setShowCraftingMenu] = useState(false)
+  
+  // Add refs for player and blocks to access them from menu components
+  const playerRef = useRef<Player | null>(null)
+  const blocksRef = useRef<Block[]>([])
 
   const showNotification = (text: string, type: 'success' | 'warning' = 'success') => {
     const id = nextNotificationId.current++
@@ -62,6 +71,11 @@ export default function MiningGame() {
       // -------------------------------------------------------------------------
       const player: Player = initializePlayer()
       const blocks: Block[] = initializeBlocks()
+      
+      // Store references to player and blocks
+      playerRef.current = player
+      blocksRef.current = blocks
+      
       const keys: { [key: string]: boolean } = {}
       let cameraOffsetY = 0
       let miningProgress = 0
@@ -216,8 +230,6 @@ export default function MiningGame() {
           const depositCheck = attemptDepositInMachinery(player, blocks)
           if (depositCheck.reason) {
             showNotification(depositCheck.reason, 'warning')
-          } else {
-            showNotification('Item deposited successfully', 'success')
           }
           return
         }
@@ -232,9 +244,21 @@ export default function MiningGame() {
           return
         }
 
+        // Open shop menu when in upgrade zone
+        if (e.key === "e" && isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
+          setShowShopMenu(true)
+          return
+        }
+        
+        // Open crafting menu when in craft zone
+        if (e.key === "e" && isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
+          setShowCraftingMenu(true)
+          return
+        }
+
         if (isPlayerInZone(player, UPGRADE_ZONE) && player.y <= SURFACE_Y) {
           switch (e.key) {
-            case "e":
+            case "g":
               attemptProficiencyUpgrade(player)
               break
             case "r":
@@ -275,7 +299,7 @@ export default function MiningGame() {
         }
 
         if (isPlayerInZone(player, CRAFT_ZONE) && player.y <= SURFACE_Y) {
-          if (e.key === "e") {
+          if (e.key === "g") {
             attemptCraftPickaxe(player)
           }
           if (e.key === "r") {
@@ -402,6 +426,68 @@ export default function MiningGame() {
     })
   }, [])
 
+  // Handler functions for menu actions
+  const handleBuyItem = (blockType: number) => {
+    if (!playerRef.current) return
+    
+    const buyResult = attemptBuy(playerRef.current, blockType)
+    if (buyResult.reason) {
+      showNotification(buyResult.reason, 'warning')
+    } else {
+      showNotification(`Item purchased!`, 'success')
+    }
+  }
+  
+  const handleUpgradeProficiency = () => {
+    if (!playerRef.current) return
+    
+    if (attemptProficiencyUpgrade(playerRef.current)) {
+      showNotification('Proficiency upgraded!', 'success')
+    } else {
+      showNotification('Cannot upgrade proficiency', 'warning')
+    }
+  }
+  
+  const handleUpgradeStrength = () => {
+    if (!playerRef.current) return
+    
+    if (attemptStrengthUpgrade(playerRef.current)) {
+      showNotification('Strength upgraded!', 'success')
+    } else {
+      showNotification('Cannot upgrade strength', 'warning')
+    }
+  }
+  
+  const handleCraftPickaxe = () => {
+    if (!playerRef.current) return
+    
+    if (attemptCraftPickaxe(playerRef.current)) {
+      showNotification('Pickaxe crafted!', 'success')
+    } else {
+      showNotification('Cannot craft pickaxe', 'warning')
+    }
+  }
+  
+  const handleCraftBackpack = () => {
+    if (!playerRef.current) return
+    
+    if (attemptCraftBackpack(playerRef.current)) {
+      showNotification('Backpack crafted!', 'success')
+    } else {
+      showNotification('Cannot craft backpack', 'warning')
+    }
+  }
+  
+  const handleCraftRefiner = (refinerType: number) => {
+    if (!playerRef.current) return
+    
+    if (attemptCraftRefiner(playerRef.current, refinerType)) {
+      showNotification('Refiner crafted!', 'success')
+    } else {
+      showNotification('Cannot craft refiner', 'warning')
+    }
+  }
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">
       <div id="gameContainer" className="relative">
@@ -426,6 +512,28 @@ export default function MiningGame() {
           ref={canvasRef}
         ></canvas>
 
+        {/* Shop Menu */}
+        {showShopMenu && playerRef.current && (
+          <ShopMenu
+            player={playerRef.current}
+            onClose={() => setShowShopMenu(false)}
+            onBuyItem={handleBuyItem}
+            onUpgradeProficiency={handleUpgradeProficiency}
+            onUpgradeStrength={handleUpgradeStrength}
+          />
+        )}
+        
+        {/* Crafting Menu */}
+        {showCraftingMenu && playerRef.current && (
+          <CraftingMenu
+            player={playerRef.current}
+            onClose={() => setShowCraftingMenu(false)}
+            onCraftPickaxe={handleCraftPickaxe}
+            onCraftBackpack={handleCraftBackpack}
+            onCraftRefiner={handleCraftRefiner}
+          />
+        )}
+
         {/* Controls */}
         <div
           id="controls"
@@ -434,6 +542,8 @@ export default function MiningGame() {
           <span className="text-xs opacity-50">L CLICK to mine/place</span>
           <br />
           <span className="text-xs opacity-50">F to toggle mode</span>
+          <br />
+          <span className="text-xs opacity-50">E for Shop/Craft menu</span>
           <br />
           <span className="text-xs opacity-50">SHIFT S to Save</span>
           <br />
@@ -444,8 +554,6 @@ export default function MiningGame() {
           <span className="text-xs opacity-50">T Deposit to Machinery</span>
           <br />
           <span className="text-xs opacity-50">Y Collect from Machinery</span>
-          <br />
-          <span className="text-xs opacity-50">In Craft Zone: 1-4 for Refiners</span>
         </div>
       </div>
     </div>

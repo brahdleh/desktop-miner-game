@@ -88,9 +88,9 @@ export function attemptBuy(player: Player, blockType: number): { success: boolea
   return { success: true }
 }
 
-export function attemptProficiencyUpgrade(player: Player) {
+export function attemptProficiencyUpgrade(player: Player): boolean {
   // Check if already at max level
-  if (player.proficiency >= MAX_PROFICIENCY_LEVEL) return
+  if (player.proficiency >= MAX_PROFICIENCY_LEVEL) return false
 
   const cost = getProficiencyUpgradeCost(player)
   
@@ -98,12 +98,14 @@ export function attemptProficiencyUpgrade(player: Player) {
     player.gold -= cost
     player.proficiency += 1
     updatePickaxePower(player)
+    return true
   }
+  return false
 }
 
-export function attemptStrengthUpgrade(player: Player) {
+export function attemptStrengthUpgrade(player: Player): boolean {
   // Check if already at max level
-  if (player.strength >= MAX_STRENGTH_LEVEL) return
+  if (player.strength >= MAX_STRENGTH_LEVEL) return false
 
   const cost = getStrengthUpgradeCost(player)
   
@@ -111,7 +113,9 @@ export function attemptStrengthUpgrade(player: Player) {
     player.gold -= cost
     player.strength += 1
     updateBackpackCapacity(player)
+    return true
   }
+  return false
 }
 
 export function canMineBlock(

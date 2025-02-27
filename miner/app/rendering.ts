@@ -55,16 +55,17 @@ export function draw(
   ctx.clearRect(0, -CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
 
   drawBackground(ctx, cameraOffsetY)
-  drawBlocks(player.y, ctx, blocks, cameraOffsetY)
-  drawMiningProgress(ctx, miningTargetBlock, miningProgress, requiredTime, cameraOffsetY)
   
   // Draw block placement preview if in placing mode
   if (isPlacingMode && previewX !== undefined && previewY !== undefined) {
     drawBlockPreview(ctx, player, blocks, previewX, previewY, cameraOffsetY)
   }
   
-  drawPlayer(ctx, player, cameraOffsetY)
   drawZones(ctx, upgradeZone, sellZone, player, cameraOffsetY)
+  drawBuildings(ctx, cameraOffsetY)
+  drawBlocks(player.y, ctx, blocks, cameraOffsetY)
+  drawMiningProgress(ctx, miningTargetBlock, miningProgress, requiredTime, cameraOffsetY)
+  drawPlayer(ctx, player, cameraOffsetY)
   drawDarknessOverlay(ctx, blocks, cameraOffsetY)
   drawInventory(ctx, player)
   drawHUD(ctx, player, isPlacingMode)
@@ -78,19 +79,6 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
   const skyTexture = getSceneTexture('sky')
   if (skyTexture) {
     ctx.drawImage(skyTexture, 0, -roundedOffset - 100, CANVAS_WIDTH, 100 + SURFACE_Y + 5)
-  }
-
-  // Draw buildings on surface
-  const shopTexture = getSceneTexture('shop')
-  const smithTexture = getSceneTexture('smith')
-  //const sellTexture = getSceneTexture('sell')
-  
-  if (shopTexture) {
-    ctx.drawImage(shopTexture, 0, SURFACE_Y - 200 - roundedOffset + 20, 200, 230)
-  }
-  
-  if (smithTexture) {
-    ctx.drawImage(smithTexture, CANVAS_WIDTH - 200, SURFACE_Y - 200 - roundedOffset + 20, 200, 230)
   }
 
   // Draw underground areas
@@ -111,6 +99,21 @@ function drawBackground(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
       ctx.drawImage(mineTexture, MINE_LEFT, y - roundedOffset, 4.5*BLOCK_SIZE, 4*BLOCK_SIZE)
       ctx.drawImage(mineTexture, MINE_LEFT + 4.5*BLOCK_SIZE, y - roundedOffset, 4.5*BLOCK_SIZE, 4*BLOCK_SIZE)
     }
+  }
+}
+function drawBuildings(ctx: CanvasRenderingContext2D, cameraOffsetY: number) {
+  const roundedOffset = Math.round(cameraOffsetY)
+  // Draw buildings on surface
+  const shopTexture = getSceneTexture('shop')
+  const smithTexture = getSceneTexture('smith')
+  //const sellTexture = getSceneTexture('sell')
+  
+  if (shopTexture) {
+    ctx.drawImage(shopTexture, 0, SURFACE_Y - 200 - roundedOffset + 8, 200, 230)
+  }
+  
+  if (smithTexture) {
+    ctx.drawImage(smithTexture, CANVAS_WIDTH - 200, SURFACE_Y - 200 - roundedOffset + 8, 200, 230)
   }
 }
 
@@ -270,7 +273,6 @@ function drawZoneText(
   const startX = zone.x + 10
   const startY = zone.y - cameraOffsetY
   const rightX = startX + 110
-  const coinIcon = getIconTexture('coin')
 
   // Header
   ctx.fillStyle = "#fff"
@@ -284,72 +286,9 @@ function drawZoneText(
   ctx.lineTo(zone.x + zone.width - 10, startY + 35)
   ctx.stroke()
 
-  // Left column - Buy options
-  drawShopOption(ctx, "Buy Platform [J]", startX, startY + 60, 3, coinIcon)
-  drawShopOption(ctx, "Buy Torch [K]", startX, startY + 100, 5, coinIcon)
-  drawShopOption(ctx, "Buy Ladder [L]", startX, startY + 140, 10, coinIcon)
-  drawShopOption(ctx, "Buy Refiner [N]", startX, startY + 180, 100, coinIcon)
-  drawShopOption(ctx, "Buy Chest [O]", startX, startY + 220, 150, coinIcon)
-  
-  // Sell option
-  drawShopOption(ctx, "Sell Blocks [P]", rightX, startY + 60)
-
-  // Proficiency upgrade
-  const proficiencyMaxed = player.proficiency >= MAX_PROFICIENCY_LEVEL
-  const proficiencyCost = getProficiencyUpgradeCost(player)
-  
-  drawShopOption(
-    ctx, 
-    "↑ Proficiency [E]", 
-    rightX, 
-    startY + 100,
-    proficiencyMaxed ? "MAXED" : proficiencyCost,
-    coinIcon
-  )
-
-  // Backpack upgrade
-  const strengthMaxed = player.strength >= MAX_STRENGTH_LEVEL
-  const strengthCost = getStrengthUpgradeCost(player)
-  
-  drawShopOption(
-    ctx, 
-    "↑ Strength [R]", 
-    rightX, 
-    startY + 140,
-    strengthMaxed ? "MAXED" : strengthCost,
-    coinIcon
-  )
-  drawShopOption(ctx, "Buy Collector [M]", rightX, startY + 180, 100, coinIcon)
-  drawShopOption(ctx, "Buy Tube [Q]", rightX, startY + 220, 50, coinIcon)
-}
-
-
-// Helper function to draw shop options with consistent formatting
-function drawShopOption(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  price?: number | string,
-  coinIcon?: HTMLImageElement | null
-) {
+  // Info
   ctx.font = "14px Arial"
-  ctx.fillStyle = "#fff"
-  ctx.fillText(text, x, y)
-
-  if (price) {
-    ctx.font = "12px Arial"
-    if (coinIcon) {
-      if (price !== "MAXED") {
-        ctx.drawImage(coinIcon, x + 5, y + 5, 12, 12)
-        ctx.fillText(`${price}`, x + 20, y + 15)
-      } else {
-        ctx.fillText(`MAXED`, x + 10, y + 15)
-      }
-    } else {
-      ctx.fillText(`${price}`, x + 10, y + 15)
-    }
-  }
+  ctx.fillText("Open Shop [E]   Sell Blocks [P]", startX, startY + 60)
 }
 
 function drawCraftZoneText(
@@ -362,7 +301,7 @@ function drawCraftZoneText(
   
   // Header
   ctx.font = "bold 18px Arial"
-  ctx.fillText("CRAFTING", zone.x + 10, zone.y + 25 - cameraOffsetY)
+  ctx.fillText("BLACKSMITH", zone.x + 10, zone.y + 25 - cameraOffsetY)
 
   // Divider
   ctx.strokeStyle = "#ffffff"
@@ -375,47 +314,9 @@ function drawCraftZoneText(
   const nextPickaxeType = player.pickaxeType + 1
   const nextPickaxe = PICKAXE_TYPES_ARRAY[nextPickaxeType]
   
-  if (nextPickaxe) {
-    ctx.font = "14px Arial"
-    ctx.fillText(`${nextPickaxe.name} Pickaxe [E]`, zone.x + 10, zone.y + 60 - cameraOffsetY)
-    
-    if (nextPickaxe.requirements) {
-      const blockData = BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType]
-      ctx.font = "12px Arial"
-      ctx.fillText(`${nextPickaxe.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 80 - cameraOffsetY)
-    }
-  } else {
-    ctx.font = "14px Arial"
-    ctx.fillText("Final Pickaxe", zone.x + 10, zone.y + 80 - cameraOffsetY)
-  }
-
-  // Next backpack info
-  const nextBackpackType = player.backpackType + 1
-  const nextBackpack = BACKPACK_TYPES_ARRAY[nextBackpackType]
-
-  if (nextBackpack) {
-    ctx.font = "14px Arial"
-    ctx.fillText(`${nextBackpack.name} Backpack [R]`, zone.x + 10, zone.y + 110 - cameraOffsetY)
-  
-    if (nextBackpack.requirements) {
-      const blockData = BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType]
-      ctx.font = "12px Arial"
-      ctx.fillText(`${nextBackpack.requirements.amount}x ${blockData.name}`, zone.x + 20, zone.y + 130 - cameraOffsetY)
-    }
-  } else {
-    ctx.font = "14px Arial"
-    ctx.fillText("Final Backpack", zone.x + 10, zone.y + 130 - cameraOffsetY)
-  }
-  
-  // Add Refiner crafting information
+  // Info
   ctx.font = "14px Arial"
-  ctx.fillText("Refiners", zone.x + 10, zone.y + 160 - cameraOffsetY)
-  
-  ctx.font = "12px Arial"
-  ctx.fillText("[1] Stone refiner + Copper ", zone.x + 20, zone.y + 180 - cameraOffsetY)
-  ctx.fillText("[2] Copper refiner + Iron ", zone.x + 20, zone.y + 200 - cameraOffsetY)
-  ctx.fillText("[3] Iron refiner + Gold ", zone.x + 20, zone.y + 220 - cameraOffsetY)
-  ctx.fillText("[4] Gold refiner + Diamond ", zone.x + 20, zone.y + 240 - cameraOffsetY)
+  ctx.fillText("Open Blacksmith [E]", zone.x + 10, zone.y + 60 - cameraOffsetY)
 
 }  
 

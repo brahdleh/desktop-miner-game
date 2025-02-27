@@ -29,21 +29,21 @@ export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
 // Automation constants
 export const MACHINE_STORAGE_LIMIT = 9 // Maximum items a machine can store
-export const MACHINE_INTERACTION_DISTANCE = 100 // Distance in pixels for interacting with machines
+export const MACHINE_INTERACTION_DISTANCE = BLOCK_SIZE // Distance in pixels for interacting with machines
 
 // Action zones
 export const UPGRADE_ZONE = {
   x: 0,
   y: SURFACE_Y - 250,
   width: 230,
-  height: 250,
+  height: 260,
 }
 
 export const CRAFT_ZONE = {
-  x: CANVAS_WIDTH - 180,
-y: SURFACE_Y - 250,
-  width: 180,
-  height: 250,
+  x: CANVAS_WIDTH - 190,
+  y: SURFACE_Y - 250,
+  width: 190,
+  height: 260,
 }
 
 // Base block properties that most blocks share

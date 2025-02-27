@@ -1,4 +1,4 @@
-import { BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH } from '../constants'
+import { BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH, MACHINE_INTERACTION_DISTANCE } from '../constants'
 import { Block, Player, BlockData } from '../types'
 
 export function getBlockData(blockType: number): BlockData {
@@ -115,7 +115,7 @@ export function findNearbyBlock(player: Player, blockType: number, blocks: Block
 
   for (const block of blocks) {
     if (block.blockType === blockType && !block.isMined) {
-      if (distanceToBlock(player, block.x, block.y) <= BLOCK_SIZE * 0.5) {
+      if (distanceToBlock(player, block.x, block.y) <= MACHINE_INTERACTION_DISTANCE) {
         return block
       }
     }
