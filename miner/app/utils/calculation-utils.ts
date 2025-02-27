@@ -3,7 +3,7 @@ import {
     STRENGTH_BASE_COST, STRENGTH_COST_MULTIPLIER,
     BACKPACK_CAPACITY_INCREMENT
 } from '../constants'
-import { getPickaxeData, getBackpackData } from './data-utils'
+import { getPickaxeData, getBackpackData, getBlockData } from './data-utils'
 import { Player } from '../types'
 
 export function updatePickaxePower(player: Player): void {
@@ -26,6 +26,13 @@ export function getProficiencyUpgradeCost(player: Player): number {
 export function getStrengthUpgradeCost(player: Player): number {
   const cost = STRENGTH_BASE_COST * Math.pow(STRENGTH_COST_MULTIPLIER, player.strength - 1)
   return cost
+}
+
+export function getRefiningTime(refinerType: number, blockType: number): number {
+  const refinerRate = refinerType === 14 ? 30000 : refinerType === 22 ? 3000 : refinerType === 23 ? 300 : refinerType === 24 ? 30 : 3
+  const blockData = getBlockData(blockType)
+  const refiningTime = refinerRate * blockData.miningTimeMultiplier
+  return refiningTime
 }
 
 

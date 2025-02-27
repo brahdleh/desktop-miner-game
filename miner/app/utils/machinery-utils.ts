@@ -13,10 +13,6 @@ export const DIRECTIONS = [
   { dx: 1, dy: 0 },  // Right
   { dx: 0, dy: 1 },  // Down
   { dx: -1, dy: 0 }, // Left
-  { dx: 1, dy: -1 }, // Up-Right
-  { dx: 1, dy: 1 },  // Down-Right
-  { dx: -1, dy: 1 }, // Down-Left
-  { dx: -1, dy: -1 } // Up-Left
 ]
 
 // Initialize storage state for a machine if needed
@@ -109,4 +105,16 @@ export function findMachineryPath(source: Block, targetType: number, blocks: Blo
   
   // No path found
   return null
+}
+
+// Get the refiner tier (1-5) based on block type
+export function getRefinerTier(blockType: number): number {
+  switch (blockType) {
+    case 14: return 1; // Stone refiner
+    case 22: return 2; // Copper refiner
+    case 23: return 3; // Iron refiner
+    case 24: return 4; // Gold refiner
+    case 25: return 5; // Diamond refiner
+    default: return 0; // Not a refiner
+  }
 } 

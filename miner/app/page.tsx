@@ -25,6 +25,7 @@ import {
   attemptDepositInMachinery,
   attemptCollectFromMachinery,
   findNearbyMachinery,
+  attemptCraftRefiner,
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
@@ -280,6 +281,40 @@ export default function MiningGame() {
           if (e.key === "r") {
             attemptCraftBackpack(player)
           }
+          
+          // Add new key handlers for crafting refiners
+          if (e.key === "1") {
+            // Craft copper refiner (ID 22)
+            if (attemptCraftRefiner(player, 22)) {
+              showNotification('Crafted Copper Refiner!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "2") {
+            // Craft iron refiner (ID 23)
+            if (attemptCraftRefiner(player, 23)) {
+              showNotification('Crafted Iron Refiner!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "3") {
+            // Craft gold refiner (ID 24)
+            if (attemptCraftRefiner(player, 24)) {
+              showNotification('Crafted Gold Refiner!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "4") {
+            // Craft diamond refiner (ID 25)
+            if (attemptCraftRefiner(player, 25)) {
+              showNotification('Crafted Diamond Refiner!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
         }
       }
 
@@ -409,6 +444,8 @@ export default function MiningGame() {
           <span className="text-xs opacity-50">T Deposit to Machinery</span>
           <br />
           <span className="text-xs opacity-50">Y Collect from Machinery</span>
+          <br />
+          <span className="text-xs opacity-50">In Craft Zone: 1-4 for Refiners</span>
         </div>
       </div>
     </div>

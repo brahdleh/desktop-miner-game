@@ -1,10 +1,11 @@
 import { Player, Block } from './types'
 import { 
   DEFAULT_MINE_TIME, BLOCK_SIZE, MAX_PROFICIENCY_LEVEL, MAX_STRENGTH_LEVEL,
-  REFINABLE_BLOCKS, REFINING_TIME
+  REFINABLE_BLOCKS
 } from './constants'
 import { 
-  updatePickaxePower, getProficiencyUpgradeCost, getStrengthUpgradeCost, updateBackpackCapacity
+  updatePickaxePower, getProficiencyUpgradeCost, getStrengthUpgradeCost, updateBackpackCapacity,
+  getRefiningTime
 } from './utils/calculation-utils'
 import { 
   getBlockData, getPickaxeData, getBackpackData, 
@@ -15,7 +16,7 @@ import {
 } from './utils/data-utils'
 import { mineBlock, placeBlock } from './utils/mine-utils';
 import { 
-  initializeStorageState, hasMachineSpace, addItemToMachine 
+  initializeStorageState, hasMachineSpace, addItemToMachine
 } from './utils/machinery-utils'
 import { MACHINE_STORAGE_LIMIT } from './constants'
 
@@ -237,27 +238,35 @@ export function attemptCraftBackpack(player: Player) {
 }
 
 export function findNearbyRefiner(player: Player, blocks: Block[]): Block | null {
-  const refiner = findNearbyBlock(player, 14, blocks)
-  if (!refiner) return null
-  if (refiner.isSecondaryBlock) {
-    const mainBlock = blocks.find(b => b.x === refiner.mainBlockX && b.y === refiner.mainBlockY)
-    if (!mainBlock) return null
-    return mainBlock
+  // Check for any refiner type nearby
+  const refinerTypes = [14, 22, 23, 24, 25]; // All refiner block types
+  
+  for (const refinerType of refinerTypes) {
+    const refiner = findNearbyBlock(player, refinerType, blocks);
+    if (refiner) {
+      if (refiner.isSecondaryBlock) {
+        const mainBlock = blocks.find(b => b.x === refiner.mainBlockX && b.y === refiner.mainBlockY);
+        if (!mainBlock) continue;
+        return mainBlock;
+      }
+      return refiner;
+    }
   }
-  return refiner
+  
+  return null;
 }
 
 export function attemptDepositInRefiner(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
-  const refiner = findNearbyRefiner(player, blocks)
-  if (!refiner) return { success: false, reason: "No refiner nearby!" }
+  const refiner = findNearbyRefiner(player, blocks);
+  if (!refiner) return { success: false, reason: "No refiner nearby!" };
 
-  const selectedBlockType = getSelectedBlockType(player)
-  if (selectedBlockType === null) return { success: false, reason: "No block selected!" }
+  const selectedBlockType = getSelectedBlockType(player);
+  if (selectedBlockType === null) return { success: false, reason: "No block selected!" };
   
-  const selectedBlockCount = getBlockInventory(player, selectedBlockType)
-  if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" }
+  const selectedBlockCount = getBlockInventory(player, selectedBlockType);
+  if (selectedBlockCount <= 0) return { success: false, reason: "No block selected!" };
 
-  if (!isRefinable(selectedBlockType)) return { success: false, reason: "Block cannot be refined!" }
+  if (!isRefinable(selectedBlockType)) return { success: false, reason: "Block cannot be refined!" };
 
   // Initialize machine state if needed
   if (!refiner.machineState) {
@@ -265,51 +274,56 @@ export function attemptDepositInRefiner(player: Player, blocks: Block[]): { succ
       processingBlockType: null,
       processingStartTime: null,
       isFinished: false
-    }
+    };
   }
 
   if (refiner.machineState.processingBlockType !== null) {
-    return { success: false, reason: "Refiner is busy!" }
+    return { success: false, reason: "Refiner is busy!" };
   }
 
   // Start processing
-  refiner.machineState.processingBlockType = selectedBlockType
-  refiner.machineState.processingStartTime = Date.now()
-  refiner.machineState.isFinished = false
+  refiner.machineState.processingBlockType = selectedBlockType;
+  refiner.machineState.processingStartTime = Date.now();
+  refiner.machineState.isFinished = false;
 
-  removeFromInventory(player, selectedBlockType, 1)
-  return { success: true }
+  removeFromInventory(player, selectedBlockType, 1);
+  return { success: true };
 }
 
 export function attemptCollectFromRefiner(player: Player, blocks: Block[]): { success: boolean; reason?: string } {
-  const refiner = findNearbyRefiner(player, blocks)
-  if (!refiner) return { success: false, reason: "No refiner nearby!" }
+  const refiner = findNearbyRefiner(player, blocks);
+  if (!refiner) return { success: false, reason: "No refiner nearby!" };
   
   if (!refiner.machineState?.processingBlockType) {
-    return { success: false, reason: "Nothing to collect!" }
+    return { success: false, reason: "Nothing to collect!" };
   }
 
-  const inputBlockType = refiner.machineState.processingBlockType
-  const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS]
-  if (!outputBlockType) return { success: false, reason: "Block Error??!" }
+  const inputBlockType = refiner.machineState.processingBlockType;
+  const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS];
+  if (!outputBlockType) return { success: false, reason: "Block Error??!" };
 
   if (!canHoldBlock(player, outputBlockType)) {
-    return { success: false, reason: "Not Enough Inventory!" }
+    return { success: false, reason: "Not Enough Inventory!" };
   }
 
-  const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
-  if (elapsedTime < REFINING_TIME) {
-    addToInventory(player, inputBlockType)
+  // Get the refining time based on the refiner type and input block
+  const refiningTime = getRefiningTime(refiner.blockType, inputBlockType);
+  
+  const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0);
+  if (elapsedTime < refiningTime) {
+    // If not finished refining, return the original block
+    addToInventory(player, inputBlockType);
   } else {
-    addToInventory(player, outputBlockType)
+    // If finished refining, return the refined block
+    addToInventory(player, outputBlockType);
   }
 
   // Reset machine state
-  refiner.machineState.processingBlockType = null
-  refiner.machineState.processingStartTime = null
-  refiner.machineState.isFinished = false
+  refiner.machineState.processingBlockType = null;
+  refiner.machineState.processingStartTime = null;
+  refiner.machineState.isFinished = false;
 
-  return { success: true }
+  return { success: true };
 }
 
 // Find nearby collector
@@ -477,4 +491,43 @@ export function attemptCollectFromCollector(player: Player, blocks: Block[]): { 
   addToInventory(player, block.blockType)
 
   return { success: true }
+}
+
+// Add a function to craft advanced refiners
+export function attemptCraftRefiner(player: Player, refinerType: number): boolean {
+  const blockData = getBlockData(refinerType);
+  
+  if (!blockData || blockData.category !== 'refiner') {
+    return false;
+  }
+  
+  // Check requirements
+  if (blockData.requirements) {
+    const { blockType, amount, base } = blockData.requirements;
+    
+    // Check if player has the required materials
+    if (getBlockInventory(player, blockType) < amount) {
+      return false;
+    }
+    
+    // Check if player has the required base refiner
+    if (base && getBlockInventory(player, base) < 1) {
+      return false;
+    }
+    
+    // Consume materials
+    removeFromInventory(player, blockType, amount);
+    
+    // Consume the base refiner if required
+    if (base) {
+      removeFromInventory(player, base, 1);
+    }
+    
+    // Add the new refiner to inventory
+    addToInventory(player, refinerType);
+    
+    return true;
+  }
+  
+  return false;
 }

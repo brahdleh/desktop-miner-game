@@ -7,14 +7,13 @@ import {
   BACKPACK_TYPES,
   MAX_PROFICIENCY_LEVEL,
   MAX_STRENGTH_LEVEL,
-  REFINING_TIME,
-  REFINABLE_BLOCKS,
   MINE_WIDTH
 } from './constants'
 import { getBlockTexture, getSceneTexture, getIconTexture, getPickTexture, getPlayerTexture } from './assets'
 import { getProficiencyUpgradeCost, getStrengthUpgradeCost } from './utils/calculation-utils'
 import { getSelectedBlockType, distanceToBlock } from './utils/data-utils'
 import { canPlaceBlock } from './utils/mine-utils'
+import { drawTube, drawTorch, drawRefiner, drawStorageBlock } from './utils/render-utils'
 
 // Cache arrays so that Object.values() isn't re-computed each frame.
 const BLOCK_TYPES_ARRAY = Object.values(BLOCK_TYPES)
@@ -135,104 +134,34 @@ function drawBlocks(
 
     if (!texture) continue // Skip if no texture is available
 
-    // Torch animation
-    if (block.blockType === 12) {
-      const torchFrame = Math.floor(Date.now() / 1000) % 2
-      let currentTexture = texture
-      const torch2 = getBlockTexture('torch2')
-      if (torchFrame === 1 && torch2) {
-        currentTexture = torch2
-      }
-      if (currentTexture) {
-        ctx.drawImage(currentTexture, x, y, BLOCK_SIZE, BLOCK_SIZE)
-      }
-      continue
+    // Special handling for tubes
+    if (block.blockType === 21) {
+      drawTube(ctx, block, blocks, x, y);
+      continue;
     }
 
-    // Special handling for refiner (type 14)
-    if (block.blockType === 14) {
-      if (!blockData || !blockData.size || block.isSecondaryBlock) continue
+    // Torch animation
+    if (block.blockType === 12) {
+      drawTorch(ctx, x, y);
+      continue;
+    }
 
-      if (block.machineState?.processingBlockType !== null && block.machineState) {
-        const refiner2 = getBlockTexture('refiner2')
-        const refiner3 = getBlockTexture('refiner3')
-        const refiner4 = getBlockTexture('refiner4')
-        const refiner5 = getBlockTexture('refiner5')
-        const refiner6 = getBlockTexture('refiner6')
-
-        // Calculate progress
-        const elapsedTime = Date.now() - (block.machineState?.processingStartTime || 0)
-        const progress = Math.min(elapsedTime / REFINING_TIME, 1)
-        
-        // Select the appropriate refiner texture based on progress
-        let currentTexture = texture
-        if (progress >= 1 && refiner6) {
-          currentTexture = refiner6 // Done, ready for collection
-          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-                    
-          // Draw the polished version of the block when finished
-          const processedBlockType = REFINABLE_BLOCKS[block.machineState.processingBlockType as keyof typeof REFINABLE_BLOCKS]
-          if (processedBlockType) {
-            const processedBlockData = BLOCK_TYPES_ARRAY[processedBlockType]
-            const processedTexture = getBlockTexture(processedBlockData.name)
-            
-            if (processedTexture) {
-              ctx.drawImage(
-                processedTexture, 
-                x + BLOCK_SIZE, // Center horizontally
-                y + BLOCK_SIZE * 1 + 2, // Position vertically
-                BLOCK_SIZE * 0.5, // Make the block half as big
-                BLOCK_SIZE * 0.5
-              )
-            }
-          }
-        } else {
-          // Show processing animation
-          if (progress >= 0.75 && refiner5) currentTexture = refiner5
-          else if (progress >= 0.5 && refiner4) currentTexture = refiner4
-          else if (progress >= 0.25 && refiner3) currentTexture = refiner3
-          else if (refiner2) currentTexture = refiner2
-          ctx.drawImage(currentTexture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-          
-          // Draw the block being processed
-          const processedBlockData = BLOCK_TYPES_ARRAY[block.machineState.processingBlockType]
-          const processedTexture = getBlockTexture(processedBlockData.name)
-          
-          if (processedTexture) {
-            ctx.drawImage(
-              processedTexture, 
-              x + BLOCK_SIZE,
-              y + BLOCK_SIZE * 1 + 2,
-              BLOCK_SIZE * 0.5,
-              BLOCK_SIZE * 0.5
-            )
-          }
-        }
-      } else {
-        // Draw idle refiner state
-        ctx.drawImage(texture, x, y, BLOCK_SIZE * blockData.size[0], BLOCK_SIZE * blockData.size[1])
-      }
-      continue
+    // Special handling for refiners
+    if (blockData.category === 'refiner') {
+      drawRefiner(ctx, block, blockData, x, y);
+      continue;
     }
 
     // Special handling for collector (type 19)
     if (block.blockType === 19 && !block.isSecondaryBlock) {
-      // Draw the collector base
-      ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
-      
-      // Draw mini inventory for collector
-      drawMachineInventory(ctx, block, x, y, 'collector')
-      continue
+      drawStorageBlock(ctx, block, x, y, 'collector');
+      continue;
     }
 
     // Special handling for chest (type 20)
     if (block.blockType === 20 && !block.isSecondaryBlock) {
-      // Draw the chest base
-      ctx.drawImage(texture, x, y, BLOCK_SIZE, BLOCK_SIZE)
-      
-      // Draw mini inventory for chest
-      drawMachineInventory(ctx, block, x, y, 'chest')
-      continue
+      drawStorageBlock(ctx, block, x, y, 'chest');
+      continue;
     }
 
     // Regular block drawing
@@ -728,63 +657,4 @@ function drawDepthProgressBar(ctx: CanvasRenderingContext2D, player: Player) {
   
   // Restore context state to reset text alignment and other properties
   ctx.restore()
-}
-
-// Helper function to draw mini inventory for machines
-function drawMachineInventory(
-  ctx: CanvasRenderingContext2D,
-  block: Block,
-  x: number,
-  y: number,
-  type: 'collector' | 'chest'
-) {
-  // Only draw if the block has storage state
-  if (!block.storageState || !block.storageState.storedBlocks) return
-  
-  const slotSize = 12 // Size of each inventory slot
-  const padding = 2 // Padding between slots
-  const startX = x + (BLOCK_SIZE - (slotSize * 2 + padding)) / 2 // Center horizontally
-  const startY = y + BLOCK_SIZE - slotSize * 2 - padding - 5 // Position near bottom
-  
-  // Background for inventory
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
-  ctx.fillRect(
-    startX - 2, 
-    startY - 2, 
-    slotSize * 2 + padding + 4, 
-    slotSize * 2 + padding + 4
-  )
-  
-  // Draw up to 4 slots in a 2x2 grid
-  for (let i = 0; i < 4; i++) {
-    const row = Math.floor(i / 2)
-    const col = i % 2
-    const slotX = startX + col * (slotSize + padding)
-    const slotY = startY + row * (slotSize + padding)
-    
-    // Draw slot background
-    ctx.fillStyle = "rgba(80, 80, 80, 0.6)"
-    ctx.fillRect(slotX, slotY, slotSize, slotSize)
-    ctx.strokeStyle = "rgba(150, 150, 150, 0.8)"
-    ctx.strokeRect(slotX, slotY, slotSize, slotSize)
-    
-    // Draw item in slot if it exists
-    const item = block.storageState.storedBlocks[i]
-    if (item) {
-      const blockData = BLOCK_TYPES_ARRAY[item.blockType] as BlockData
-      if (blockData) {
-        const itemTexture = getBlockTexture(blockData.name)
-        if (itemTexture) {
-          ctx.drawImage(itemTexture, slotX + 1, slotY + 1, slotSize - 2, slotSize - 2)
-          
-          // Draw count if more than 1
-          if (item.count > 1) {
-            ctx.fillStyle = "white"
-            ctx.font = "6px Arial"
-            ctx.fillText(item.count.toString(), slotX + 2, slotY + slotSize - 2)
-          }
-        }
-      }
-    }
-  }
 }

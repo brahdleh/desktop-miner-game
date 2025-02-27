@@ -1,13 +1,13 @@
 export const CANVAS_WIDTH = 800
 export const CANVAS_HEIGHT = 600
-export const BLOCK_SIZE = 36
+export const BLOCK_SIZE = 40
 export const PLAYER_WIDTH = 30
 export const PLAYER_HEIGHT = 60
 export const GRAVITY = 0.5
 export const JUMP_STRENGTH = 10
 export const MOVE_SPEED = 3
 export const MINE_WIDTH = 9
-export const MINE_LEFT = 7 * BLOCK_SIZE //(CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
+export const MINE_LEFT = 6 * BLOCK_SIZE //(CANVAS_WIDTH - MINE_WIDTH * BLOCK_SIZE) / 2
 export const SURFACE_Y = 5 * BLOCK_SIZE
 
 // Mining constants
@@ -28,7 +28,7 @@ export const MINE_DEPTH_BLOCKS = 150
 export const MINE_DEPTH_PX = MINE_DEPTH_BLOCKS * BLOCK_SIZE
 
 // Automation constants
-export const MACHINE_STORAGE_LIMIT = 10 // Maximum items a machine can store
+export const MACHINE_STORAGE_LIMIT = 4 // Maximum items a machine can store
 export const MACHINE_INTERACTION_DISTANCE = 100 // Distance in pixels for interacting with machines
 
 // Action zones
@@ -51,7 +51,8 @@ const DEFAULT_BLOCK = {
   solid: true,
   climbable: false,
   requirements: null,
-  size: [1, 1]
+  size: [1, 1],
+  category: 'block'
 } as const
 
 // Block type definitions
@@ -75,7 +76,7 @@ export const BLOCK_TYPES = {
   LADDER: { id: 11, value: 10, miningTimeMultiplier: 1, density: 1, name: "Ladder", solid: false, climbable: true, requirements: null },
   TORCH: { id: 12, value: 5, miningTimeMultiplier: 1, density: 1, name: "Torch", solid: false, climbable: false, requirements: null },
   UNAMED2: { id: 13, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed2", ...DEFAULT_BLOCK },
-  REFINER: { id: 14, value: 100, miningTimeMultiplier: 5, density: 1, name: "Refiner", solid: false, climbable: false, requirements: null, size: [3, 2] },
+  STONE_REFINER: { id: 14, value: 100, miningTimeMultiplier: 5, density: 1, name: "Stone Refiner", solid: false, climbable: false, requirements: null, size: [3, 2], category: 'refiner' },
 
   // Polished variants (value = 5x base)
   POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", ...DEFAULT_BLOCK },
@@ -87,6 +88,70 @@ export const BLOCK_TYPES = {
   COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", solid: false, climbable: false, requirements: null, size: [1, 1] },
   CHEST: { id: 20, value: 100, miningTimeMultiplier: 3, density: 1, name: "Chest", solid: false, climbable: false, requirements: null, size: [1, 1] },
   TUBE: { id: 21, value: 100, miningTimeMultiplier: 0.5, density: 1, name: "Tube", solid: false, climbable: false, requirements: null, size: [1, 1] },
+  COPPER_REFINER: { 
+    id: 22, 
+    value: 150, 
+    miningTimeMultiplier: 10, 
+    density: 1, 
+    name: "Copper Refiner", 
+    solid: false, 
+    climbable: false, 
+    requirements: {
+      blockType: 5, // Copper
+      amount: 1,
+      base: 14 // Stone refiner required
+    }, 
+    size: [3, 2], 
+    category: 'refiner' 
+  },
+  IRON_REFINER: { 
+    id: 23, 
+    value: 250, 
+    miningTimeMultiplier: 20, 
+    density: 1, 
+    name: "Iron Refiner", 
+    solid: false, 
+    climbable: false, 
+    requirements: {
+      blockType: 6, // Iron
+      amount: 1,
+      base: 22 // Copper refiner required
+    }, 
+    size: [3, 2], 
+    category: 'refiner' 
+  },
+  GOLD_REFINER: { 
+    id: 24, 
+    value: 400, 
+    miningTimeMultiplier: 40, 
+    density: 1, 
+    name: "Gold Refiner", 
+    solid: false, 
+    climbable: false, 
+    requirements: {
+      blockType: 7, // Gold
+      amount: 1,
+      base: 23 // Iron refiner required
+    }, 
+    size: [3, 2], 
+    category: 'refiner' 
+  },
+  DIAMOND_REFINER: { 
+    id: 25, 
+    value: 1000, 
+    miningTimeMultiplier: 80, 
+    density: 1, 
+    name: "Diamond Refiner", 
+    solid: false, 
+    climbable: false, 
+    requirements: {
+      blockType: 8, // Diamond
+      amount: 1,
+      base: 24 // Gold refiner required
+    }, 
+    size: [3, 2], 
+    category: 'refiner' 
+  },
 } as const
 
 // Pickaxe types

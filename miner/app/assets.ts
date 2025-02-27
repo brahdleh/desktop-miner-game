@@ -87,15 +87,19 @@ export async function loadBlockTextures(): Promise<void> {
       loadBlockTexture('torch'),
       loadBlockTexture('torch2'),
       loadBlockTexture('ladder'),
-      loadBlockTexture('refiner'),
-      loadBlockTexture('refiner2'),
-      loadBlockTexture('refiner3'),
-      loadBlockTexture('refiner4'),
-      loadBlockTexture('refiner5'),
-      loadBlockTexture('refiner6'),
+      loadBlockTexture('stone_refiner'),
+      loadBlockTexture('copper_refiner'),
+      loadBlockTexture('iron_refiner'),
+      loadBlockTexture('gold_refiner'),
+      loadBlockTexture('diamond_refiner'),
+      loadBlockTexture('refiner_core'),
+      loadBlockTexture('refiner_core2'),
+      loadBlockTexture('refiner_core3'),
+      loadBlockTexture('refiner_core4'),
       loadBlockTexture('collector'),
       loadBlockTexture('chest'),
       loadBlockTexture('tube'),
+      loadBlockTexture('tube2')
     ])
     console.log('Block textures loaded successfully')
   } catch (error) {

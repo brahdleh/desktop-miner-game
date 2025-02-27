@@ -44,8 +44,10 @@ export interface BlockData {
   requirements: {
     blockType: number
     amount: number
+    base?: number  // Optional field for refiner upgrades
   } | null
-  size: [number, number]
+  size: [number, number],
+  category: string
 }
 
 export interface MachineState {
