@@ -151,13 +151,13 @@ function drawBlocks(
     }
 
     // Special handling for collector (type 19)
-    if (block.blockType === 19 && !block.isSecondaryBlock) {
+    if (blockData.category === 'collector' && !block.isSecondaryBlock) {
       drawStorageBlock(ctx, block, x, y, 'collector');
       continue;
     }
 
     // Special handling for chest (type 20)
-    if (block.blockType === 20 && !block.isSecondaryBlock) {
+    if (blockData.category === 'chest' && !block.isSecondaryBlock) {
       drawStorageBlock(ctx, block, x, y, 'chest');
       continue;
     }

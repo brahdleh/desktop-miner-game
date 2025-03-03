@@ -1,6 +1,6 @@
 import { Player, BlockData, Block } from "../types";
 import { getSelectedBlockType, distanceToBlock } from "./data-utils"
-import { BLOCK_SIZE, MINING_REACH } from "../constants"
+import { BLOCK_SIZE, MINE_LEFT, MINE_WIDTH, MINING_REACH } from "../constants"
 import { getBlockData } from "./data-utils"
 import { updateNetworkonEdit } from "../automation"
 
@@ -15,6 +15,7 @@ export function canPlaceBlock(size: [number, number], blocks: Block[], gridX: nu
       if (blockAtPosition && !blockAtPosition.isMined) return false
     }
   }
+  if (gridX + size[0] > MINE_LEFT + MINE_WIDTH || gridX < MINE_LEFT) return false
   return true
 }
 
