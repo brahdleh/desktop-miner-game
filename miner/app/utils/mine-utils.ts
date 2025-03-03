@@ -15,7 +15,7 @@ export function canPlaceBlock(size: [number, number], blocks: Block[], gridX: nu
       if (blockAtPosition && !blockAtPosition.isMined) return false
     }
   }
-  if (gridX + size[0] > MINE_LEFT + MINE_WIDTH || gridX < MINE_LEFT) return false
+  if (gridX < MINE_LEFT || gridX + size[0]*BLOCK_SIZE > MINE_LEFT + MINE_WIDTH*BLOCK_SIZE) return false
   return true
 }
 

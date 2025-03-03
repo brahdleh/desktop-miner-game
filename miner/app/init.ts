@@ -93,6 +93,7 @@ export function initializePlayer() {
     velocityY: 0,
     onGround: false,
     onClimbable: false,
+    currentLadderType: undefined,
     facingRight: true,
     isWalking: false,
     inventory: 0,

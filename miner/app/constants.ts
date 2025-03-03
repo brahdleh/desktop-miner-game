@@ -4,6 +4,7 @@ export const BLOCK_SIZE = 40
 export const PLAYER_WIDTH = 30
 export const PLAYER_HEIGHT = 60
 export const GRAVITY = 0.5
+export const TERMINAL_VELOCITY = 10
 export const JUMP_STRENGTH = 10
 export const MOVE_SPEED = 3
 export const MINE_WIDTH = 9
@@ -76,7 +77,7 @@ export const BLOCK_TYPES = {
   LADDER: { id: 11, value: 10, miningTimeMultiplier: 1, density: 1, name: "Ladder", category: 'ladder', solid: false, climbable: true, requirements: null },
   TORCH: { id: 12, value: 5, miningTimeMultiplier: 1, density: 1, name: "Torch", category: 'torch', solid: false, climbable: false, requirements: null },
   UNAMED2: { id: 13, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed2", category: 'unamed', ...DEFAULT_BLOCK },
-  STONE_REFINER: { id: 14, value: 50, miningTimeMultiplier: 5, density: 1, name: "Stone Refiner", solid: false, climbable: false, requirements: null, size: [3, 2], category: 'refiner' },
+  REFINER: { id: 14, value: 50, miningTimeMultiplier: 5, density: 1, name: "Refiner", solid: false, climbable: false, requirements: null, size: [3, 2], category: 'refiner' },
 
   // Polished variants (value = 5x base)
   POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", category: 'polished', ...DEFAULT_BLOCK },
@@ -88,70 +89,52 @@ export const BLOCK_TYPES = {
   COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", category: 'collector', solid: false, climbable: false, requirements: null, size: [1, 1] },
   CHEST: { id: 20, value: 150, miningTimeMultiplier: 3, density: 1, name: "Chest", category: 'chest', solid: false, climbable: false, requirements: null, size: [1, 1] },
   TUBE: { id: 21, value: 50, miningTimeMultiplier: 0.5, density: 1, name: "Tube", category: 'tube', solid: false, climbable: false, requirements: null, size: [1, 1] },
-  COPPER_REFINER: { 
-    id: 22, 
-    value: 70, 
-    miningTimeMultiplier: 10, 
-    density: 1, 
-    name: "Copper Refiner", 
-    solid: false, 
-    climbable: false, 
-    requirements: {
+  COPPER_REFINER: { id: 22, value: 70, miningTimeMultiplier: 10, density: 1, name: "Copper Refiner", solid: false, climbable: false, requirements: {
       blockType: 5, // Copper
       amount: 1,
       base: 14 // Stone refiner required
-    }, 
-    size: [3, 2], 
-    category: 'refiner' 
+    }, size: [3, 2], category: 'refiner' 
   },
-  IRON_REFINER: { 
-    id: 23, 
-    value: 120, 
-    miningTimeMultiplier: 20, 
-    density: 1, 
-    name: "Iron Refiner", 
-    solid: false, 
-    climbable: false, 
-    requirements: {
+  IRON_REFINER: { id: 23, value: 120, miningTimeMultiplier: 20, density: 1, name: "Iron Refiner", solid: false, climbable: false, requirements: {
       blockType: 6, // Iron
       amount: 1,
       base: 22 // Copper refiner required
-    }, 
-    size: [3, 2], 
-    category: 'refiner' 
+    }, size: [3, 2], category: 'refiner' 
   },
-  GOLD_REFINER: { 
-    id: 24, 
-    value: 240, 
-    miningTimeMultiplier: 40, 
-    density: 1, 
-    name: "Gold Refiner", 
-    solid: false, 
-    climbable: false, 
-    requirements: {
+  GOLD_REFINER: { id: 24, value: 240, miningTimeMultiplier: 40, density: 1, name: "Gold Refiner", solid: false, climbable: false, requirements: {
       blockType: 7, // Gold
       amount: 1,
       base: 23 // Iron refiner required
-    }, 
-    size: [3, 2], 
-    category: 'refiner' 
+    }, size: [3, 2], category: 'refiner' 
   },
-  DIAMOND_REFINER: { 
-    id: 25, 
-    value: 400, 
-    miningTimeMultiplier: 80, 
-    density: 1, 
-    name: "Diamond Refiner", 
-    solid: false, 
-    climbable: false, 
-    requirements: {
+  DIAMOND_REFINER: { id: 25, value: 400, miningTimeMultiplier: 80, density: 1, name: "Diamond Refiner", solid: false, climbable: false, requirements: {
       blockType: 8, // Diamond
       amount: 1,
       base: 24 // Gold refiner required
-    }, 
-    size: [3, 2], 
-    category: 'refiner' 
+    }, size: [3, 2], category: 'refiner' 
   },
+
+  // Upgraded ladders
+  STONE_LADDER: { id: 26, value: 15, miningTimeMultiplier: 1, density: 1, name: "Stone Ladder", category: 'ladder', solid: false, climbable: true, requirements: {
+      blockType: 15, // Polished Stone
+      amount: 1,
+      base: 11 // Ladder required
+    } },
+  SLATE_LADDER: { id: 27, value: 60, miningTimeMultiplier: 5, density: 10, name: "Slate Ladder", category: 'ladder', solid: false, climbable: true, requirements: {
+      blockType: 16, // Polished Slate
+      amount: 1,
+      base: 11 // Ladder required
+    } },
+  MAGMA_LADDER: { id: 28, value: 110, miningTimeMultiplier: 50, density: 100, name: "Magma Ladder", category: 'ladder', solid: false, climbable: true, requirements: {
+      blockType: 17, // Polished Magma
+      amount: 1,
+      base: 11 // Ladder required
+    } },
+  BEDROCK_LADDER: { id: 29, value: 1010, miningTimeMultiplier: 500, density: 1000, name: "Bedrock Ladder", category: 'ladder', solid: false, climbable: true, requirements: {
+      blockType: 18, // Polished Bedrock
+      amount: 1,
+      base: 11 // Ladder required
+    } },
 } as const
 
 // Pickaxe types

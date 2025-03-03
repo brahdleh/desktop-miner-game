@@ -314,6 +314,38 @@ export default function MiningGame() {
               showNotification('Need more materials!', 'warning')
             }
           }
+          if (e.key === "5") {
+            // Craft stone ladder (ID 26)
+            if (attemptCraft(player, 26)) {
+              showNotification('Crafted Stone Ladder!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "6") {
+            // Craft slate ladder (ID 27)
+            if (attemptCraft(player, 27)) {
+              showNotification('Crafted Slate Ladder!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "7") {
+            // Craft magma ladder (ID 28)
+            if (attemptCraft(player, 28)) {
+              showNotification('Crafted Magma Ladder!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
+          if (e.key === "8") {
+            // Craft bedrock ladder (ID 29) 
+            if (attemptCraft(player, 29)) {
+              showNotification('Crafted Bedrock Ladder!', 'success')
+            } else {
+              showNotification('Need more materials!', 'warning')
+            }
+          }
         }
       }
 
