@@ -114,11 +114,8 @@ export function updatePlayer(player: Player, blocks: Block[]) {
 
 export function isPlayerInZone(player: Player, zone: Zone) {
   const pxCenter = player.x + PLAYER_WIDTH / 2
-  const pyBottom = player.y + PLAYER_HEIGHT
   return (
     pxCenter >= zone.x &&
-    pxCenter <= zone.x + zone.width &&
-    pyBottom >= zone.y &&
-    player.y <= zone.y + zone.height
+    pxCenter <= zone.x + zone.width
   )
 } 

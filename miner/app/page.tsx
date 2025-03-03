@@ -368,7 +368,7 @@ export default function MiningGame() {
           } else {
             // Mining mode (original behavior)
             for (const block of blocks) {
-              const miningCheck = canMineBlock(block, clickX, clickY, player)
+              const miningCheck = canMineBlock(block, clickX, clickY, player, blocks)
               if (miningCheck.reason) {
                 showNotification(miningCheck.reason, 'warning')
                 return

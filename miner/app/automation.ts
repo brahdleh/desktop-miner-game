@@ -26,7 +26,7 @@ export function initializeMachineNetwork(blocks: Block[]): void {
 // Update the network when a block is added or removed
 export function updateNetworkonEdit(block: Block, blocks: Block[]): void {
 
-  if (isMachineBlock(block)) {
+  if (isMachineBlock(block) || getBlockData(block.blockType).category === 'tube') {
     if (!machineNetwork) {
       initializeMachineNetwork(blocks);
       return;

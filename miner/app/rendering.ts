@@ -239,24 +239,29 @@ function drawZones(
   player: Player,
   cameraOffsetY: number
 ) {
-  // Draw zone backgrounds
-  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
-  ctx.fillRect(
-    upgradeZone.x, 
-    upgradeZone.y - cameraOffsetY, 
-    upgradeZone.width, 
-    upgradeZone.height
-  )
-  ctx.fillRect(
-    craftZone.x, 
-    craftZone.y - cameraOffsetY, 
-    craftZone.width, 
-    craftZone.height
-  )
-
-  // Draw the texts for each zone.
-  drawZoneText(ctx, upgradeZone, player, cameraOffsetY)
-  drawCraftZoneText(ctx, craftZone, player, cameraOffsetY)
+  // Draw zones if player is in range
+  if (player.x >= upgradeZone.x && player.x <= upgradeZone.x + upgradeZone.width) {
+      // Upgrade zone background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+      ctx.fillRect(
+      upgradeZone.x, 
+      upgradeZone.y - cameraOffsetY, 
+      upgradeZone.width, 
+      upgradeZone.height
+    )
+    drawZoneText(ctx, upgradeZone, player, cameraOffsetY)
+  }
+  if (player.x >= craftZone.x && player.x <= craftZone.x + craftZone.width) {
+      // Craft zone background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+      ctx.fillRect(
+      craftZone.x, 
+      craftZone.y - cameraOffsetY, 
+      craftZone.width, 
+      craftZone.height
+    )
+    drawCraftZoneText(ctx, craftZone, player, cameraOffsetY)
+  }
 }
 
 function drawZoneText(
@@ -369,36 +374,36 @@ function drawInventory(ctx: CanvasRenderingContext2D, player: Player) {
 }
 
 function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
-  const startX = 5
-  const startY = CANVAS_HEIGHT - 260
-  const iconSize = 25
+  const startX = 1
+  const startY = CANVAS_HEIGHT - 250
+  const iconSize = 20
   
   // Gold display.
   const coinIcon = getIconTexture('coin')
   if (coinIcon) {
-    ctx.drawImage(coinIcon, startX + 10, startY + 10, iconSize, iconSize)
+    ctx.drawImage(coinIcon, startX + 10, startY + 10 + 14, iconSize, iconSize)
     ctx.fillStyle = "white"
-    ctx.font = "16px Arial"
-    ctx.fillText(player.gold.toString(), startX + iconSize + 15, startY + 30)
+    ctx.font = "14px Arial"
+    ctx.fillText(player.gold.toString(), startX + iconSize + 15, startY + 40)
   }
   
   // Backpack display.
   const backpackIcon = getIconTexture('backpack')
   if (backpackIcon) {
-    ctx.drawImage(backpackIcon, startX + 9, startY + 10 + 30, iconSize, iconSize)
+    ctx.drawImage(backpackIcon, startX + 9, startY + 10 + 39, iconSize, iconSize)
     ctx.fillStyle = "white"
-    ctx.font = "16px Arial"
-    ctx.fillText(`${player.inventory} / ${Math.floor(player.backpackCapacity)}`, startX + iconSize + 15, startY + 60)
+    ctx.font = "14px Arial"
+    ctx.fillText(`${player.inventory} / ${Math.floor(player.backpackCapacity)}`, startX + iconSize + 15, startY + 65)
   }
   
   // Pickaxe display.
   const pickaxeType = PICKAXE_TYPES_ARRAY[player.pickaxeType].name.toLowerCase()
   const pickIcon = getPickTexture(pickaxeType)
   if (pickIcon) {
-    ctx.drawImage(pickIcon, startX + 10, startY + 10 + 60, iconSize, iconSize)
+    ctx.drawImage(pickIcon, startX + 10, startY + 10 + 63, iconSize, iconSize)
     ctx.fillStyle = "white"
-    ctx.font = "16px Arial"
-    ctx.fillText(`${player.pickaxePower.toPrecision(2)}x`, startX + iconSize + 15, startY + 90)
+    ctx.font = "14px Arial"
+    ctx.fillText(`${player.pickaxePower.toPrecision(2)}x`, startX + iconSize + 15, startY + 88)
   }
 
   // Selected block info
@@ -409,8 +414,8 @@ function drawHUD(ctx: CanvasRenderingContext2D, player: Player) {
     selectedBlockName = selectedBlockData.name
   }
   ctx.fillStyle = "#999999"  // Light grey color
-  ctx.font = "italic 16px Arial"
-  ctx.fillText(`${selectedBlockName}`, startX + 10, startY + 118)
+  ctx.font = "italic 14px Arial"
+  ctx.fillText(`${selectedBlockName}`, startX + 12, startY + 110)
 }
 
 function drawDarknessOverlay(

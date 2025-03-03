@@ -13,19 +13,19 @@ import {
   findNearbyBlock, isRefinable, addToInventory, getSelectedBlockType,
   getGridPosition,
   distanceToBlock,
+  getMainBlock
 } from './utils/data-utils'
 import { mineBlock, placeBlock, blockInReach } from './utils/mine-utils';
 import { 
   depositItemIntoStorage, collectItemFromStorage
 } from './utils/machinery-utils'
-import { MACHINE_STORAGE_LIMIT } from './constants'
-
 
 export function canMineBlock(
   block: Block,
   clickX: number,
   clickY: number,
   player: Player,
+  blocks: Block[]
 ): { canMine: boolean; reason?: string } {
   
   if (!blockInReach(player, block, clickX, clickY)) {
@@ -47,6 +47,17 @@ export function canMineBlock(
     }
   }
 
+  // Check no processing block if refiner
+  if (getBlockData(block.blockType).category === 'refiner') {
+    // get main block if secondary
+    const mainBlock = getMainBlock(block, blocks)
+    if (mainBlock.machineState && mainBlock.machineState.processingBlockType !== null) {
+      return {
+        canMine: false,
+        reason: "Refiner is busy!"
+      }
+    }
+  }
   // Check if inventory is full
   const canHold = canHoldBlock(player, block.blockType)
   return { 
@@ -253,11 +264,6 @@ export function attemptDepositInStorage(player: Player, blocks: Block[]): { succ
   if (!storageBlock) {
     return { success: false, reason: "No storage nearby!" };
   }
-  
-  // Use the helper function with appropriate storage limit
-  const storageLimit = storageBlock && 
-                      getBlockData(storageBlock.blockType).category === 'collector' ? 
-                      MACHINE_STORAGE_LIMIT : Infinity;
                       
   return depositItemIntoStorage(player, storageBlock);
 }

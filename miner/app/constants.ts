@@ -4,7 +4,7 @@ export const BLOCK_SIZE = 40
 export const PLAYER_WIDTH = 30
 export const PLAYER_HEIGHT = 60
 export const GRAVITY = 0.5
-export const TERMINAL_VELOCITY = 10
+export const TERMINAL_VELOCITY = 15
 export const JUMP_STRENGTH = 10
 export const MOVE_SPEED = 3
 export const MINE_WIDTH = 9
@@ -38,14 +38,14 @@ export const UPGRADE_ZONE = {
   x: 0,
   y: SURFACE_Y - 250,
   width: 230,
-  height: 260,
+  height: 75,
 }
 
 export const CRAFT_ZONE = {
   x: CANVAS_WIDTH - 190,
   y: SURFACE_Y - 250,
   width: 190,
-  height: 260,
+  height: 75,
 }
 
 // Base block properties that most blocks share
@@ -59,17 +59,17 @@ const DEFAULT_BLOCK = {
 // Block type definitions
 export const BLOCK_TYPES = {
   // Natural blocks (organized by depth/hardness)
-  GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", category: 'block', ...DEFAULT_BLOCK },
+  GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", category: 'dirt', ...DEFAULT_BLOCK },
   STONE: { id: 1, value: 1, miningTimeMultiplier: 1, density: 1, name: "Stone", category: 'block', ...DEFAULT_BLOCK },
-  SLATE: { id: 2, value: 10, miningTimeMultiplier: 10, density: 10, name: "Slate", ...DEFAULT_BLOCK },
+  SLATE: { id: 2, value: 10, miningTimeMultiplier: 10, density: 10, name: "Slate", category: 'block',...DEFAULT_BLOCK },
   MAGMA: { id: 3, value: 100, miningTimeMultiplier: 100, density: 100, name: "Magma", category: 'block', ...DEFAULT_BLOCK },
   BEDROCK: { id: 4, value: 1000, miningTimeMultiplier: 1000, density: 1000, name: "Bedrock", category: 'block', ...DEFAULT_BLOCK },
 
   // Ores
-  COPPER: { id: 5, value: 20, miningTimeMultiplier: 4, density: 1, name: "Copper", category: 'ore', ...DEFAULT_BLOCK },
-  IRON: { id: 6, value: 50, miningTimeMultiplier: 40, density: 1, name: "Iron", category: 'ore', ...DEFAULT_BLOCK },
-  GOLD: { id: 7, value: 100, miningTimeMultiplier: 400, density: 1, name: "Gold", category: 'ore', ...DEFAULT_BLOCK },
-  DIAMOND: { id: 8, value: 1000, miningTimeMultiplier: 4000, density: 1, name: "Diamond", category: 'ore', ...DEFAULT_BLOCK },
+  COPPER: { id: 5, value: 10, miningTimeMultiplier: 4, density: 1, name: "Copper", category: 'ore', ...DEFAULT_BLOCK },
+  IRON: { id: 6, value: 100, miningTimeMultiplier: 40, density: 1, name: "Iron", category: 'ore', ...DEFAULT_BLOCK },
+  GOLD: { id: 7, value: 1000, miningTimeMultiplier: 400, density: 1, name: "Gold", category: 'ore', ...DEFAULT_BLOCK },
+  DIAMOND: { id: 8, value: 10000, miningTimeMultiplier: 4000, density: 1, name: "Diamond", category: 'ore', ...DEFAULT_BLOCK },
   UNAMED: { id: 9, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed", category: 'ore', ...DEFAULT_BLOCK },
 
   // Mine Equipment
@@ -89,25 +89,25 @@ export const BLOCK_TYPES = {
   COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", category: 'collector', solid: false, climbable: false, requirements: null, size: [1, 1] },
   CHEST: { id: 20, value: 150, miningTimeMultiplier: 3, density: 1, name: "Chest", category: 'chest', solid: false, climbable: false, requirements: null, size: [1, 1] },
   TUBE: { id: 21, value: 50, miningTimeMultiplier: 0.5, density: 1, name: "Tube", category: 'tube', solid: false, climbable: false, requirements: null, size: [1, 1] },
-  COPPER_REFINER: { id: 22, value: 70, miningTimeMultiplier: 10, density: 1, name: "Copper Refiner", solid: false, climbable: false, requirements: {
+  COPPER_REFINER: { id: 22, value: 110, miningTimeMultiplier: 10, density: 1, name: "Copper Refiner", solid: false, climbable: false, requirements: {
       blockType: 5, // Copper
       amount: 1,
       base: 14 // Stone refiner required
     }, size: [3, 2], category: 'refiner' 
   },
-  IRON_REFINER: { id: 23, value: 120, miningTimeMultiplier: 20, density: 1, name: "Iron Refiner", solid: false, climbable: false, requirements: {
+  IRON_REFINER: { id: 23, value: 200, miningTimeMultiplier: 20, density: 1, name: "Iron Refiner", solid: false, climbable: false, requirements: {
       blockType: 6, // Iron
       amount: 1,
       base: 22 // Copper refiner required
     }, size: [3, 2], category: 'refiner' 
   },
-  GOLD_REFINER: { id: 24, value: 240, miningTimeMultiplier: 40, density: 1, name: "Gold Refiner", solid: false, climbable: false, requirements: {
+  GOLD_REFINER: { id: 24, value: 1100, miningTimeMultiplier: 40, density: 1, name: "Gold Refiner", solid: false, climbable: false, requirements: {
       blockType: 7, // Gold
       amount: 1,
       base: 23 // Iron refiner required
     }, size: [3, 2], category: 'refiner' 
   },
-  DIAMOND_REFINER: { id: 25, value: 400, miningTimeMultiplier: 80, density: 1, name: "Diamond Refiner", solid: false, climbable: false, requirements: {
+  DIAMOND_REFINER: { id: 25, value: 10100, miningTimeMultiplier: 80, density: 1, name: "Diamond Refiner", solid: false, climbable: false, requirements: {
       blockType: 8, // Diamond
       amount: 1,
       base: 24 // Gold refiner required
@@ -146,28 +146,28 @@ export const PICKAXE_TYPES = {
     id: 1, miningTimeMultiplier: 3, name: "Copper", 
     requirements: {
       blockType: 5,
-      amount: 5
+      amount: 3
     },
   },
   IRON: {
     id: 2, miningTimeMultiplier: 9, name: "Iron",
     requirements: {
       blockType: 6,
-      amount: 5
+      amount: 3
     },
   },
   GOLD: {
     id: 3, miningTimeMultiplier: 27, name: "Gold",
     requirements: {
       blockType: 7,
-      amount: 5
+      amount: 3
     },
   },
   DIAMOND: {
     id: 4, miningTimeMultiplier: 81, name: "Diamond",
     requirements: {
       blockType: 8,
-      amount: 5
+      amount: 3
     },
   }
 } as const
@@ -181,28 +181,28 @@ export const BACKPACK_TYPES = {
     id: 1, capacity: 15, name: "Copper",
     requirements: {
       blockType: 5,
-      amount: 5
+      amount: 3
     },
   },
   IRON: {
     id: 2, capacity: 45, name: "Iron",
     requirements: {
       blockType: 6,
-      amount: 5
+      amount: 3
     },
   },
   GOLD: {
     id: 3, capacity: 135, name: "Gold",
     requirements: {
       blockType: 7,
-      amount: 5
+      amount: 3
     },
   },
   DIAMOND: {
     id: 4, capacity: 405, name: "Diamond",
     requirements: {
       blockType: 8,
-      amount: 5
+      amount: 3
     },
   }
 } as const

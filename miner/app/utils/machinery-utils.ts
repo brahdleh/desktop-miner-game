@@ -42,7 +42,7 @@ export function addToStorage(block: Block, itemType: number, count: number = 1):
   }
 
   // Add item to storage
-  block.storageState.storedBlocks.push({ blockType: itemType, count: 1 });
+  block.storageState.storedBlocks.push({ blockType: itemType, count: count });
   return true
 }
 

@@ -37,7 +37,13 @@ export function getBackpackData(backpackType: number) {
 
 export function canHoldBlock(player: Player, blockType: number): boolean {
     const blockData = getBlockData(blockType)
-    return player.inventory + blockData.density <= player.backpackCapacity 
+    if (player.inventory + blockData.density > player.backpackCapacity) {
+      return false
+    }
+    if (findAvailableSlot(player, blockType) === -1) {
+      return false
+    }
+    return true
 }
 
 export function getBlockInventory(player: Player, blockType: number): number {
@@ -62,7 +68,10 @@ function findAvailableSlot(player: Player, blockType: number): number {
   if (existingSlot !== -1) return existingSlot
 
   // Then try to find an empty slot
-  return player.inventorySlots.findIndex(slot => slot.blockType === null)
+  const emptySlot = player.inventorySlots.findIndex(slot => slot.blockType === null)
+  
+  // Return -1 if no slot is available (all slots are full with different items)
+  return emptySlot;
 }
 
 export function addToInventory(player: Player, blockType: number): boolean {
@@ -142,6 +151,16 @@ export function getSecondaryBlocks(mainBlock: Block, blocks: Block[]): Block[] {
     b.mainBlockX === mainBlock.x && 
     b.mainBlockY === mainBlock.y
   );
+}
+
+export function getMainBlock(block: Block, blocks: Block[]): Block | Block {
+  if (block.isSecondaryBlock) {
+    const mainBlock = blocks.find(b => b.x === block.mainBlockX && b.y === block.mainBlockY)
+    if (mainBlock) {
+      return mainBlock
+    }
+  }
+  return block
 }
 
 export function isRefinable(blockType: number): boolean {
