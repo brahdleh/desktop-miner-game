@@ -115,8 +115,8 @@ export function initializePlayer() {
     gold: 0,
     proficiency: 1,
     strength: 1,
-    backpackCapacity: 1000 * BACKPACK_TYPES.STONE.capacity,
-    pickaxePower: 1000 * PICKAXE_TYPES.STONE.miningTimeMultiplier,
+    backpackCapacity: BACKPACK_TYPES.STONE.capacity,
+    pickaxePower: PICKAXE_TYPES.STONE.miningTimeMultiplier,
     inventorySlots: Array(15).fill(null).map(() => ({ 
       blockType: null, 
       count: 0 
