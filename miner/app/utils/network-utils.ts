@@ -81,11 +81,8 @@ function findAllConnections(
 
 // Helper function to find a path between two machines using BFS
 function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]): Block[] | null {
-  // Maximum distance to search to prevent excessive computation
-  const MAX_SEARCH_DISTANCE = 20;
-  
   // Queue for BFS
-  const queue: { block: Block, path: Block[], depth: number }[] = [{ block: source, path: [source], depth: 0 }];
+  const queue: { block: Block, path: Block[] }[] = [{ block: source, path: [source] }];
   // Set to track visited blocks
   const visited = new Set<string>();
   
@@ -100,15 +97,12 @@ function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]):
   for (const sourceBlock of sourceBlocks) {
     visited.add(getBlockKey(sourceBlock));
     if (sourceBlock !== source) {
-      queue.push({ block: sourceBlock, path: [sourceBlock], depth: 0 });
+      queue.push({ block: sourceBlock, path: [sourceBlock] });
     }
   }
   
   while (queue.length > 0) {
-    const { block, path, depth } = queue.shift()!;
-    
-    // If we've reached the maximum search distance, skip this path
-    if (depth > MAX_SEARCH_DISTANCE) continue;
+    const { block, path } = queue.shift()!;
     
     // If we've reached any of the target blocks, return the path
     if (targetBlocks.some(tb => tb.x === block.x && tb.y === block.y)) {
@@ -144,8 +138,7 @@ function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]):
           blockData.category === 'tube') {
         queue.push({ 
           block: nextBlock, 
-          path: [...path, nextBlock],
-          depth: depth + 1
+          path: [...path, nextBlock] 
         });
       }
     }
