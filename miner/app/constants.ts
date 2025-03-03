@@ -53,42 +53,41 @@ const DEFAULT_BLOCK = {
   climbable: false,
   requirements: null,
   size: [1, 1],
-  category: 'block'
 } as const
 
 // Block type definitions
 export const BLOCK_TYPES = {
   // Natural blocks (organized by depth/hardness)
-  GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", ...DEFAULT_BLOCK },
-  STONE: { id: 1, value: 1, miningTimeMultiplier: 1, density: 1, name: "Stone", ...DEFAULT_BLOCK },
+  GRASS: { id: 0, value: 1, miningTimeMultiplier: 0.5, density: 1, name: "Grass", category: 'block', ...DEFAULT_BLOCK },
+  STONE: { id: 1, value: 1, miningTimeMultiplier: 1, density: 1, name: "Stone", category: 'block', ...DEFAULT_BLOCK },
   SLATE: { id: 2, value: 10, miningTimeMultiplier: 10, density: 10, name: "Slate", ...DEFAULT_BLOCK },
-  MAGMA: { id: 3, value: 100, miningTimeMultiplier: 100, density: 100, name: "Magma", ...DEFAULT_BLOCK },
-  BEDROCK: { id: 4, value: 1000, miningTimeMultiplier: 1000, density: 1000, name: "Bedrock", ...DEFAULT_BLOCK },
+  MAGMA: { id: 3, value: 100, miningTimeMultiplier: 100, density: 100, name: "Magma", category: 'block', ...DEFAULT_BLOCK },
+  BEDROCK: { id: 4, value: 1000, miningTimeMultiplier: 1000, density: 1000, name: "Bedrock", category: 'block', ...DEFAULT_BLOCK },
 
   // Ores
-  COPPER: { id: 5, value: 20, miningTimeMultiplier: 4, density: 1, name: "Copper", ...DEFAULT_BLOCK },
-  IRON: { id: 6, value: 50, miningTimeMultiplier: 40, density: 1, name: "Iron", ...DEFAULT_BLOCK },
-  GOLD: { id: 7, value: 100, miningTimeMultiplier: 400, density: 1, name: "Gold", ...DEFAULT_BLOCK },
-  DIAMOND: { id: 8, value: 1000, miningTimeMultiplier: 4000, density: 1, name: "Diamond", ...DEFAULT_BLOCK },
-  UNAMED: { id: 9, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed", ...DEFAULT_BLOCK },
+  COPPER: { id: 5, value: 20, miningTimeMultiplier: 4, density: 1, name: "Copper", category: 'ore', ...DEFAULT_BLOCK },
+  IRON: { id: 6, value: 50, miningTimeMultiplier: 40, density: 1, name: "Iron", category: 'ore', ...DEFAULT_BLOCK },
+  GOLD: { id: 7, value: 100, miningTimeMultiplier: 400, density: 1, name: "Gold", category: 'ore', ...DEFAULT_BLOCK },
+  DIAMOND: { id: 8, value: 1000, miningTimeMultiplier: 4000, density: 1, name: "Diamond", category: 'ore', ...DEFAULT_BLOCK },
+  UNAMED: { id: 9, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed", category: 'ore', ...DEFAULT_BLOCK },
 
   // Mine Equipment
-  PLATFORM: { id: 10, value: 3, miningTimeMultiplier: 1, density: 1, name: "Platform", ...DEFAULT_BLOCK },
-  LADDER: { id: 11, value: 10, miningTimeMultiplier: 1, density: 1, name: "Ladder", solid: false, climbable: true, requirements: null },
-  TORCH: { id: 12, value: 5, miningTimeMultiplier: 1, density: 1, name: "Torch", solid: false, climbable: false, requirements: null },
-  UNAMED2: { id: 13, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed2", ...DEFAULT_BLOCK },
+  PLATFORM: { id: 10, value: 3, miningTimeMultiplier: 1, density: 1, name: "Platform", category: 'platform', ...DEFAULT_BLOCK },
+  LADDER: { id: 11, value: 10, miningTimeMultiplier: 1, density: 1, name: "Ladder", category: 'ladder', solid: false, climbable: true, requirements: null },
+  TORCH: { id: 12, value: 5, miningTimeMultiplier: 1, density: 1, name: "Torch", category: 'torch', solid: false, climbable: false, requirements: null },
+  UNAMED2: { id: 13, value: 1000, miningTimeMultiplier: 300, density: 1, name: "Unamed2", category: 'unamed', ...DEFAULT_BLOCK },
   STONE_REFINER: { id: 14, value: 50, miningTimeMultiplier: 5, density: 1, name: "Stone Refiner", solid: false, climbable: false, requirements: null, size: [3, 2], category: 'refiner' },
 
   // Polished variants (value = 5x base)
-  POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", ...DEFAULT_BLOCK },
-  POLISHED_SLATE: { id: 16, value: 50, miningTimeMultiplier: 10, density: 10, name: "Polished Slate", ...DEFAULT_BLOCK },
-  POLISHED_MAGMA: { id: 17, value: 500, miningTimeMultiplier: 100, density: 100, name: "Polished Magma", ...DEFAULT_BLOCK },
-  POLISHED_BEDROCK: { id: 18, value: 5000, miningTimeMultiplier: 1000, density: 1000, name: "Polished Bedrock", ...DEFAULT_BLOCK },
+  POLISHED_STONE: { id: 15, value: 5, miningTimeMultiplier: 1, density: 1, name: "Polished Stone", category: 'polished', ...DEFAULT_BLOCK },
+  POLISHED_SLATE: { id: 16, value: 50, miningTimeMultiplier: 10, density: 10, name: "Polished Slate", category: 'polished', ...DEFAULT_BLOCK },
+  POLISHED_MAGMA: { id: 17, value: 500, miningTimeMultiplier: 100, density: 100, name: "Polished Magma", category: 'polished', ...DEFAULT_BLOCK },
+  POLISHED_BEDROCK: { id: 18, value: 5000, miningTimeMultiplier: 1000, density: 1000, name: "Polished Bedrock", category: 'polished', ...DEFAULT_BLOCK },
 
   // Automation Machinery
-  COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", solid: false, climbable: false, requirements: null, size: [1, 1] },
-  CHEST: { id: 20, value: 150, miningTimeMultiplier: 3, density: 1, name: "Chest", solid: false, climbable: false, requirements: null, size: [1, 1] },
-  TUBE: { id: 21, value: 50, miningTimeMultiplier: 0.5, density: 1, name: "Tube", solid: false, climbable: false, requirements: null, size: [1, 1] },
+  COLLECTOR: { id: 19, value: 100, miningTimeMultiplier: 3, density: 1, name: "Collector", category: 'collector', solid: false, climbable: false, requirements: null, size: [1, 1] },
+  CHEST: { id: 20, value: 150, miningTimeMultiplier: 3, density: 1, name: "Chest", category: 'chest', solid: false, climbable: false, requirements: null, size: [1, 1] },
+  TUBE: { id: 21, value: 50, miningTimeMultiplier: 0.5, density: 1, name: "Tube", category: 'tube', solid: false, climbable: false, requirements: null, size: [1, 1] },
   COPPER_REFINER: { 
     id: 22, 
     value: 70, 
@@ -224,11 +223,6 @@ export const BACKPACK_TYPES = {
     },
   }
 } as const
-
-// Create reverse lookup from ID to block type name
-export const BLOCK_ID_TO_TYPE = Object.fromEntries(
-  Object.entries(BLOCK_TYPES).map(([name, data]) => [data.id, name])
-) as { [id: number]: keyof typeof BLOCK_TYPES }
 
 // Refining constants
 export const REFINING_TIME = 30000 // 30 seconds to refine a block

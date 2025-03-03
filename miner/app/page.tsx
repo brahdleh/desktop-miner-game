@@ -22,9 +22,8 @@ import {
   attemptCraftPickaxe,
   attemptCraftBackpack,
   attemptBuy,
-  attemptDepositInMachinery,
-  attemptCollectFromMachinery,
-  attemptCraftRefiner,
+  attemptInteractWithMachinery,
+  attemptCraft,
 } from "./mining"
 import { draw } from "./rendering"
 import { initializeBlocks, initializePlayer } from "./init"
@@ -218,7 +217,7 @@ export default function MiningGame() {
 
         // Universal machinery interactions
         if (e.key === "t") {
-          const depositCheck = attemptDepositInMachinery(player, blocks)
+          const depositCheck = attemptInteractWithMachinery(player, blocks, 'deposit')
           if (depositCheck.reason) {
             showNotification(depositCheck.reason, 'warning')
           }
@@ -226,7 +225,7 @@ export default function MiningGame() {
         }
         
         if (e.key === "y") {
-          const collectCheck = attemptCollectFromMachinery(player, blocks)
+          const collectCheck = attemptInteractWithMachinery(player, blocks, 'collect')
           if (collectCheck.reason) {
             showNotification(collectCheck.reason, 'warning')
           }
@@ -285,7 +284,7 @@ export default function MiningGame() {
           // Add new key handlers for crafting refiners
           if (e.key === "1") {
             // Craft copper refiner (ID 22)
-            if (attemptCraftRefiner(player, 22)) {
+            if (attemptCraft(player, 22)) {
               showNotification('Crafted Copper Refiner!', 'success')
             } else {
               showNotification('Need more materials!', 'warning')
@@ -293,7 +292,7 @@ export default function MiningGame() {
           }
           if (e.key === "2") {
             // Craft iron refiner (ID 23)
-            if (attemptCraftRefiner(player, 23)) {
+            if (attemptCraft(player, 23)) {
               showNotification('Crafted Iron Refiner!', 'success')
             } else {
               showNotification('Need more materials!', 'warning')
@@ -301,7 +300,7 @@ export default function MiningGame() {
           }
           if (e.key === "3") {
             // Craft gold refiner (ID 24)
-            if (attemptCraftRefiner(player, 24)) {
+            if (attemptCraft(player, 24)) {
               showNotification('Crafted Gold Refiner!', 'success')
             } else {
               showNotification('Need more materials!', 'warning')
@@ -309,7 +308,7 @@ export default function MiningGame() {
           }
           if (e.key === "4") {
             // Craft diamond refiner (ID 25)
-            if (attemptCraftRefiner(player, 25)) {
+            if (attemptCraft(player, 25)) {
               showNotification('Crafted Diamond Refiner!', 'success')
             } else {
               showNotification('Need more materials!', 'warning')
@@ -457,7 +456,7 @@ export default function MiningGame() {
   const handleCraftRefiner = (refinerType: number) => {
     if (!playerRef.current) return
     
-    if (attemptCraftRefiner(playerRef.current, refinerType)) {
+    if (attemptCraft(playerRef.current, refinerType)) {
       showNotification('Refiner crafted!', 'success')
     } else {
       showNotification('Cannot craft refiner', 'warning')

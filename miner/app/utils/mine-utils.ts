@@ -1,7 +1,8 @@
 import { Player, BlockData, Block } from "../types";
-import { getSelectedBlockType } from "./data-utils"
-import { BLOCK_SIZE } from "../constants"
+import { getSelectedBlockType, distanceToBlock } from "./data-utils"
+import { BLOCK_SIZE, MINING_REACH } from "../constants"
 import { getBlockData } from "./data-utils"
+import { updateNetworkonEdit } from "../automation"
 
 export function canPlaceBlock(size: [number, number], blocks: Block[], gridX: number, gridY: number): boolean {
   for (let dx = 0; dx < size[0]; dx++) {
@@ -55,20 +56,35 @@ export function placeBlock(player: Player, blocks: Block[], gridX: number, gridY
         }
       }
     }
+    // update the network
+    updateNetworkonEdit(mainBlock, blocks)
     return true
   } 
   return false
 }
 
-export function mineBlock(block: Block, blocks: Block[]): boolean {
-  // Check if this is a storage block with items
-  if ((block.blockType === 19 || block.blockType === 20) && 
-      block.storageState &&
-      block.storageState.storedBlocks.length > 0) {
-    // Don't allow mining if storage has items
-    return false;
+export function blockInReach(player: Player, block: Block, clickX: number, clickY: number): boolean {
+
+const isClickInBlock = 
+    clickX >= block.x &&
+    clickX < block.x + BLOCK_SIZE &&
+    clickY >= block.y &&
+    clickY < block.y + BLOCK_SIZE
+
+  if (!isClickInBlock) {
+    return false
   }
-  
+
+  // Distance check from player
+  if (distanceToBlock(player, block.x, block.y) > MINING_REACH) {
+    return false
+  }
+  return true
+}
+
+
+export function mineBlock(block: Block, blocks: Block[]): boolean {
+
   // If this is a secondary block, find the main block first
   if (block.isSecondaryBlock && block.mainBlockX !== undefined && block.mainBlockY !== undefined) {
     const mainBlock = blocks.find(b => 
@@ -104,6 +120,7 @@ export function mineBlock(block: Block, blocks: Block[]): boolean {
       }
     })
   }
-  
+  // update the network
+  updateNetworkonEdit(block, blocks)
   return true;
 }

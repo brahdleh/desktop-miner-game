@@ -44,7 +44,7 @@ export interface BlockData {
   requirements: {
     blockType: number
     amount: number
-    base?: number  // Optional field for refiner upgrades
+    base?: number  // Optional field for machine upgrades
   } | null
   size: [number, number],
   category: string

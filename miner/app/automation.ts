@@ -1,254 +1,187 @@
-import { Player, Block } from './types'
-import { REFINABLE_BLOCKS, BLOCK_SIZE, MACHINE_STORAGE_LIMIT } from './constants'
+import { Block } from './types'
+import { REFINABLE_BLOCKS } from './constants'
 import { 
-  COLLECTOR_ID, CHEST_ID,
   initializeStorageState, initializeRefinerState,
-  hasMachineSpace, addItemToMachine
+  hasStorageSpace, addToStorage
 } from './utils/machinery-utils'
 import { getRefiningTime } from './utils/calculation-utils'
-import { getBlockData } from './utils/data-utils';
+import { getBlockData, isRefinable } from './utils/data-utils';
+import { 
+  MachineNetwork, 
+  getBlockKey, 
+  buildMachineNetwork,
+  isMachineBlock, 
+  } from './utils/network-utils';
 
-// Directions for adjacent blocks
-const DIRECTIONS = [
-  { dx: 0, dy: -1 }, // Up
-  { dx: 1, dy: 0 },  // Right
-  { dx: 0, dy: 1 },  // Down
-  { dx: -1, dy: 0 }, // Left
-];
+// Global machine network
+let machineNetwork: MachineNetwork | null = null;
 
-// Helper function to check if a block is a refiner
-function isRefiner(blockType: number): boolean {
-  return getBlockData(blockType).category === 'refiner';
+
+// Initialize or update the machine network
+export function initializeMachineNetwork(blocks: Block[]): void {
+  machineNetwork = buildMachineNetwork(blocks);
+  console.log(`Machine network initialized with ${machineNetwork.size} machines`);
 }
 
-// Process all automation machinery
+// Update the network when a block is added or removed
+export function updateNetworkonEdit(block: Block, blocks: Block[]): void {
+
+  if (isMachineBlock(block)) {
+    if (!machineNetwork) {
+      initializeMachineNetwork(blocks);
+      return;
+    } else {
+      machineNetwork = buildMachineNetwork(blocks);
+    }
+  }
+}
+
+// Process all automation machinery using the network
 export function processAutomation(blocks: Block[]) {
-  // Process collectors first
-  const collectors = blocks.filter(b => !b.isMined && b.blockType === COLLECTOR_ID && !b.isSecondaryBlock)
+  // Initialize network if it doesn't exist
+  if (!machineNetwork) {
+    initializeMachineNetwork(blocks);
+  }
   
-  // Process refiners
-  const refiners = blocks.filter(b => !b.isMined && isRefiner(b.blockType) && !b.isSecondaryBlock)
+  // Get all relevant machines
+  const collectors = blocks.filter(b => !b.isMined && getBlockData(b.blockType).category === 'collector' && !b.isSecondaryBlock);
+  const refiners = blocks.filter(b => !b.isMined && getBlockData(b.blockType).category === 'refiner' && !b.isSecondaryBlock);
+  const chests = blocks.filter(b => !b.isMined && getBlockData(b.blockType).category === 'chest' && !b.isSecondaryBlock);
   
-  // Process chests
-  const chests = blocks.filter(b => !b.isMined && b.blockType === CHEST_ID && !b.isSecondaryBlock)
+  // Initialize states
+  collectors.forEach(initializeStorageState);
+  chests.forEach(initializeStorageState);
+  refiners.forEach(initializeRefinerState);
   
-  // Initialize storage states if needed
-  collectors.forEach(initializeStorageState)
-  chests.forEach(initializeStorageState)
+  // Process collector transfers
+  processCollectors(collectors);
   
-  // Initialize refiner states if needed
-  refiners.forEach(initializeRefinerState)
-  
-  // Process collector to refiner transfers
+  // Process refiner to chest transfers
+  processRefiners(refiners);
+}
+
+// Process collectors to transfer items
+function processCollectors(collectors: Block[]) {
   collectors.forEach(collector => {
     // Skip if collector is empty
-    if (!collector.storageState?.storedBlocks || collector.storageState.storedBlocks.length === 0) return
+    if (!collector.storageState?.storedBlocks || collector.storageState.storedBlocks.length === 0) return;
     
     // Check if there's a refinable block in the collector
     const refinableBlockIndex = collector.storageState.storedBlocks.findIndex(item => 
-      REFINABLE_BLOCKS[item.blockType as keyof typeof REFINABLE_BLOCKS] !== undefined
-    )
+      isRefinable(item.blockType)
+    );
     
     if (refinableBlockIndex >= 0) {
-      // Find a path to an available refiner
-      const availableRefiner = refiners.find(refiner => 
-        refiner.machineState && refiner.machineState.processingBlockType === null
-      )
+      // Try to transfer to a refiner first
+      const refinedSuccessfully = transferToNearestRefiner(collector, refinableBlockIndex);
       
-      let refinedSuccessfully = false
-      
-      if (availableRefiner) {
-        const path = findPathBetweenMachines(collector, availableRefiner, blocks)
-        
-        if (path) {
-          // Transfer the block to the refiner
-          const blockToRefine = collector.storageState.storedBlocks.splice(refinableBlockIndex, 1)[0]
-          
-          // Initialize refiner state if needed
-          initializeRefinerState(availableRefiner)
-          
-          // Start processing in the refiner
-          availableRefiner.machineState!.processingBlockType = blockToRefine.blockType
-          availableRefiner.machineState!.processingStartTime = Date.now()
-          availableRefiner.machineState!.isFinished = false
-          
-          refinedSuccessfully = true
-        }
-      }
-      
-      // If we couldn't refine (no refiner or no path), try to transfer to a chest
+      // If we couldn't refine, try to transfer to a chest
       if (!refinedSuccessfully) {
-        transferToChest(collector, chests, blocks)
+        transferToNearestChest(collector);
       }
     } else {
-      // If no refinable blocks, try to transfer to a chest
-      transferToChest(collector, chests, blocks)
+      // If no refinable blocks, transfer to a chest
+      transferToNearestChest(collector);
     }
-  })
-  
-  // Process refiner to chest transfers for completed items
+  });
+}
+
+// Process refiners to transfer completed items
+function processRefiners(refiners: Block[]) {
   refiners.forEach(refiner => {
     // Skip if refiner is not processing or not finished
-    if (!refiner.machineState?.processingBlockType) return
+    if (!refiner.machineState?.processingBlockType) return;
     
-    const inputBlockType = refiner.machineState.processingBlockType
-    const refiningTime = getRefiningTime(refiner.blockType, inputBlockType)
-    const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0)
+    const inputBlockType = refiner.machineState.processingBlockType;
+    const refiningTime = getRefiningTime(refiner.blockType, inputBlockType);
+    const elapsedTime = Date.now() - (refiner.machineState.processingStartTime || 0);
     
     // Check if refining is complete
     if (elapsedTime >= refiningTime) {
       // Mark as finished if not already
       if (!refiner.machineState.isFinished) {
-        refiner.machineState.isFinished = true
+        refiner.machineState.isFinished = true;
       }
       
-      // Try to transfer to a chest
-      const availableChest = chests.find(chest => 
-        chest.storageState && chest.storageState.storedBlocks.length < MACHINE_STORAGE_LIMIT
-      )
-      
-      if (availableChest) {
-        const path = findPathBetweenMachines(refiner, availableChest, blocks)
-        
-        if (path) {
-          // Get the refined block type
-          const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS]
-          
-          // Add to chest
-          initializeStorageState(availableChest)
-          availableChest.storageState!.storedBlocks.push({
-            blockType: outputBlockType,
-            count: 1
-          })
-          
-          // Reset refiner
-          refiner.machineState.processingBlockType = null
-          refiner.machineState.processingStartTime = null
-          refiner.machineState.isFinished = false
-        }
-      }
+      transferRefinedItemToChest(refiner, inputBlockType);
     }
-  })
+  });
 }
 
-// Helper function to transfer items from a collector to a chest
-function transferToChest(collector: Block, chests: Block[], blocks: Block[]) {
-  if (!collector.storageState?.storedBlocks || collector.storageState.storedBlocks.length === 0) return
+// Transfer item from collector to nearest available refiner
+function transferToNearestRefiner(collector: Block, refinableBlockIndex: number): boolean {
+  const collectorConnections = machineNetwork?.get(getBlockKey(collector)) || [];
   
-  // Find an available chest
-  const availableChests = chests.filter(chest => 
-    hasMachineSpace(chest)
-  )
+  // Find the closest connected refiner that's available
+  for (const connection of collectorConnections) {
+    const refiner = connection.machine;
+    if (getBlockData(refiner.blockType).category === 'refiner' && 
+        refiner.machineState && 
+        refiner.machineState.processingBlockType === null) {
+      
+      // Transfer the block to the refiner
+      const blockToRefine = collector.storageState!.storedBlocks.splice(refinableBlockIndex, 1)[0];
+      
+      // Initialize refiner state if needed
+      initializeRefinerState(refiner);
+      
+      // Start processing in the refiner
+      refiner.machineState!.processingBlockType = blockToRefine.blockType;
+      refiner.machineState!.processingStartTime = Date.now();
+      refiner.machineState!.isFinished = false;
+      
+      return true;
+    }
+  }
   
-  for (const availableChest of availableChests) {
-    const path = findPathBetweenMachines(collector, availableChest, blocks)
-    
-    if (path) {
+  return false;
+}
+
+// Transfer refined item from refiner to nearest available chest
+function transferRefinedItemToChest(refiner: Block, inputBlockType: number): boolean {
+  const refinerConnections = machineNetwork?.get(getBlockKey(refiner)) || [];
+  
+  // Find the closest connected chest with space
+  for (const connection of refinerConnections) {
+    const chest = connection.machine;
+    if (getBlockData(chest.blockType).category === 'chest' && hasStorageSpace(chest)) {
+      // Get the refined block type
+      const outputBlockType = REFINABLE_BLOCKS[inputBlockType as keyof typeof REFINABLE_BLOCKS];
+      
+      // Add to chest
+      addToStorage(chest, outputBlockType, 1);
+      
+      // Reset refiner
+      refiner.machineState!.processingBlockType = null;
+      refiner.machineState!.processingStartTime = null;
+      refiner.machineState!.isFinished = false;
+      
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Transfer item from collector to nearest available chest
+function transferToNearestChest(collector: Block): boolean {
+  if (!collector.storageState?.storedBlocks || collector.storageState.storedBlocks.length === 0) return false;
+  
+  const collectorConnections = machineNetwork?.get(getBlockKey(collector)) || [];
+  
+  // Find the closest connected chest with space
+  for (const connection of collectorConnections) {
+    const chest = connection.machine;
+    if (getBlockData(chest.blockType).category === 'chest' && hasStorageSpace(chest)) {
       // Transfer the first block to the chest
-      const blockToTransfer = collector.storageState.storedBlocks.shift()
+      const blockToTransfer = collector.storageState.storedBlocks.shift();
       
       if (blockToTransfer) {
-        initializeStorageState(availableChest)
-        addItemToMachine(availableChest, blockToTransfer.blockType)
-      }
-      
-      // Successfully transferred, so exit the function
-      return
-    }
-  }
-}
-
-// Function to find a path between two machines using BFS
-function findPathBetweenMachines(source: Block, target: Block, blocks: Block[]): Block[] | null {
-  // Queue for BFS
-  const queue: { block: Block, path: Block[] }[] = [{ block: source, path: [source] }]
-  // Set to track visited blocks
-  const visited = new Set<string>()
-  
-  // Add source to visited
-  visited.add(`${source.x},${source.y}`)
-  
-  // Find all secondary blocks of the source and target
-  const sourceBlocks = [source, ...getSecondaryBlocks(source, blocks)]
-  const targetBlocks = [target, ...getSecondaryBlocks(target, blocks)]
-  
-  // Add all source blocks to the queue and mark as visited
-  for (const sourceBlock of sourceBlocks) {
-    if (sourceBlock !== source) { // Skip the main block as it's already added
-      visited.add(`${sourceBlock.x},${sourceBlock.y}`)
-      queue.push({ block: sourceBlock, path: [sourceBlock] })
-    }
-  }
-  
-  while (queue.length > 0) {
-    const { block, path } = queue.shift()!
-    
-    // If we've reached any of the target blocks, return the path
-    if (targetBlocks.some(tb => tb.x === block.x && tb.y === block.y)) {
-      return path
-    }
-    
-    // Check all adjacent blocks
-    for (const dir of DIRECTIONS) {
-      // Calculate adjacent block position
-      const nextX = block.x + dir.dx * BLOCK_SIZE
-      const nextY = block.y + dir.dy * BLOCK_SIZE
-      
-      // Skip if already visited
-      const key = `${nextX},${nextY}`
-      if (visited.has(key)) continue
-      
-      // Find block at this position
-      const nextBlock = blocks.find(b => 
-        !b.isMined && 
-        b.x === nextX && 
-        b.y === nextY
-      )
-      
-      // Skip if no block
-      if (!nextBlock) continue
-      
-      // Mark as visited
-      visited.add(key)
-      
-      // If it's one of the target blocks or a tube, add to queue
-      if (targetBlocks.some(tb => tb.x === nextBlock.x && tb.y === nextBlock.y) || nextBlock.blockType === 21) { // Target or Tube ID
-        queue.push({ 
-          block: nextBlock, 
-          path: [...path, nextBlock] 
-        })
+        addToStorage(chest, blockToTransfer.blockType);
+        return true;
       }
     }
   }
   
-  // No path found
-  return null
+  return false;
 }
-
-// Helper function to get all secondary blocks of a machine
-function getSecondaryBlocks(mainBlock: Block, blocks: Block[]): Block[] {
-  return blocks.filter(b => 
-    !b.isMined && 
-    b.isSecondaryBlock && 
-    b.mainBlockX === mainBlock.x && 
-    b.mainBlockY === mainBlock.y
-  )
-}
-
-// Function to check if a player is near a specific block type
-export function isPlayerNearBlockType(player: Player, blockType: number, blocks: Block[], maxDistance: number = 100): Block | null {
-  for (const block of blocks) {
-    if (block.blockType === blockType && !block.isSecondaryBlock) {
-      const distance = Math.sqrt(
-        Math.pow(block.x - player.x, 2) + 
-        Math.pow(block.y - player.y, 2)
-      )
-      
-      if (distance <= maxDistance) {
-        return block
-      }
-    }
-  }
-  
-  return null
-} 

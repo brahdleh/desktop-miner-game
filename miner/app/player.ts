@@ -26,8 +26,8 @@ export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   if (isOnLadder) {
     // Climbing mechanics
     player.velocityY = 0
-    if (keys["w"]) player.velocityY = -MOVE_SPEED
-    if (keys["s"]) player.velocityY = MOVE_SPEED
+    if (keys["w"]) player.velocityY = -3*MOVE_SPEED
+    if (keys["s"]) player.velocityY = 3*MOVE_SPEED
   } else {
     // Normal jumping mechanics
     if ((keys[" "] || keys["w"]) && player.onGround) {
