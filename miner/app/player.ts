@@ -2,9 +2,10 @@ import { Player, Block, Zone } from './types'
 import { 
   PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, JUMP_STRENGTH, 
   GRAVITY, CANVAS_WIDTH, BLOCK_SIZE, SURFACE_Y, MINE_LEFT, 
-  MINE_WIDTH,
+  MINE_WIDTH, TERMINAL_VELOCITY
 } from './constants'
 import { isClimbable, isSolid } from './utils/data-utils'
+import { getLadderSpeed } from './utils/calculation-utils'
 
 export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   player.velocityX = 0
@@ -26,8 +27,10 @@ export function handleInput(player: Player, keys: { [key: string]: boolean }) {
   if (isOnLadder) {
     // Climbing mechanics
     player.velocityY = 0
-    if (keys["w"]) player.velocityY = -MOVE_SPEED
-    if (keys["s"]) player.velocityY = MOVE_SPEED
+    // Use ladder speed coefficient to adjust climbing speed
+    const ladderSpeedMultiplier = getLadderSpeed(player.currentLadderType || 0);
+    if (keys["w"]) player.velocityY = -MOVE_SPEED * ladderSpeedMultiplier;
+    if (keys["s"]) player.velocityY = MOVE_SPEED * ladderSpeedMultiplier;
   } else {
     // Normal jumping mechanics
     if ((keys[" "] || keys["w"]) && player.onGround) {
@@ -53,10 +56,14 @@ export function updatePlayer(player: Player, blocks: Block[]) {
   // Only apply gravity when not on ladder
   if (!player.onClimbable) {
     player.velocityY += GRAVITY
+    if (Math.abs(player.velocityY) > TERMINAL_VELOCITY) {
+      player.velocityY = Math.sign(player.velocityY) * TERMINAL_VELOCITY
+    }
   }
 
   // Reset climbing state
   player.onClimbable = false
+  player.currentLadderType = undefined
   //player.onGround = false
 
   // Collision detection with blocks
@@ -65,6 +72,7 @@ export function updatePlayer(player: Player, blocks: Block[]) {
       // Check if block is climbable
       if (isClimbable(block.blockType)) {
         player.onClimbable = true
+        player.currentLadderType = block.blockType
         continue // Skip collision resolution for climbable blocks
       }
 
@@ -106,11 +114,8 @@ export function updatePlayer(player: Player, blocks: Block[]) {
 
 export function isPlayerInZone(player: Player, zone: Zone) {
   const pxCenter = player.x + PLAYER_WIDTH / 2
-  const pyBottom = player.y + PLAYER_HEIGHT
   return (
     pxCenter >= zone.x &&
-    pxCenter <= zone.x + zone.width &&
-    pyBottom >= zone.y &&
-    player.y <= zone.y + zone.height
+    pxCenter <= zone.x + zone.width
   )
 } 

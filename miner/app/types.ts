@@ -5,6 +5,7 @@ export interface Player {
   velocityY: number
   onGround: boolean
   onClimbable: boolean  // New property for ladder mechanics
+  currentLadderType: number | undefined
   facingRight: boolean
   isWalking: boolean
   inventory: number
@@ -44,7 +45,7 @@ export interface BlockData {
   requirements: {
     blockType: number
     amount: number
-    base?: number  // Optional field for refiner upgrades
+    base?: number  // Optional field for machine upgrades
   } | null
   size: [number, number],
   category: string

@@ -1,5 +1,6 @@
 import { Player, Block } from './types'
 import { BLOCK_SIZE, CANVAS_WIDTH, SURFACE_Y, MINE_LEFT, MINE_WIDTH, MINE_DEPTH_PX } from './constants'
+import { initializeMachineNetwork } from './automation'
 
 export function saveGame(player: Player, blocks: Block[]) {
   try {
@@ -23,6 +24,12 @@ export function loadGame(): { player: Player | null, blocks: Block[] | null } {
 
     const player = JSON.parse(playerData)
     const blocks = JSON.parse(blocksData)
+    
+    // Initialize the machine network after loading
+    if (blocks) {
+      initializeMachineNetwork(blocks)
+    }
+    
     console.log('Game loaded successfully')
     return { player, blocks }
   } catch (error) {

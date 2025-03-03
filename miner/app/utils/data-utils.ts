@@ -1,6 +1,6 @@
 import { 
-  BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, REFINABLE_BLOCKS, 
-  BLOCK_ID_TO_TYPE, PLAYER_HEIGHT, PLAYER_WIDTH, MACHINE_INTERACTION_DISTANCE 
+  BLOCK_TYPES, PICKAXE_TYPES, BACKPACK_TYPES, BLOCK_SIZE, 
+  PLAYER_HEIGHT, PLAYER_WIDTH, MACHINE_INTERACTION_DISTANCE 
 } from '../constants'
 import { Block, Player, BlockData } from '../types'
 
@@ -37,7 +37,13 @@ export function getBackpackData(backpackType: number) {
 
 export function canHoldBlock(player: Player, blockType: number): boolean {
     const blockData = getBlockData(blockType)
-    return player.inventory + blockData.density <= player.backpackCapacity
+    if (player.inventory + blockData.density > player.backpackCapacity) {
+      return false
+    }
+    if (findAvailableSlot(player, blockType) === -1) {
+      return false
+    }
+    return true
 }
 
 export function getBlockInventory(player: Player, blockType: number): number {
@@ -62,7 +68,10 @@ function findAvailableSlot(player: Player, blockType: number): number {
   if (existingSlot !== -1) return existingSlot
 
   // Then try to find an empty slot
-  return player.inventorySlots.findIndex(slot => slot.blockType === null)
+  const emptySlot = player.inventorySlots.findIndex(slot => slot.blockType === null)
+  
+  // Return -1 if no slot is available (all slots are full with different items)
+  return emptySlot;
 }
 
 export function addToInventory(player: Player, blockType: number): boolean {
@@ -87,6 +96,7 @@ export function addToInventory(player: Player, blockType: number): boolean {
   player.inventory += getBlockData(blockType).density
   return true
 }
+
 export function removeFromInventory(player: Player, blockType: number, count: number): boolean {
   const slotIndex = player.inventorySlots.findIndex(
     slot => slot.blockType === blockType && slot.count > 0
@@ -114,11 +124,18 @@ export function buyBlock(player: Player, blockType: number): void {
   }
 }
 
-export function findNearbyBlock(player: Player, blockType: number, blocks: Block[]): Block | null {
+export function findNearbyBlock(player: Player, blockCategory: string, blocks: Block[]): Block | null {
 
   for (const block of blocks) {
-    if (block.blockType === blockType && !block.isMined) {
+    const blockData = getBlockData(block.blockType)
+    if (blockData.category === blockCategory && !block.isMined) {
       if (distanceToBlock(player, block.x, block.y) <= MACHINE_INTERACTION_DISTANCE) {
+        if (block.isSecondaryBlock) {
+          const mainBlock = blocks.find(b => b.x === block.mainBlockX && b.y === block.mainBlockY)
+          if (mainBlock) {
+            return mainBlock
+          }
+        }
         return block
       }
     }
@@ -126,14 +143,34 @@ export function findNearbyBlock(player: Player, blockType: number, blocks: Block
   return null
 }
 
+// Helper function to get all secondary blocks of a machine
+export function getSecondaryBlocks(mainBlock: Block, blocks: Block[]): Block[] {
+  return blocks.filter(b => 
+    !b.isMined && 
+    b.isSecondaryBlock && 
+    b.mainBlockX === mainBlock.x && 
+    b.mainBlockY === mainBlock.y
+  );
+}
+
+export function getMainBlock(block: Block, blocks: Block[]): Block | Block {
+  if (block.isSecondaryBlock) {
+    const mainBlock = blocks.find(b => b.x === block.mainBlockX && b.y === block.mainBlockY)
+    if (mainBlock) {
+      return mainBlock
+    }
+  }
+  return block
+}
+
 export function isRefinable(blockType: number): boolean {
-  return REFINABLE_BLOCKS[blockType as keyof typeof REFINABLE_BLOCKS] !== undefined
+  return getBlockData(blockType).category === 'block'
 }
 export function isClimbable(blockType: number): boolean {
-  return BLOCK_TYPES[BLOCK_ID_TO_TYPE[blockType]].climbable
+  return getBlockData(blockType).climbable
 }
 export function isSolid(blockType: number): boolean {
-  return BLOCK_TYPES[BLOCK_ID_TO_TYPE[blockType]].solid
+  return getBlockData(blockType).solid
 }
 
 export function clamp(value: number, min: number, max: number): number{

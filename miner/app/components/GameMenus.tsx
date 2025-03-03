@@ -77,7 +77,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Platform [J]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">3 🪙</span>
+            <span className="text-yellow-400 mr-2">3</span>
             <MenuButton 
               onClick={() => onBuyItem(10)}
               disabled={player.gold < 3}
@@ -90,7 +90,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Torch [K]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">5 🪙</span>
+            <span className="text-yellow-400 mr-2">5</span>
             <MenuButton 
               onClick={() => onBuyItem(12)}
               disabled={player.gold < 5}
@@ -103,7 +103,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Ladder [L]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">10 🪙</span>
+            <span className="text-yellow-400 mr-2">10</span>
             <MenuButton 
               onClick={() => onBuyItem(11)}
               disabled={player.gold < 10}
@@ -116,7 +116,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Refiner [N]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">50 🪙</span>
+            <span className="text-yellow-400 mr-2">50</span>
             <MenuButton 
               onClick={() => onBuyItem(14)}
               disabled={player.gold < 50}
@@ -129,7 +129,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Collector [M]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">100 🪙</span>
+            <span className="text-yellow-400 mr-2">100</span>
             <MenuButton 
               onClick={() => onBuyItem(19)}
               disabled={player.gold < 100}
@@ -142,7 +142,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Chest [O]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">150 🪙</span>
+            <span className="text-yellow-400 mr-2">150</span>
             <MenuButton 
               onClick={() => onBuyItem(20)}
               disabled={player.gold < 150}
@@ -155,7 +155,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
         <div className="flex justify-between items-center">
           <span>Tube [Q]</span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">50 🪙</span>
+            <span className="text-yellow-400 mr-2">50</span>
             <MenuButton 
               onClick={() => onBuyItem(21)}
               disabled={player.gold < 50}
@@ -176,7 +176,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
               <span className="text-gray-400">MAXED</span>
             ) : (
               <>
-                <span className="text-yellow-400 mr-2">{proficiencyCost} 🪙</span>
+                <span className="text-yellow-400 mr-2">{proficiencyCost}</span>
                 <MenuButton 
                   onClick={onUpgradeProficiency}
                   disabled={player.gold < proficiencyCost}
@@ -195,7 +195,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
               <span className="text-gray-400">MAXED</span>
             ) : (
               <>
-                <span className="text-yellow-400 mr-2">{strengthCost} 🪙</span>
+                <span className="text-yellow-400 mr-2">{strengthCost}</span>
                 <MenuButton 
                   onClick={onUpgradeStrength}
                   disabled={player.gold < strengthCost}
@@ -273,114 +273,179 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
       </div>
       
       <div className="space-y-4">
-        {/* Pickaxe Crafting */}
+        {/* Tool Upgrades - Combined Pickaxe and Backpack */}
         <div className="border-b border-yellow-700 pb-3">
-          <h3 className="font-bold text-yellow-300 mb-2">Pickaxe Upgrade</h3>
-          {nextPickaxe ? (
-            <div className="flex justify-between items-center">
-              <div>
-                <div>{nextPickaxe.name} Pickaxe</div>
-                {nextPickaxe.requirements && (
-                  <div className="text-sm text-gray-400">
-                    Requires: {nextPickaxe.requirements.amount}x {
-                      BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType].name
-                    }
+          <h3 className="font-bold text-yellow-300 mb-2">Tool Upgrades</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Pickaxe Upgrade */}
+            <div>
+              {nextPickaxe ? (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div>{nextPickaxe.name} Pickaxe</div>
+                    {nextPickaxe.requirements && (
+                      <div className="text-sm text-gray-400">
+                        Requires: {nextPickaxe.requirements.amount}x {
+                          BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType].name
+                        }
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <MenuButton 
-                onClick={onCraftPickaxe}
-                disabled={!hasPickaxeMaterials}
-              >
-                Craft
-              </MenuButton>
+                  <MenuButton 
+                    onClick={onCraftPickaxe}
+                    disabled={!hasPickaxeMaterials}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
+              ) : (
+                <div className="text-gray-400">Final Pickaxe Reached</div>
+              )}
             </div>
-          ) : (
-            <div className="text-gray-400">Final Pickaxe Reached</div>
-          )}
+            
+            {/* Backpack Upgrade */}
+            <div>
+              {nextBackpack ? (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div>{nextBackpack.name} Backpack</div>
+                    {nextBackpack.requirements && (
+                      <div className="text-sm text-gray-400">
+                        Requires: {nextBackpack.requirements.amount}x {
+                          BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType].name
+                        }
+                      </div>
+                    )}
+                  </div>
+                  <MenuButton 
+                    onClick={onCraftBackpack}
+                    disabled={!hasBackpackMaterials}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
+              ) : (
+                <div className="text-gray-400">Final Backpack Reached</div>
+              )}
+            </div>
+          </div>
         </div>
         
-        {/* Backpack Crafting */}
-        <div className="border-b border-yellow-700 pb-3">
-          <h3 className="font-bold text-yellow-300 mb-2">Backpack Upgrade</h3>
-          {nextBackpack ? (
-            <div className="flex justify-between items-center">
-              <div>
-                <div>{nextBackpack.name} Backpack</div>
-                {nextBackpack.requirements && (
-                  <div className="text-sm text-gray-400">
-                    Requires: {nextBackpack.requirements.amount}x {
-                      BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType].name
-                    }
-                  </div>
-                )}
+        {/* Two-column layout for Refiners and Ladders */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Refiner Crafting - Left Column */}
+          <div>
+            <h3 className="font-bold text-yellow-300 mb-2">Refiners [1-4]</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Copper Refiner</div>
+                  <div className="text-sm text-gray-400">Refiner + Copper</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(22)}
+                  disabled={!hasRefinerMaterials(14, 5)}
+                >
+                  Craft
+                </MenuButton>
               </div>
-              <MenuButton 
-                onClick={onCraftBackpack}
-                disabled={!hasBackpackMaterials}
-              >
-                Craft
-              </MenuButton>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Iron Refiner</div>
+                  <div className="text-sm text-gray-400">Copper Refiner + Iron</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(23)}
+                  disabled={!hasRefinerMaterials(22, 6)}
+                >
+                  Craft
+                </MenuButton>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Gold Refiner</div>
+                  <div className="text-sm text-gray-400">Iron Refiner + Gold</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(24)}
+                  disabled={!hasRefinerMaterials(23, 7)}
+                >
+                  Craft
+                </MenuButton>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Diamond Refiner</div>
+                  <div className="text-sm text-gray-400">Gold Refiner + Diamond</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(25)}
+                  disabled={!hasRefinerMaterials(24, 8)}
+                >
+                  Craft
+                </MenuButton>
+              </div>
             </div>
-          ) : (
-            <div className="text-gray-400">Final Backpack Reached</div>
-          )}
-        </div>
-        
-        {/* Refiner Crafting */}
-        <div>
-          <h3 className="font-bold text-yellow-300 mb-2">Refiners [1-4]</h3>
-          <div className="grid grid-cols-1 gap-2">
-            <div className="flex justify-between items-center">
-              <div>
-                <div>Copper Refiner</div>
-                <div className="text-sm text-gray-400">Requires: Stone Refiner + Copper</div>
+          </div>
+          
+          {/* Ladder Crafting - Right Column */}
+          <div>
+            <h3 className="font-bold text-yellow-300 mb-2">Ladders [5-8]</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Stone Ladder</div>
+                  <div className="text-sm text-gray-400">Ladder + Polished Stone</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(26)}
+                  disabled={!hasRefinerMaterials(11, 15)}
+                >
+                  Craft
+                </MenuButton>
               </div>
-              <MenuButton 
-                onClick={() => onCraftRefiner(22)}
-                disabled={!hasRefinerMaterials(14, 5)}
-              >
-                Craft
-              </MenuButton>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div>
-                <div>Iron Refiner</div>
-                <div className="text-sm text-gray-400">Requires: Copper Refiner + Iron</div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Slate Ladder</div>
+                  <div className="text-sm text-gray-400">Ladder + Polished Slate</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(27)}
+                  disabled={!hasRefinerMaterials(26, 16)}
+                >
+                  Craft
+                </MenuButton>
               </div>
-              <MenuButton 
-                onClick={() => onCraftRefiner(23)}
-                disabled={!hasRefinerMaterials(22, 6)}
-              >
-                Craft
-              </MenuButton>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div>
-                <div>Gold Refiner</div>
-                <div className="text-sm text-gray-400">Requires: Iron Refiner + Gold</div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Magma Ladder</div>
+                  <div className="text-sm text-gray-400">Ladder + Polished Magma</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(28)}
+                  disabled={!hasRefinerMaterials(27, 17)}
+                >
+                  Craft
+                </MenuButton>
               </div>
-              <MenuButton 
-                onClick={() => onCraftRefiner(24)}
-                disabled={!hasRefinerMaterials(23, 7)}
-              >
-                Craft
-              </MenuButton>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div>
-                <div>Diamond Refiner</div>
-                <div className="text-sm text-gray-400">Requires: Gold Refiner + Diamond</div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <div>Bedrock Ladder</div>
+                  <div className="text-sm text-gray-400">Ladder + Polished Bedrock</div>
+                </div>
+                <MenuButton 
+                  onClick={() => onCraftRefiner(29)}
+                  disabled={!hasRefinerMaterials(28, 18)}
+                >
+                  Craft
+                </MenuButton>
               </div>
-              <MenuButton 
-                onClick={() => onCraftRefiner(25)}
-                disabled={!hasRefinerMaterials(24, 8)}
-              >
-                Craft
-              </MenuButton>
             </div>
           </div>
         </div>

@@ -43,8 +43,18 @@ export function getRefiningTime(refinerType: number, blockType: number): number 
   return refinerRate * Math.pow(blockData.miningTimeMultiplier, 0.8);
 }
 
+export function getLadderSpeed(ladderType: number): number {
+  // map ladder speeds to the ladder type
+  const ladderSpeeds: {[key: number]: number} = {
+    11: 1, // Ladder
+    26: 2, // Stone ladder
+    27: 4, // Slate ladder
+    28: 8, // Magma ladder
+    29: 16 // Bedrock ladder
+  }
 
-
+  return ladderSpeeds[ladderType] || 1
+}
 
 
 
