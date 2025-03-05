@@ -8,13 +8,17 @@ import { Player } from '../types'
 
 export function updatePickaxePower(player: Player): void {
   const pickaxeData = getPickaxeData(player.pickaxeType)
-  const power = pickaxeData.miningTimeMultiplier * Math.pow(PICKAXE_MINE_INCREMENT, player.proficiency - 1)
+  // Proficiency multipler power of 1.5 each time
+  const proficiencyMultiplier = Math.pow(PICKAXE_MINE_INCREMENT, player.proficiency - 1)
+  const power = pickaxeData.miningTimeMultiplier * proficiencyMultiplier
   player.pickaxePower = power
 }
 
 export function updateBackpackCapacity(player: Player): void {
   const backpackData = getBackpackData(player.backpackType)
-  const capacity = backpackData.capacity * Math.pow(BACKPACK_CAPACITY_INCREMENT, player.strength - 1)
+  // Strength multipler is geometric sum of 5 + 10 + 20 + 40...
+  const strengthMultiplier = 5 * (Math.pow(BACKPACK_CAPACITY_INCREMENT, player.strength - 1) - 1) / (BACKPACK_CAPACITY_INCREMENT - 1)
+  const capacity = backpackData.capacity + strengthMultiplier
   player.backpackCapacity = capacity
 }
 

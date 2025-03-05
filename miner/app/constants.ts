@@ -21,7 +21,7 @@ export const MAX_PROFICIENCY_LEVEL = 10
 export const MINING_REACH = BLOCK_SIZE * 1.75
 
 // Backpack constants
-export const BACKPACK_CAPACITY_INCREMENT = 1.494
+export const BACKPACK_CAPACITY_INCREMENT = 2
 export const STRENGTH_BASE_COST = 10
 export const STRENGTH_COST_MULTIPLIER = 4
 export const MAX_STRENGTH_LEVEL = 10
