@@ -25,11 +25,15 @@ const MenuButton: React.FC<MenuButtonProps> = ({ onClick, disabled, children }) 
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`px-3 py-1 rounded text-sm ${
+    className={`px-3 py-1 rounded text-sm font-pixel border-2 transition-colors ${
       disabled 
-        ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
-        : 'bg-blue-600 hover:bg-blue-700 text-white'
+        ? 'bg-stone-600 text-stone-400 border-stone-500 cursor-not-allowed' 
+        : 'bg-amber-700 hover:bg-amber-600 text-amber-200 border-amber-500 hover:border-amber-400'
     }`}
+    style={{ 
+      imageRendering: 'pixelated',
+      boxShadow: disabled ? 'none' : '0 2px 0 #78350f'
+    }}
   >
     {children}
   </button>
@@ -58,26 +62,37 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
 
   return (
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                    bg-gray-800 border-2 border-yellow-500 rounded-lg p-4 w-[30rem] text-white">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-yellow-400">SHOP</h2>
+                    bg-stone-800 border-4 border-amber-700 rounded-lg p-5 w-[30rem] text-stone-200"
+         style={{ 
+           imageRendering: 'pixelated',
+           boxShadow: '0 0 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(251, 191, 36, 0.2)',
+           backgroundImage: 'repeating-linear-gradient(45deg, rgba(251, 191, 36, 0.03), rgba(251, 191, 36, 0.03) 10px, transparent 10px, transparent 20px)'
+         }}>
+      <div className="flex justify-between items-center mb-5 border-b-2 border-amber-800 pb-2">
+        <h2 className="text-2xl font-bold text-amber-400" style={{ textShadow: '2px 2px 0 #78350f' }}>SHOP</h2>
         <button 
           onClick={onClose}
-          className="text-gray-400 hover:text-white"
+          className="text-amber-600 hover:text-amber-400 bg-stone-700 hover:bg-stone-600 w-8 h-8 flex items-center justify-center rounded-md border-2 border-amber-800"
         >
           ✕
         </button>
       </div>
       
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2 font-bold text-yellow-300 border-b border-yellow-700 pb-1 mb-1">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2 font-bold text-amber-400 border-b-2 border-amber-900 pb-1 mb-3"
+             style={{ textShadow: '1px 1px 0 #78350f' }}>
           Buy Items
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Platform [J]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-amber-800 border border-amber-600"></span>
+            Platform [J]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">3</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>3
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(10)}
               disabled={player.gold < 3}
@@ -87,10 +102,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Torch [K]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-amber-500 border border-amber-300"></span>
+            Torch [K]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">5</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>5
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(12)}
               disabled={player.gold < 5}
@@ -100,10 +120,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Ladder [L]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-amber-700 border border-amber-500"></span>
+            Ladder [L]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">10</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>10
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(11)}
               disabled={player.gold < 10}
@@ -113,10 +138,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Refiner [N]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-stone-500 border border-stone-400"></span>
+            Refiner [N]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">50</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>50
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(14)}
               disabled={player.gold < 50}
@@ -126,10 +156,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Collector [M]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-blue-700 border border-blue-500"></span>
+            Collector [M]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">100</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>100
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(19)}
               disabled={player.gold < 100}
@@ -139,10 +174,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Chest [O]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-amber-900 border border-amber-700"></span>
+            Chest [O]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">150</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>150
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(20)}
               disabled={player.gold < 150}
@@ -152,10 +192,15 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span>Tube [Q]</span>
+        <div className="flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-4 h-4 mr-2 bg-stone-600 border border-stone-500"></span>
+            Tube [Q]
+          </span>
           <div className="flex items-center">
-            <span className="text-yellow-400 mr-2">50</span>
+            <span className="text-amber-400 mr-2 flex items-center">
+              <span className="text-xs mr-1">⛏️</span>50
+            </span>
             <MenuButton 
               onClick={() => onBuyItem(21)}
               disabled={player.gold < 50}
@@ -165,18 +210,24 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="col-span-2 font-bold text-yellow-300 border-b border-yellow-700 pb-1 mb-1 mt-3">
+        <div className="col-span-2 font-bold text-amber-400 border-b-2 border-amber-900 pb-1 mb-3 mt-4"
+             style={{ textShadow: '1px 1px 0 #78350f' }}>
           Upgrades
         </div>
         
-        <div className="col-span-2 flex justify-between items-center">
-          <span>Proficiency</span>
+        <div className="col-span-2 flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-6 h-6 mr-2 text-center text-amber-900 bg-amber-400 rounded-full border-2 border-amber-600">P</span>
+            Proficiency (Level {player.proficiency})
+          </span>
           <div className="flex items-center">
             {proficiencyMaxed ? (
-              <span className="text-gray-400">MAXED</span>
+              <span className="text-stone-400 bg-stone-700 px-3 py-1 rounded border-2 border-stone-600">MAXED</span>
             ) : (
               <>
-                <span className="text-yellow-400 mr-2">{proficiencyCost}</span>
+                <span className="text-amber-400 mr-2 flex items-center">
+                  <span className="text-xs mr-1">⛏️</span>{proficiencyCost}
+                </span>
                 <MenuButton 
                   onClick={onUpgradeProficiency}
                   disabled={player.gold < proficiencyCost}
@@ -188,14 +239,19 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="col-span-2 flex justify-between items-center">
-          <span>Strength</span>
+        <div className="col-span-2 flex justify-between items-center p-2 hover:bg-stone-700 rounded-md">
+          <span className="flex items-center">
+            <span className="inline-block w-6 h-6 mr-2 text-center text-amber-900 bg-amber-400 rounded-full border-2 border-amber-600">S</span>
+            Strength (Level {player.strength})
+          </span>
           <div className="flex items-center">
             {strengthMaxed ? (
-              <span className="text-gray-400">MAXED</span>
+              <span className="text-stone-400 bg-stone-700 px-3 py-1 rounded border-2 border-stone-600">MAXED</span>
             ) : (
               <>
-                <span className="text-yellow-400 mr-2">{strengthCost}</span>
+                <span className="text-amber-400 mr-2 flex items-center">
+                  <span className="text-xs mr-1">⛏️</span>{strengthCost}
+                </span>
                 <MenuButton 
                   onClick={onUpgradeStrength}
                   disabled={player.gold < strengthCost}
@@ -207,7 +263,7 @@ export const ShopMenu: React.FC<ShopMenuProps> = ({
           </div>
         </div>
         
-        <div className="col-span-2 mt-4 text-center text-xs text-gray-400">
+        <div className="col-span-2 mt-5 text-center text-sm text-amber-700 bg-stone-900 p-2 rounded-md border border-amber-900">
           Press P to sell blocks
         </div>
       </div>
@@ -261,71 +317,86 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
 
   return (
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                    bg-gray-800 border-2 border-yellow-500 rounded-lg p-4 w-[32rem] text-white">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-yellow-400">CRAFTING</h2>
+                    bg-stone-800 border-4 border-amber-700 rounded-lg p-5 w-[32rem] text-stone-200"
+         style={{ 
+           imageRendering: 'pixelated',
+           boxShadow: '0 0 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(251, 191, 36, 0.2)',
+           backgroundImage: 'repeating-linear-gradient(45deg, rgba(251, 191, 36, 0.03), rgba(251, 191, 36, 0.03) 10px, transparent 10px, transparent 20px)'
+         }}>
+      <div className="flex justify-between items-center mb-5 border-b-2 border-amber-800 pb-2">
+        <h2 className="text-2xl font-bold text-amber-400" style={{ textShadow: '2px 2px 0 #78350f' }}>CRAFTING</h2>
         <button 
           onClick={onClose}
-          className="text-gray-400 hover:text-white"
+          className="text-amber-600 hover:text-amber-400 bg-stone-700 hover:bg-stone-600 w-8 h-8 flex items-center justify-center rounded-md border-2 border-amber-800"
         >
           ✕
         </button>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Tool Upgrades - Combined Pickaxe and Backpack */}
-        <div className="border-b border-yellow-700 pb-3">
-          <h3 className="font-bold text-yellow-300 mb-2">Tool Upgrades</h3>
+        <div className="border-b-2 border-amber-900 pb-4">
+          <h3 className="font-bold text-amber-400 mb-3" style={{ textShadow: '1px 1px 0 #78350f' }}>Tool Upgrades</h3>
           <div className="grid grid-cols-2 gap-4">
             {/* Pickaxe Upgrade */}
-            <div>
+            <div className="bg-stone-700 p-3 rounded-md border-2 border-amber-900">
               {nextPickaxe ? (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div>{nextPickaxe.name} Pickaxe</div>
-                    {nextPickaxe.requirements && (
-                      <div className="text-sm text-gray-400">
-                        Requires: {nextPickaxe.requirements.amount}x {
-                          BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType].name
-                        }
-                      </div>
-                    )}
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center mb-1">
+                    <span className="text-amber-400 mr-2">⛏️</span>
+                    <span className="font-bold">{nextPickaxe.name} Pickaxe</span>
                   </div>
-                  <MenuButton 
-                    onClick={onCraftPickaxe}
-                    disabled={!hasPickaxeMaterials}
-                  >
-                    Craft
-                  </MenuButton>
+                  {nextPickaxe.requirements && (
+                    <div className="text-sm text-stone-400 mb-2">
+                      Requires: {nextPickaxe.requirements.amount}x {
+                        BLOCK_TYPES_ARRAY[nextPickaxe.requirements.blockType].name
+                      }
+                    </div>
+                  )}
+                  <div className="text-right">
+                    <MenuButton 
+                      onClick={onCraftPickaxe}
+                      disabled={!hasPickaxeMaterials}
+                    >
+                      Craft
+                    </MenuButton>
+                  </div>
                 </div>
               ) : (
-                <div className="text-gray-400">Final Pickaxe Reached</div>
+                <div className="flex items-center justify-center h-full text-stone-400">
+                  <span className="text-amber-700 mr-2">⛏️</span> Final Pickaxe Reached
+                </div>
               )}
             </div>
             
             {/* Backpack Upgrade */}
-            <div>
+            <div className="bg-stone-700 p-3 rounded-md border-2 border-amber-900">
               {nextBackpack ? (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div>{nextBackpack.name} Backpack</div>
-                    {nextBackpack.requirements && (
-                      <div className="text-sm text-gray-400">
-                        Requires: {nextBackpack.requirements.amount}x {
-                          BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType].name
-                        }
-                      </div>
-                    )}
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center mb-1">
+                    <span className="text-amber-400 mr-2">🎒</span>
+                    <span className="font-bold">{nextBackpack.name} Backpack</span>
                   </div>
-                  <MenuButton 
-                    onClick={onCraftBackpack}
-                    disabled={!hasBackpackMaterials}
-                  >
-                    Craft
-                  </MenuButton>
+                  {nextBackpack.requirements && (
+                    <div className="text-sm text-stone-400 mb-2">
+                      Requires: {nextBackpack.requirements.amount}x {
+                        BLOCK_TYPES_ARRAY[nextBackpack.requirements.blockType].name
+                      }
+                    </div>
+                  )}
+                  <div className="text-right">
+                    <MenuButton 
+                      onClick={onCraftBackpack}
+                      disabled={!hasBackpackMaterials}
+                    >
+                      Craft
+                    </MenuButton>
+                  </div>
                 </div>
               ) : (
-                <div className="text-gray-400">Final Backpack Reached</div>
+                <div className="flex items-center justify-center h-full text-stone-400">
+                  <span className="text-amber-700 mr-2">🎒</span> Final Backpack Reached
+                </div>
               )}
             </div>
           </div>
@@ -335,116 +406,140 @@ export const CraftingMenu: React.FC<CraftingMenuProps> = ({
         <div className="grid grid-cols-2 gap-4">
           {/* Refiner Crafting - Left Column */}
           <div>
-            <h3 className="font-bold text-yellow-300 mb-2">Refiners [1-4]</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Copper Refiner</div>
-                  <div className="text-sm text-gray-400">Refiner + Copper</div>
+            <h3 className="font-bold text-amber-400 mb-3" style={{ textShadow: '1px 1px 0 #78350f' }}>Refiners [1-4]</h3>
+            <div className="space-y-3 bg-stone-700 p-3 rounded-md border-2 border-amber-900">
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-amber-600 border border-amber-400"></span>
+                  <span>Copper Refiner</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(22)}
-                  disabled={!hasRefinerMaterials(14, 5)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Refiner + Copper</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(22)}
+                    disabled={!hasRefinerMaterials(14, 5)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Iron Refiner</div>
-                  <div className="text-sm text-gray-400">Copper Refiner + Iron</div>
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-stone-400 border border-stone-300"></span>
+                  <span>Iron Refiner</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(23)}
-                  disabled={!hasRefinerMaterials(22, 6)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Copper Refiner + Iron</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(23)}
+                    disabled={!hasRefinerMaterials(22, 6)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Gold Refiner</div>
-                  <div className="text-sm text-gray-400">Iron Refiner + Gold</div>
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-amber-400 border border-amber-300"></span>
+                  <span>Gold Refiner</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(24)}
-                  disabled={!hasRefinerMaterials(23, 7)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Iron Refiner + Gold</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(24)}
+                    disabled={!hasRefinerMaterials(23, 7)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Diamond Refiner</div>
-                  <div className="text-sm text-gray-400">Gold Refiner + Diamond</div>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-cyan-300 border border-cyan-200"></span>
+                  <span>Diamond Refiner</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(25)}
-                  disabled={!hasRefinerMaterials(24, 8)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Gold Refiner + Diamond</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(25)}
+                    disabled={!hasRefinerMaterials(24, 8)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
             </div>
           </div>
           
           {/* Ladder Crafting - Right Column */}
           <div>
-            <h3 className="font-bold text-yellow-300 mb-2">Ladders [5-8]</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Stone Ladder</div>
-                  <div className="text-sm text-gray-400">Ladder + Polished Stone</div>
+            <h3 className="font-bold text-amber-400 mb-3" style={{ textShadow: '1px 1px 0 #78350f' }}>Ladders [5-8]</h3>
+            <div className="space-y-3 bg-stone-700 p-3 rounded-md border-2 border-amber-900">
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-stone-500 border border-stone-400"></span>
+                  <span>Stone Ladder</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(26)}
-                  disabled={!hasRefinerMaterials(11, 15)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Ladder + Polished Stone</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(26)}
+                    disabled={!hasRefinerMaterials(11, 15)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Slate Ladder</div>
-                  <div className="text-sm text-gray-400">Ladder + Polished Slate</div>
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-stone-600 border border-stone-500"></span>
+                  <span>Slate Ladder</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(27)}
-                  disabled={!hasRefinerMaterials(26, 16)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Ladder + Polished Slate</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(27)}
+                    disabled={!hasRefinerMaterials(26, 16)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Magma Ladder</div>
-                  <div className="text-sm text-gray-400">Ladder + Polished Magma</div>
+              <div className="flex flex-col space-y-2 border-b border-stone-600 pb-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-red-700 border border-red-600"></span>
+                  <span>Magma Ladder</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(28)}
-                  disabled={!hasRefinerMaterials(27, 17)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Ladder + Polished Magma</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(28)}
+                    disabled={!hasRefinerMaterials(27, 17)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div>
-                  <div>Bedrock Ladder</div>
-                  <div className="text-sm text-gray-400">Ladder + Polished Bedrock</div>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center">
+                  <span className="inline-block w-4 h-4 mr-2 bg-stone-800 border border-stone-700"></span>
+                  <span>Bedrock Ladder</span>
                 </div>
-                <MenuButton 
-                  onClick={() => onCraftRefiner(29)}
-                  disabled={!hasRefinerMaterials(28, 18)}
-                >
-                  Craft
-                </MenuButton>
+                <div className="text-sm text-stone-400">Ladder + Polished Bedrock</div>
+                <div className="text-right">
+                  <MenuButton 
+                    onClick={() => onCraftRefiner(29)}
+                    disabled={!hasRefinerMaterials(28, 18)}
+                  >
+                    Craft
+                  </MenuButton>
+                </div>
               </div>
             </div>
           </div>
